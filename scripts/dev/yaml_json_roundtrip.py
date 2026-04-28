@@ -33,7 +33,7 @@ YAML_DATASET_CASES: list[tuple[str, type[RootModel[Any]]]] = [
     ("contrabandTypes.yaml", yaml_datasets.ContrabandTypesRoot),
     ("controlTowerResources.yaml", yaml_datasets.ControlTowerResourcesRoot),
     ("corporationActivities.yaml", yaml_datasets.CorporationActivitiesRoot),
-    ("dbuffCollections.yaml", yaml_datasets.DebuffCollectionsRoot),
+    ("dbuffCollections.yaml", yaml_datasets.DbuffCollectionsRoot),
     ("dogmaAttributeCategories.yaml", yaml_datasets.DogmaAttributeCategoriesRoot),
     ("dogmaAttributes.yaml", yaml_datasets.DogmaAttributesRoot),
     ("dogmaEffects.yaml", yaml_datasets.DogmaEffectsRoot),

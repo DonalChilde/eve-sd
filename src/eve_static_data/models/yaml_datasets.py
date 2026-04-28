@@ -10,6 +10,7 @@ from eve_static_data.models.dataset_filenames import SdeDatasetFiles
 AgentsInSpaceRoot = RootModel[dict[int, yaml_records.AgentsInSpace]]
 AgentTypesRoot = RootModel[dict[int, yaml_records.AgentTypes]]
 AncestriesRoot = RootModel[dict[int, yaml_records.Ancestries]]
+ArchetypesRoot = RootModel[dict[int, yaml_records.Archetypes]]
 BloodlinesRoot = RootModel[dict[int, yaml_records.Bloodlines]]
 BlueprintsRoot = RootModel[dict[int, yaml_records.Blueprints]]
 CategoriesRoot = RootModel[dict[int, yaml_records.Categories]]
@@ -20,13 +21,14 @@ CompressibleTypesRoot = RootModel[dict[int, yaml_records.CompressibleTypes]]
 ContrabandTypesRoot = RootModel[dict[int, yaml_records.ContrabandTypes]]
 ControlTowerResourcesRoot = RootModel[dict[int, yaml_records.ControlTowerResources]]
 CorporationActivitiesRoot = RootModel[dict[int, yaml_records.CorporationActivities]]
-DebuffCollectionsRoot = RootModel[dict[int, yaml_records.DebuffCollections]]
+DbuffCollectionsRoot = RootModel[dict[int, yaml_records.DbuffCollections]]
 DogmaAttributeCategoriesRoot = RootModel[
     dict[int, yaml_records.DogmaAttributeCategories]
 ]
 DogmaAttributesRoot = RootModel[dict[int, yaml_records.DogmaAttributes]]
 DogmaEffectsRoot = RootModel[dict[int, yaml_records.DogmaEffects]]
 DogmaUnitsRoot = RootModel[dict[int, yaml_records.DogmaUnits]]
+DungeonsRoot = RootModel[dict[int, yaml_records.Dungeons]]
 DynamicItemAttributesRoot = RootModel[dict[int, yaml_records.DynamicItemAttributes]]
 FactionsRoot = RootModel[dict[int, yaml_records.Factions]]
 FreelanceJobSchemasRoot = RootModel[dict[int, yaml_records.FreelanceJobSchemas]]
@@ -76,6 +78,7 @@ def files_to_root_model_lookup() -> dict[SdeDatasetFiles, type[RootModel[Any]]]:
         SdeDatasetFiles.AGENTS_IN_SPACE: AgentsInSpaceRoot,
         SdeDatasetFiles.AGENT_TYPES: AgentTypesRoot,
         SdeDatasetFiles.ANCESTRIES: AncestriesRoot,
+        SdeDatasetFiles.ARCHETYPES: ArchetypesRoot,
         SdeDatasetFiles.BLOODLINES: BloodlinesRoot,
         SdeDatasetFiles.BLUEPRINTS: BlueprintsRoot,
         SdeDatasetFiles.CATEGORIES: CategoriesRoot,
@@ -86,11 +89,12 @@ def files_to_root_model_lookup() -> dict[SdeDatasetFiles, type[RootModel[Any]]]:
         SdeDatasetFiles.CONTRABAND_TYPES: ContrabandTypesRoot,
         SdeDatasetFiles.CONTROL_TOWER_RESOURCES: ControlTowerResourcesRoot,
         SdeDatasetFiles.CORPORATION_ACTIVITIES: CorporationActivitiesRoot,
-        SdeDatasetFiles.DEBUFF_COLLECTIONS: DebuffCollectionsRoot,
+        SdeDatasetFiles.DBUFF_COLLECTIONS: DbuffCollectionsRoot,
         SdeDatasetFiles.DOGMA_ATTRIBUTE_CATEGORIES: DogmaAttributeCategoriesRoot,
         SdeDatasetFiles.DOGMA_ATTRIBUTES: DogmaAttributesRoot,
         SdeDatasetFiles.DOGMA_EFFECTS: DogmaEffectsRoot,
         SdeDatasetFiles.DOGMA_UNITS: DogmaUnitsRoot,
+        SdeDatasetFiles.DUNGEONS: DungeonsRoot,
         SdeDatasetFiles.DYNAMIC_ITEM_ATTRIBUTES: DynamicItemAttributesRoot,
         SdeDatasetFiles.FACTIONS: FactionsRoot,
         SdeDatasetFiles.FREELANCE_JOB_SCHEMAS: FreelanceJobSchemasRoot,

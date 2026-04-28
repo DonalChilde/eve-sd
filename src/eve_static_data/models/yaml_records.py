@@ -156,6 +156,36 @@ class Ancestries(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
+class Archetypes(LocalizableRecord):
+    """Model for the archetypes.yaml dataset."""
+
+    archetypes_id: int | None = None
+    description: LocalizedString
+    title: LocalizedString
+
+    def localized_fields(
+        self, lang: Lang | None
+    ) -> dict[Literal["description", "title"], str | None]:
+        """Returns a dict of the localized fields in the model."""
+        if lang is None:
+            return {"description": None, "title": None}
+        return {
+            "description": self.localized_description(lang),
+            "title": self.localized_title(lang),
+        }
+
+    def localized_description(self, lang: Lang) -> str:
+        """Returns the localized description for the given language."""
+        lang_check(lang)
+        return self.description.get(lang, TRANSLATION_MISSING)
+
+    def localized_title(self, lang: Lang) -> str:
+        """Returns the localized title for the given language."""
+        lang_check(lang)
+        return self.title.get(lang, TRANSLATION_MISSING)
+
+
+@dataclass(slots=True, kw_only=True)
 class Bloodlines(LocalizableRecord):
     """Model for the bloodlines.yaml dataset."""
 
@@ -396,7 +426,7 @@ class CorporationActivities(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class DebuffCollections_LocationGroupModifier:
+class DbuffCollections_LocationGroupModifier:
     """Nested model for the dbuffCollections.yaml SDE file."""
 
     dogmaAttributeID: int
@@ -404,14 +434,14 @@ class DebuffCollections_LocationGroupModifier:
 
 
 @dataclass(slots=True, kw_only=True)
-class DebuffCollections_LocationModifier:
+class DbuffCollections_LocationModifier:
     """Nested model for the dbuffCollections.yaml SDE file."""
 
     dogmaAttributeID: int
 
 
 @dataclass(slots=True, kw_only=True)
-class DebuffCollections_LocationRequiredSkillModifier:
+class DbuffCollections_LocationRequiredSkillModifier:
     """Nested model for the dbuffCollections.yaml SDE file."""
 
     dogmaAttributeID: int
@@ -419,24 +449,24 @@ class DebuffCollections_LocationRequiredSkillModifier:
 
 
 @dataclass(slots=True, kw_only=True)
-class DebuffCollections_ItemModifier:
+class DbuffCollections_ItemModifier:
     """Nested model for the dbuffCollections.yaml SDE file."""
 
     dogmaAttributeID: int
 
 
 @dataclass(slots=True, kw_only=True)
-class DebuffCollections(LocalizableRecord):
+class DbuffCollections(LocalizableRecord):
     """Model for the dbuffCollections.yaml SDE file."""
 
-    debuff_collections_id: int | None = None
+    dbuff_collections_id: int | None = None
     aggregateMode: str
     developerDescription: str
-    itemModifiers: list[DebuffCollections_ItemModifier] | None = None
-    locationGroupModifiers: list[DebuffCollections_LocationGroupModifier] | None = None
-    locationModifiers: list[DebuffCollections_LocationModifier] | None = None
+    itemModifiers: list[DbuffCollections_ItemModifier] | None = None
+    locationGroupModifiers: list[DbuffCollections_LocationGroupModifier] | None = None
+    locationModifiers: list[DbuffCollections_LocationModifier] | None = None
     locationRequiredSkillModifiers: (
-        list[DebuffCollections_LocationRequiredSkillModifier] | None
+        list[DbuffCollections_LocationRequiredSkillModifier] | None
     ) = None
     operationName: str
     showOutputValueInUI: str
@@ -647,6 +677,54 @@ class DogmaUnits(LocalizableRecord):
         return (
             self.description.get(lang, TRANSLATION_MISSING)
             if self.description
+            else None
+        )
+
+
+@dataclass(slots=True, kw_only=True)
+class Dungeons(LocalizableRecord):
+    """Model for the dungeons.yaml SDE file."""
+
+    dungeons_id: int | None = None
+    allowedShipsList: list[int] | None = None
+    archetypeID: int
+    description: LocalizedString | None = None
+    factionID: int | None = None
+    gameplayDescription: LocalizedString | None = None
+    name: LocalizedString
+
+    def localized_fields(
+        self, lang: Lang | None
+    ) -> dict[Literal["description", "gameplayDescription", "name"], str | None]:
+        """Returns a dict of the localized fields in the model."""
+        if lang is None:
+            return {"description": None, "gameplayDescription": None, "name": None}
+        return {
+            "name": self.localized_name(lang),
+            "description": self.localized_description(lang),
+            "gameplayDescription": self.localized_gameplayDescription(lang),
+        }
+
+    def localized_name(self, lang: Lang) -> str | None:
+        """Returns the localized name for the given language."""
+        lang_check(lang)
+        return self.name.get(lang, TRANSLATION_MISSING) if self.name else None
+
+    def localized_description(self, lang: Lang) -> str | None:
+        """Returns the localized description for the given language."""
+        lang_check(lang)
+        return (
+            self.description.get(lang, TRANSLATION_MISSING)
+            if self.description
+            else None
+        )
+
+    def localized_gameplayDescription(self, lang: Lang) -> str | None:
+        """Returns the localized gameplay description for the given language."""
+        lang_check(lang)
+        return (
+            self.gameplayDescription.get(lang, TRANSLATION_MISSING)
+            if self.gameplayDescription
             else None
         )
 

@@ -1191,7 +1191,7 @@ LOOKUP: dict[SdeDatasetFiles, type[SdeDatasetRecord]] = {
     SdeDatasetFiles.CONTRABAND_TYPES: ContrabandTypes,
     SdeDatasetFiles.CONTROL_TOWER_RESOURCES: ControlTowerResources,
     SdeDatasetFiles.CORPORATION_ACTIVITIES: CorporationActivities,
-    SdeDatasetFiles.DEBUFF_COLLECTIONS: DebuffCollections,
+    SdeDatasetFiles.DBUFF_COLLECTIONS: DebuffCollections,
     SdeDatasetFiles.DOGMA_ATTRIBUTE_CATEGORIES: DogmaAttributeCategories,
     SdeDatasetFiles.DOGMA_ATTRIBUTES: DogmaAttributes,
     SdeDatasetFiles.DOGMA_EFFECTS: DogmaEffects,

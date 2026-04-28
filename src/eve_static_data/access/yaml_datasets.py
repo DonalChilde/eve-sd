@@ -79,6 +79,12 @@ class SdeYamlDatasetLoader:
         data = _load_file(file_path)
         return YD.AncestriesRoot.model_validate(data)
 
+    def archetypes(self) -> YD.ArchetypesRoot:
+        """Load the archetypes dataset from the SDE."""
+        file_path = self._narrow_file_path(SdeDatasetFiles.ARCHETYPES)
+        data = _load_file(file_path)
+        return YD.ArchetypesRoot.model_validate(data)
+
     def bloodlines(self) -> YD.BloodlinesRoot:
         """Load the bloodlines dataset from the SDE."""
         file_path = self._narrow_file_path(SdeDatasetFiles.BLOODLINES)
@@ -139,11 +145,11 @@ class SdeYamlDatasetLoader:
         data = _load_file(file_path)
         return YD.CorporationActivitiesRoot.model_validate(data)
 
-    def debuff_collections(self) -> YD.DebuffCollectionsRoot:
+    def debuff_collections(self) -> YD.DbuffCollectionsRoot:
         """Load the debuff collections dataset from the SDE."""
-        file_path = self._narrow_file_path(SdeDatasetFiles.DEBUFF_COLLECTIONS)
+        file_path = self._narrow_file_path(SdeDatasetFiles.DBUFF_COLLECTIONS)
         data = _load_file(file_path)
-        return YD.DebuffCollectionsRoot.model_validate(data)
+        return YD.DbuffCollectionsRoot.model_validate(data)
 
     def dogma_attribute_categories(self) -> YD.DogmaAttributeCategoriesRoot:
         """Load the dogma attribute categories dataset from the SDE."""
@@ -168,6 +174,12 @@ class SdeYamlDatasetLoader:
         file_path = self._narrow_file_path(SdeDatasetFiles.DOGMA_UNITS)
         data = _load_file(file_path)
         return YD.DogmaUnitsRoot.model_validate(data)
+
+    def dungeons(self) -> YD.DungeonsRoot:
+        """Load the dungeons dataset from the SDE."""
+        file_path = self._narrow_file_path(SdeDatasetFiles.DUNGEONS)
+        data = _load_file(file_path)
+        return YD.DungeonsRoot.model_validate(data)
 
     def dynamic_item_attributes(self) -> YD.DynamicItemAttributesRoot:
         """Load the dynamic item attributes dataset from the SDE."""
