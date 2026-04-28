@@ -1228,9 +1228,10 @@ class MercenaryTacticalOperations(LocalizableRecord):
     """Model for the mercenaryTacticalOperations.yaml SDE file."""
 
     mercenary_tactical_operations_id: int | None = None
-    anarchy_impact: int
-    development_impact: int
-    infomorph_bonus: int
+    anarchyImpact: int
+    developmentImpact: int
+    infomorphBonus: int
+    dungeonID: int
     name: LocalizedString
     description: LocalizedString | None = None
 
