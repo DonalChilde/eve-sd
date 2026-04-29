@@ -7,6 +7,10 @@
 
 ### Add
 - functions to detect and load all the _sde variants, used to get buildNumber etc, and to be a quick check that the SDE data exists.
+- functions to derive datasets and manipulate SDE datasets?
+  - See argus manipulations, move them over?
+  - add market_group.types derived dataset to mirror whats available from ESI.
+  - make names generator for planets, moons, belts, etc. see online dev docs for format.
 
 ### Change
 - Export to json takes yaml or jsonl files. 

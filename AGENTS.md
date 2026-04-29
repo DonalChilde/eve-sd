@@ -13,6 +13,8 @@ project-name: "esi-auth"
 - Provide docstrings following PEP 257 conventions.
 - Break down complex functions into smaller, more manageable functions.
 - During development, use the virtual environment found at the project root - `./.venv`
+- all code should be typed. eg. `foo:list[int] = [1,2,3]`
+- use red/green TDD
 
 ## General Instructions
 
@@ -50,6 +52,8 @@ project-name: "esi-auth"
 - Classes without an `__init__` function should have the docstring immediately following the class definition.
 
 # Project Specific Information
+
+NOTE: NEEDS TO BE UPDATED.
 
 ## Project Overview
 
