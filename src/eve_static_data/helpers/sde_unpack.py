@@ -3,7 +3,10 @@ import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from eve_static_data.helpers.sde_info import SdeInfo, load_sde_info_from_zipfile
+from eve_static_data.helpers.sde_info import (
+    SdeDatasetsInfo,
+    load_sde_info_from_detected_file_in_zipfile,
+)
 
 # Refactor note: avoid using ZipFile.extractall() directly on unvalidated archive members.
 # Why this should change:
@@ -40,7 +43,7 @@ from eve_static_data.helpers.sde_info import SdeInfo, load_sde_info_from_zipfile
 
 def unpack(
     input_path: Path, output_path: Path, use_build_number: bool = True
-) -> tuple[Path, SdeInfo]:
+) -> tuple[Path, SdeDatasetsInfo]:
     """Unpack the static data.
 
     Unzip the input file and save the unpacked data to the output path.
@@ -48,7 +51,7 @@ def unpack(
     If use_build_number is True, the unpacked data will be saved to
     `<output_path>/<build_number>/`. Otherwise, it will be saved to `<output_path>/`.
 
-    Checks for the presence of the _sde.jsonl file in the unpacked files. If the file is not
+    Checks for the presence of the _sde.jsonl or _sde.yaml file in the zip file. If the file is not
     found, raises a FileNotFoundError.
 
 
@@ -61,6 +64,8 @@ def unpack(
     Returns:
         A tuple containing the path to the directory where the unpacked data is saved and the SdeInfo object.
     """
+    # Note: The SDE zip files are expected to be flat (no nested directories), so we will
+    # only look for files at the root level of the zip file.
     if not input_path.is_file():
         raise FileNotFoundError(f"Input path {input_path} is not a file.")
     if input_path.suffix != ".zip":
@@ -69,28 +74,28 @@ def unpack(
         raise FileExistsError(
             f"Output path {output_path} already exists and is not a directory."
         )
-    sde_info = load_sde_info_from_zipfile(input_path)
-    build_number = sde_info.get("buildNumber")
-    if build_number is None:  # type: ignore
+    try:
+        sde_info = load_sde_info_from_detected_file_in_zipfile(input_path)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            f"_sde info file not found in the zip file {input_path}. Ensure the zip file contains an _sde info file in a supported format (JSONL or YAML)."
+        ) from e
+    except ValueError as e:
         raise ValueError(
-            f"Build number not found in _sde.jsonl file in the zip file {input_path}."
-        )
+            f"Failed to load SDE info from the zip file {input_path}. Ensure the _sde info file is in a supported format (JSONL or YAML) and contains the expected keys."
+        ) from e
+    except Exception as e:
+        raise ValueError(
+            f"An unexpected error occurred while loading SDE info from the zip file {input_path}: {e}"
+        ) from e
+    build_number = sde_info.get("buildNumber")
     unpack_dir = output_path / str(build_number) if use_build_number else output_path
-    if unpack_dir.exists() and not unpack_dir.is_dir():
-        raise FileExistsError(
-            f"Output directory {unpack_dir} already exists and is not a directory."
-        )
+    unpack_dir.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(input_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
-        sde_info_file = Path(temp_dir) / "_sde.jsonl"
-        if not sde_info_file.exists():
-            raise FileNotFoundError(
-                f"_sde.jsonl file not found in the unzipped SDE data at {temp_dir}. Is this a valid SDE zip file?"
-            )
-
-        unpack_dir.mkdir(parents=True, exist_ok=True)
         for file in Path(temp_dir).iterdir():
+            # Only move files (not directories) from the temp extraction directory to the final output directory.
             if file.is_file():
                 target_file = unpack_dir / file.name
                 if target_file.exists():

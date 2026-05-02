@@ -15,7 +15,7 @@ from eve_static_data.helpers.aiohttp.download_files import (
     download_bytes_to_file,
     download_text,
 )
-from eve_static_data.helpers.sde_info import SdeInfo
+from eve_static_data.helpers.sde_info import SdeDatasetsInfo
 from eve_static_data.helpers.sde_unpack import unpack
 
 
@@ -62,7 +62,7 @@ class SDETools:
 
     def unpack(
         self, input_path: Path, output_path: Path, use_build_number: bool = False
-    ) -> tuple[Path, SdeInfo]:
+    ) -> tuple[Path, SdeDatasetsInfo]:
         """Unpack the downloaded static data."""
         file_path, info = unpack(
             input_path, output_path, use_build_number=use_build_number
