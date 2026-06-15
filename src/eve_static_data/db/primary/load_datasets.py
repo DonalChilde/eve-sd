@@ -5,7 +5,6 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Literal, cast
 
-import yaml
 from more_itertools import peekable
 from pydantic_core import from_json
 
@@ -17,6 +16,7 @@ from eve_static_data.db.primary.helpers import (
 )
 from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
+from eve_static_data.helpers.yaml_loader import safe_load_path
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +35,6 @@ def import_yaml_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) -> 
         sde_path: The path to the directory containing the SDE datasets in YAML format.
         connection: The sqlite database connection where the SDE data should be inserted.
     """
-    try:
-        from yaml import CSafeLoader as SafeLoader
-
-        logger.info("Using CSafeLoader for YAML parsing.")
-    except ImportError:
-        from yaml import SafeLoader
-
-        logger.info("CSafeLoader not available, using SafeLoader for YAML parsing.")
     # Load the SDE metadata from the _sde.yaml file
     sde_metadata = load_sde_metadata(sde_path)
     if sde_metadata.source_format != "yaml":
@@ -64,8 +56,8 @@ def import_yaml_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) -> 
     for yaml_file in yaml_files:
         logger.info(f"Loading dataset from {yaml_file} into the database.")
         dataset_name = yaml_file.stem
-        with yaml_file.open() as f:
-            dataset_records = yaml.load(f, Loader=SafeLoader)
+
+        dataset_records = safe_load_path(yaml_file)
 
         if not isinstance(dataset_records, dict):
             raise ValueError(

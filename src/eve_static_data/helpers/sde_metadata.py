@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import RootModel
-from yaml import safe_load
+
+from eve_static_data.helpers.yaml_loader import safe_load_IO, safe_load_path
 
 
 @dataclass(slots=True, kw_only=True)
@@ -83,15 +84,14 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
             }
             return SdeMetadataRoot.model_validate(values).root
     else:
-        with open(sde_info_path_yaml) as f:
-            sde_info = safe_load(f)
-            sde_info = sde_info["sde"]
-            values: dict[str, Any] = {
-                "buildNumber": sde_info["buildNumber"],
-                "releaseDate": sde_info["releaseDate"],
-                "source_format": "yaml",
-            }
-            return SdeMetadataRoot.model_validate(values).root
+        sde_info = safe_load_path(sde_info_path_yaml)
+        sde_info = sde_info["sde"]
+        values: dict[str, Any] = {
+            "buildNumber": sde_info["buildNumber"],
+            "releaseDate": sde_info["releaseDate"],
+            "source_format": "yaml",
+        }
+        return SdeMetadataRoot.model_validate(values).root
 
 
 def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
@@ -135,7 +135,7 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                 return SdeMetadataRoot.model_validate(values).root
         else:
             with zip_ref.open("_sde.yaml") as f:
-                sde_info = safe_load(f)
+                sde_info = safe_load_IO(f)
                 sde_info = sde_info["sde"]
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],

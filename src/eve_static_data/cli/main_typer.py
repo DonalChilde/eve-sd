@@ -7,20 +7,24 @@ import typer
 
 from eve_static_data import __app_name__, __version__
 from eve_static_data.cli.config_info import app as config_info_app
-from eve_static_data.cli.sde_export import app as sde_export_app
-
-# from eve_static_data.cli.sde_import import app as sde_import_app
-from eve_static_data.cli.sde_network import app as sde_network_app
-from eve_static_data.cli.sde_unpack import app as sde_unpack_app
+from eve_static_data.cli.db import app as sde_import_app
+from eve_static_data.cli.export import app as sde_export_app
+from eve_static_data.cli.sde_metadata import app as sde_metadata_app
 from eve_static_data.cli.sde_validate import app as sde_validate_app
+from eve_static_data.cli.sde_zip import app as sde_zip_app
 from eve_static_data.logging_config import setup_logging
 from eve_static_data.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(no_args_is_help=True)
-app.add_typer(sde_network_app)
-app.add_typer(sde_unpack_app)
+app.add_typer(
+    sde_import_app, name="db", help="Commands for working with the SDE database."
+)
+app.add_typer(
+    sde_metadata_app, name="metadata", help="Commands for working with SDE metadata."
+)
+app.add_typer(sde_zip_app, name="zip", help="Commands for working with SDE zip files.")
 app.add_typer(
     sde_validate_app, name="validate", help="Commands for validating SDE data."
 )

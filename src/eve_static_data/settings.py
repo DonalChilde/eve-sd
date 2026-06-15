@@ -13,11 +13,7 @@ from eve_static_data import (
     LATEST_INFO_URL,
     SCHEMA_CHANGELOG_URL,
     SDE_URL_TEMPLATE,
-    USER_AGENT,
 )
-
-# from eve_static_data.sde_loader import SDELoader
-from eve_static_data.sde_tools import SDETools
 
 _app_env_prefix = "PFMSOFT_EVE_STATIC_DATA_"
 
@@ -34,18 +30,6 @@ class EveStaticDataSettings:
     sde_data_changes_url_template: str = DATA_CHANGES_URL_TEMPLATE
     sde_schema_changelog_url: str = SCHEMA_CHANGELOG_URL
     sde_data_filename_template: str = DATA_FILENAME_TEMPLATE
-
-    # TODO: Consider allowing/requiring users to add to USER_AGENT.
-    def sde_tools(self) -> SDETools:
-        """Get an instance of the SDETools for working with the SDE data."""
-        return SDETools(
-            latest_info_url=self.sde_latest_info_url,
-            download_url_template=self.sde_download_url_template,
-            data_changes_url_template=self.sde_data_changes_url_template,
-            schema_changelog_url=self.sde_schema_changelog_url,
-            data_filename_template=self.sde_data_filename_template,
-            user_agent=USER_AGENT,
-        )
 
 
 class EveStaticDataSettingsPydantic(BaseSettings):
