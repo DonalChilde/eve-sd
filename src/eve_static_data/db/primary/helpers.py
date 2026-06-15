@@ -8,10 +8,12 @@ from importlib.resources import files as resource_files
 from uuid import uuid4
 
 from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
+from eve_static_data.helpers.sde_metadata import SdeMetadata
 
 logger = logging.getLogger(__name__)
 
-_table_def_sql = "eve_static_data.db.primary.table_defs.sql"
+_table_def_parent = "eve_static_data.db.primary"
+_table_def_sql = "table_defs.sql"
 
 
 @contextmanager
@@ -50,7 +52,7 @@ def create_read_only_connection(db_path: str) -> sqlite3.Connection:
     uri = read_only_uri(db_path)
     connection = sqlite3.connect(uri, uri=True)
     connection.row_factory = sqlite3.Row
-    table_defs = resource_files(_table_def_sql).read_text()
+    table_defs = resource_files(_table_def_parent).joinpath(_table_def_sql).read_text()
     with transaction(connection) as conn:
         conn.executescript(table_defs)
     return connection
@@ -61,19 +63,23 @@ def create_read_write_connection(db_path: str) -> sqlite3.Connection:
     uri = read_write_uri(db_path)
     # Use the transaction context manager.
     connection = sqlite3.connect(uri, uri=True, autocommit=True)
+    logger.info(f"Created read-write connection to database at {db_path}")
     connection.row_factory = sqlite3.Row
-    table_defs = resource_files(_table_def_sql).read_text()
+    table_defs = resource_files(_table_def_parent).joinpath(_table_def_sql).read_text()
     with transaction(connection) as conn:
         conn.executescript(table_defs)
+        logger.info("Ensured database schema is created.")
     return connection
 
 
 def write_int_records(
-    conn: sqlite3.Connection, records: Iterable[DatasetRecordInt]
+    records: Iterable[DatasetRecordInt],
+    *,
+    connection: sqlite3.Connection,
 ) -> None:
     """Write an interable of DatasetRecordInt instances to the database."""
-    with transaction(conn):
-        conn.executemany(
+    with transaction(connection):
+        connection.executemany(
             """
                 INSERT INTO DatasetRecordsInt (record_key, dataset_name, record_json)
                 VALUES (?, ?, ?)
@@ -87,11 +93,13 @@ def write_int_records(
 
 
 def write_str_records(
-    conn: sqlite3.Connection, records: Iterable[DatasetRecordStr]
+    records: Iterable[DatasetRecordStr],
+    *,
+    connection: sqlite3.Connection,
 ) -> None:
     """Write an interable of DatasetRecordStr instances to the database."""
-    with transaction(conn):
-        conn.executemany(
+    with transaction(connection):
+        connection.executemany(
             """
                 INSERT INTO DatasetRecordsStr (record_key, dataset_name, record_json)
                 VALUES (?, ?, ?)
@@ -306,3 +314,22 @@ def read_str_records(
                     record_json=row["record_json"],
                 )
             conn.execute(f"DROP TABLE {table_name}")
+
+
+def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> None:
+    """Write the SDE metadata to the database."""
+    if sde_metadata.source_format is None:
+        raise ValueError("source_format must be provided in sde_metadata.")
+    with transaction(conn):
+        conn.execute(
+            """
+                INSERT INTO SdeMetadata (buildNumber, releaseDate, source_format)
+                VALUES (?, ?, ?)
+                ON CONFLICT(buildNumber) DO UPDATE SET releaseDate=excluded.releaseDate, source_format=excluded.source_format
+                """,
+            (
+                sde_metadata.buildNumber,
+                sde_metadata.releaseDate,
+                sde_metadata.source_format,
+            ),
+        )
