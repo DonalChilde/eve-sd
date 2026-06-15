@@ -17,8 +17,8 @@ from eve_static_data.helpers.httpx2.download_files import (
     download_bytes_to_file,
     download_text,
 )
-from eve_static_data.helpers.sde_info import SdeInfo
-from eve_static_data.helpers.sde_unpack import unpack
+from eve_static_data.helpers.sde_metadata import SdeMetadata
+from eve_static_data.helpers.sde_unpack import unpack as unpack_sde
 
 
 class SDETools:
@@ -70,9 +70,9 @@ class SDETools:
 
     def unpack(
         self, input_path: Path, output_path: Path, use_build_number: bool = False
-    ) -> tuple[Path, SdeInfo]:
+    ) -> tuple[Path, SdeMetadata]:
         """Unpack the downloaded static data."""
-        file_path, info = unpack(
+        file_path, info = unpack_sde(
             input_path, output_path, use_build_number=use_build_number
         )
         return file_path, info

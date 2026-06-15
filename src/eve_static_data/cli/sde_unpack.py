@@ -54,5 +54,5 @@ def unpack(
         console.print(f"[bold red]Error:[/bold red] Failed to unpack SDE data: {e}")
         raise typer.Exit(code=1) from e
     console.print(
-        f"Unpacked SDE {sde_info.get('buildNumber')} - {sde_info.get('releaseDate')} to {sde_path}"
+        f"Unpacked SDE {sde_info.buildNumber} - {sde_info.releaseDate} to {sde_path}"
     )
