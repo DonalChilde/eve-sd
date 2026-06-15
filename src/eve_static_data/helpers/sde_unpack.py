@@ -73,7 +73,7 @@ def unpack(
     build_number = sde_info.get("buildNumber")
     if build_number is None:  # type: ignore
         raise ValueError(
-            f"Build number not found in _sde.jsonl file in the zip file {input_path}."
+            f"Build number not found in _sde file in the zip file {input_path}."
         )
     unpack_dir = output_path / str(build_number) if use_build_number else output_path
     if unpack_dir.exists() and not unpack_dir.is_dir():
@@ -83,10 +83,13 @@ def unpack(
     with TemporaryDirectory() as temp_dir:
         with zipfile.ZipFile(input_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
-        sde_info_file = Path(temp_dir) / "_sde.jsonl"
-        if not sde_info_file.exists():
+        # The flag file could be _sde.jsonl or _sde.yaml, check for either one
+        sde_info_file_jsonl = Path(temp_dir) / "_sde.jsonl"
+        sde_info_file_yaml = Path(temp_dir) / "_sde.yaml"
+        if not (sde_info_file_jsonl.exists() or sde_info_file_yaml.exists()):
             raise FileNotFoundError(
-                f"_sde.jsonl file not found in the unzipped SDE data at {temp_dir}. Is this a valid SDE zip file?"
+                f"_sde.jsonl or _sde.yaml file not found in the unzipped SDE data "
+                f"at {temp_dir}. Is this a valid SDE zip file?"
             )
 
         unpack_dir.mkdir(parents=True, exist_ok=True)
