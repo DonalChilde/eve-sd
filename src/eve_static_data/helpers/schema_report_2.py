@@ -18,7 +18,6 @@ Supports two SDE source formats:
 
 from __future__ import annotations
 
-import json
 import logging
 from collections import Counter
 from dataclasses import dataclass, field
@@ -27,7 +26,10 @@ from glob import glob
 from pathlib import Path
 from typing import Any, Literal, TypedDict, cast
 
-from yaml import YAMLError, safe_load
+from yaml import YAMLError
+
+from eve_static_data.helpers import json_io
+from eve_static_data.helpers.yaml_loader import safe_load_path
 
 logger = logging.getLogger(__name__)
 
@@ -396,20 +398,17 @@ def _inspect_dataset(file_path: Path, sde_format: SdeFormat) -> DatasetInspectio
 
     try:
         if file_path.suffix.lower() == ".json":
-            with file_path.open("r", encoding="utf-8") as handle:
-                data = json.load(handle)
+            data = json_io.json_load_path(file_path)
         elif file_path.suffix.lower() in {".yaml", ".yml"}:
-            with file_path.open("r", encoding="utf-8") as handle:
-                data = safe_load(handle)
+            data = safe_load_path(file_path)
         else:
             _append_warning(
                 warnings,
                 f"Unrecognised file extension {file_path.suffix}; "
                 "attempting to parse as YAML",
             )
-            with file_path.open("r", encoding="utf-8") as handle:
-                data = safe_load(handle)
-    except (YAMLError, json.JSONDecodeError) as exc:
+            data = safe_load_path(file_path)
+    except (YAMLError, ValueError) as exc:
         logger.warning("Failed to parse dataset file %s: %s", file_path, exc)
         return _empty_result([f"Failed to parse file: {exc}"])
 
