@@ -15,6 +15,9 @@ Supports two SDE source formats:
 """
 # TODO Refactor to support yaml datasets from files, as well as from db.
 # - use the custom safeload function when loading from file to take advantage of the CSafeLoader if available.
+# - load datasets from various sources, then pass the loaded data to a common inspection function that doesn't need to know about the source format.
+# - resulting loaded data should be a dict[str | int, Any] for yaml-model and jsonl-model, so the inspection function can be shared with minimal branching.
+# - need function for loading jsonl files as dict[str|int,Any]
 
 from __future__ import annotations
 
@@ -39,6 +42,10 @@ type WarningList = list[str]
 
 SdeTypeName = Literal["dict", "list", "str", "int", "float", "bool", "null"]
 SdeFormat = Literal["yaml-model", "jsonl-model"]
+ValidSuffixes: dict[SdeFormat, set[str]] = {
+    "yaml-model": {".yaml", ".yml", ".json"},
+    "jsonl-model": {".json"},
+}
 
 #: Sentinel path component used in place of integer keys for ``yaml-model`` datasets.
 INTEGER_KEY = "INTEGER_KEY"
@@ -527,6 +534,19 @@ def _build_schema_report(
         "total_unique_paths": len(all_paths),
         "datasets": dataset_map,
     }
+
+
+def _collect_files(sde_path: Path, sde_format: SdeFormat) -> list[Path]:
+    """Collect dataset files from a path, which may be a file, directory, or glob pattern.
+
+    Args:
+        sde_path: Path to a dataset file, or a directory containing dataset files.
+        sde_format: Expected top-level structure of the datasets (yaml-model or jsonl-model).
+
+    Returns:
+        List of dataset file paths.
+    """
+    ...
 
 
 def scan_file(path: Path, sde_format: SdeFormat) -> SchemaReport:
