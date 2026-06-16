@@ -6,6 +6,12 @@ include machine-readable JSON results, a markdown report, schema inspection repo
 and optional network artifacts (schema changelog and data changes) for the detected
 build number.
 """
+# TODO Refactor to support yaml datasets from files, as well as from db.
+# - use the custom safeload function when loading from file to take advantage of the CSafeLoader if available.
+# - collect all the reports, and downloads into one class that can be passed around afterwards.
+#   - This will make it easy to persist the reports in multiple formats, and also to use the network artifacts in other contexts if needed.
+# - The validate files and validate from db should come up with largely the same results, and the same report format, so that we can easily compare the results from both sources.
+# - It looks like the validation logic should be simplified
 
 from __future__ import annotations
 
