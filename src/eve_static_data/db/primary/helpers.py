@@ -5,6 +5,7 @@ import sqlite3
 from collections.abc import Iterable
 from contextlib import contextmanager
 from importlib.resources import files as resource_files
+from typing import Any
 from uuid import uuid4
 
 from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
@@ -35,6 +36,30 @@ def transaction(conn: sqlite3.Connection):
         logger.error("Transaction failed. %s", e, exc_info=e)
         conn.execute("ROLLBACK")
         raise
+
+
+def deserialize_int_records(
+    records: Iterable[DatasetRecordInt],
+) -> dict[str, dict[int, Any]]:
+    """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
+    result: dict[str, dict[int, Any]] = {}
+    for record in records:
+        if record.dataset_name not in result:
+            result[record.dataset_name] = {}
+        result[record.dataset_name][record.record_key] = record.deserialize_record()
+    return result
+
+
+def deserialize_str_records(
+    records: Iterable[DatasetRecordStr],
+) -> dict[str, dict[str, Any]]:
+    """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
+    result: dict[str, dict[str, Any]] = {}
+    for record in records:
+        if record.dataset_name not in result:
+            result[record.dataset_name] = {}
+        result[record.dataset_name][record.record_key] = record.deserialize_record()
+    return result
 
 
 def read_only_uri(db_path: str) -> str:
