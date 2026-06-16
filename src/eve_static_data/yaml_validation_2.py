@@ -21,10 +21,12 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any, Literal, cast
 
+from httpx2 import Client
 from pydantic import RootModel, ValidationError
 from yaml import YAMLError, safe_load
 
 from eve_static_data.helpers import schema_report
+from eve_static_data.helpers.http_client import config_http_client
 from eve_static_data.helpers.save_text_file import save_text_file
 from eve_static_data.models import yaml_datasets
 from eve_static_data.models.dataset_filenames import SdeDatasetFiles
@@ -34,11 +36,6 @@ logger = logging.getLogger(__name__)
 
 type RootModelType = type[RootModel[Any]]
 type DatasetFileResolution = tuple[Path, str]
-
-
-def _failed_record_list() -> list[FailedRecordValidation]:
-    """Return a typed default list for failed record entries."""
-    return []
 
 
 @dataclass
@@ -105,7 +102,7 @@ class DatasetValidationResult:
     missing_file: bool = False
     parse_error: str | None = None
     failed_records: list[FailedRecordValidation] = field(
-        default_factory=_failed_record_list
+        default_factory=list[FailedRecordValidation]
     )
 
     def is_valid(self) -> bool:
@@ -354,10 +351,11 @@ def _render_markdown_report(summary: YamlValidationSummary) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-async def _save_network_artifacts(
+def _save_network_artifacts(
     build_number: int | None,
     output_path: Path,
     sde_tools: SDETools,
+    session: Client,
     overwrite: bool,
 ) -> list[str]:
     """Fetch and persist optional network artifacts for the validated build.
@@ -366,6 +364,7 @@ async def _save_network_artifacts(
         build_number: Build number extracted from ``_sde`` dataset.
         output_path: Directory to save downloaded artifacts.
         sde_tools: SDE tools network client.
+        session: HTTP client session for network requests.
         overwrite: Whether to overwrite existing output files.
 
     Returns:
@@ -377,7 +376,9 @@ async def _save_network_artifacts(
         return warnings
 
     try:
-        schema_changelog = await sde_tools.fetch_schema_changelog(build_number)
+        schema_changelog = sde_tools.fetch_schema_changelog(
+            build_number, session=session
+        )
         save_text_file(
             text=schema_changelog,
             output_path=output_path,
@@ -388,7 +389,7 @@ async def _save_network_artifacts(
         warnings.append(f"Failed to fetch schema changelog: {exc}")
 
     try:
-        data_changes = await sde_tools.fetch_data_changes(build_number)
+        data_changes = sde_tools.fetch_data_changes(build_number, session=session)
         save_text_file(
             text=data_changes,
             output_path=output_path,
@@ -401,10 +402,11 @@ async def _save_network_artifacts(
     return warnings
 
 
-async def validate_yaml_datasets(
+def validate_yaml_datasets(
     sde_path: Path,
     output_path: Path | None = None,
     sde_tools: SDETools | None = None,
+    session: Client | None = None,
     overwrite: bool = True,
 ) -> dict[str, Any]:
     """Validate all YAML/JSON datasets under an SDE directory.
@@ -414,6 +416,7 @@ async def validate_yaml_datasets(
         output_path: Optional report output directory. Defaults to
             ``<sde_path>/validation_results``.
         sde_tools: Optional ``SDETools`` instance for network artifact downloads.
+        session: Optional HTTP client session for network requests.
         overwrite: Whether existing report files may be overwritten.
 
     Returns:
@@ -427,6 +430,8 @@ async def validate_yaml_datasets(
         raise FileNotFoundError(f"SDE path does not exist: {sde_path}")
     if not sde_path.is_dir():
         raise NotADirectoryError(f"SDE path is not a directory: {sde_path}")
+    if session is None:
+        session = config_http_client()
 
     resolved_output_path = output_path or (sde_path / "validation_results")
     resolved_output_path.mkdir(parents=True, exist_ok=True)
@@ -539,10 +544,11 @@ async def validate_yaml_datasets(
     )
 
     network_client = sde_tools or SDETools()
-    summary.network_warnings = await _save_network_artifacts(
+    summary.network_warnings = _save_network_artifacts(
         build_number=build_number,
         output_path=resolved_output_path,
         sde_tools=network_client,
+        session=session,
         overwrite=overwrite,
     )
     if summary.network_warnings:
