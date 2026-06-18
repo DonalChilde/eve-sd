@@ -2,7 +2,7 @@
 
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, Iterator
+from typing import IO, Any, BinaryIO, Iterator
 
 from pydantic_core import from_json, to_json
 
@@ -67,9 +67,16 @@ def json_dump_path(
             return counter
 
 
-def jsonl_loads(jsonl_string: str | bytes) -> Iterator[Any]:
+def jsonl_loads(jsonl_string: str) -> Iterator[Any]:
     """Load a JSONL string into a list of Python objects."""
     for line in jsonl_string.splitlines():
+        if line.strip():
+            yield from_json(line)
+
+
+def jsonl_load_bytes(jsonl_bytes: bytes) -> Iterator[Any]:
+    """Load a JSONL bytes into a list of Python objects."""
+    for line in jsonl_bytes.splitlines():
         if line.strip():
             yield from_json(line)
 
@@ -88,7 +95,6 @@ def jsonl_dump_path(
     filepath: Path,
     overwrite: bool = False,
     append: bool = False,
-    indent: int | None = None,
     **kwargs: Any,
 ) -> int:
     """Dump a list of Python objects to a JSONL file.
@@ -103,7 +109,6 @@ def jsonl_dump_path(
         filepath: The path to the JSONL file.
         overwrite: Whether to overwrite the file if it exists.
         append: Whether to append to the file if it exists.
-        indent: The indentation level for the JSONL file.
         **kwargs: Additional keyword arguments passed to `json_dumps`.
 
     Returns:
@@ -112,29 +117,41 @@ def jsonl_dump_path(
     Raises:
         FileExistsError: If the file already exists and `overwrite` is False.
     """
+    if "indent" in kwargs:
+        raise ValueError("indent is not supported for JSONL files.")
     filepath.parent.mkdir(parents=True, exist_ok=True)
     if overwrite and append:
         raise ValueError("overwrite and append are mutually exclusive.")
 
-    def write_objs(f: TextIOWrapper):
+    def write_objs(f: IO[Any]):
         counter = 0
         for obj in objs:
-            counter += f.write(json_dumps(obj, indent=indent, **kwargs))
-            counter += f.write("\n")
+            counter += f.write(json_dump_bytes(obj, **kwargs))
+            counter += f.write(b"\n")
         return counter
 
     if append:
-        with filepath.open("a", encoding="utf-8") as f:
+        with filepath.open("ab") as f:
             return write_objs(f)
 
     if overwrite:
-        with filepath.open("w", encoding="utf-8") as f:
+        with filepath.open("wb") as f:
             return write_objs(f)
     else:
-        with filepath.open("x", encoding="utf-8") as f:
+        with filepath.open("xb") as f:
             return write_objs(f)
 
 
-def jsonl_dumps(objs: Iterator[Any], indent: int | None = None, **kwargs: Any) -> str:
+def jsonl_dumps(objs: Iterator[Any], **kwargs: Any) -> str:
     """Dump a list of Python objects to a JSONL string."""
-    return "\n".join(json_dumps(obj, indent=indent, **kwargs) for obj in objs)
+    if "indent" in kwargs:
+        raise ValueError("indent is not supported for JSONL files.")
+    return "\n".join(json_dumps(obj, **kwargs) for obj in objs)
+
+
+def jsonl_dump_bytes(objs: Iterator[Any], **kwargs: Any) -> bytes:
+    """Dump a list of Python objects to a JSONL bytes."""
+    if "indent" in kwargs:
+        raise ValueError("indent is not supported for JSONL files.")
+    jsonl_bytes = b"\n".join(json_dump_bytes(obj, **kwargs) for obj in objs)
+    return jsonl_bytes
