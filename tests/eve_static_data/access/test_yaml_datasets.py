@@ -14,7 +14,7 @@ from pydantic import RootModel
 import tests.resources.sde_data.yaml as _yaml_pkg
 from eve_static_data.access.yaml_datasets import SdeYamlDatasetLoader
 from eve_static_data.models import yaml_datasets
-from eve_static_data.models.dataset_filenames import SdeDatasetFiles
+from eve_static_data.models.dataset_filenames import SdeDatasets
 
 # Directory of the committed YAML fixture files — used directly for happy-path tests.
 YAML_FIXTURE_DIR = Path(_yaml_pkg.__file__).parent
@@ -103,9 +103,9 @@ def test_loader_requires_exactly_one_sde_file(
 def test_narrow_file_path_returns_yaml_path_for_yaml_sde() -> None:
     """Path narrowing should resolve the YAML dataset file in a YAML SDE directory."""
     loader = SdeYamlDatasetLoader(YAML_FIXTURE_DIR)
-    expected = YAML_FIXTURE_DIR / SdeDatasetFiles.AGENT_TYPES.as_yaml()
+    expected = YAML_FIXTURE_DIR / SdeDatasets.AGENT_TYPES.as_yaml()
 
-    assert loader._narrow_file_path(SdeDatasetFiles.AGENT_TYPES) == expected
+    assert loader._narrow_file_path(SdeDatasets.AGENT_TYPES) == expected
 
 
 def test_narrow_file_path_raises_when_dataset_missing(tmp_path: Path) -> None:
@@ -116,7 +116,7 @@ def test_narrow_file_path_raises_when_dataset_missing(tmp_path: Path) -> None:
     loader = SdeYamlDatasetLoader(tmp_path)
 
     with pytest.raises(FileNotFoundError, match="agentTypes.yaml"):
-        loader._narrow_file_path(SdeDatasetFiles.AGENT_TYPES)
+        loader._narrow_file_path(SdeDatasets.AGENT_TYPES)
 
 
 # ---------------------------------------------------------------------------

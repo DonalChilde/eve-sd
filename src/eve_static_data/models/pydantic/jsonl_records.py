@@ -19,7 +19,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from eve_static_data.helpers.jsonl_reader import read_jsonl_file
-from eve_static_data.models.dataset_filenames import SdeDatasetFiles
+from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.transformers import ModelLoader
 
 # ------------------------------------------------------------------------------
@@ -1177,71 +1177,71 @@ class EveTypes(SdeDatasetRecord):
     factionID: int | None = None
 
 
-LOOKUP: dict[SdeDatasetFiles, type[SdeDatasetRecord]] = {
-    SdeDatasetFiles.AGENTS_IN_SPACE: AgentsInSpace,
-    SdeDatasetFiles.AGENT_TYPES: AgentTypes,
-    SdeDatasetFiles.ANCESTRIES: Ancestries,
-    SdeDatasetFiles.BLOODLINES: Bloodlines,
-    SdeDatasetFiles.BLUEPRINTS: Blueprints,
-    SdeDatasetFiles.CATEGORIES: Categories,
-    SdeDatasetFiles.CERTIFICATES: Certificates,
-    SdeDatasetFiles.CHARACTER_ATTRIBUTES: CharacterAttributes,
-    SdeDatasetFiles.CLONE_GRADES: CloneGrades,
-    SdeDatasetFiles.COMPRESSIBLE_TYPES: CompressibleTypes,
-    SdeDatasetFiles.CONTRABAND_TYPES: ContrabandTypes,
-    SdeDatasetFiles.CONTROL_TOWER_RESOURCES: ControlTowerResources,
-    SdeDatasetFiles.CORPORATION_ACTIVITIES: CorporationActivities,
-    SdeDatasetFiles.DBUFF_COLLECTIONS: DebuffCollections,
-    SdeDatasetFiles.DOGMA_ATTRIBUTE_CATEGORIES: DogmaAttributeCategories,
-    SdeDatasetFiles.DOGMA_ATTRIBUTES: DogmaAttributes,
-    SdeDatasetFiles.DOGMA_EFFECTS: DogmaEffects,
-    SdeDatasetFiles.DOGMA_UNITS: DogmaUnits,
-    SdeDatasetFiles.DYNAMIC_ITEM_ATTRIBUTES: DynamicItemAttributes,
-    SdeDatasetFiles.FACTIONS: Factions,
-    SdeDatasetFiles.FREELANCE_JOB_SCHEMAS: FreelanceJobSchemas,
-    SdeDatasetFiles.GRAPHICS: Graphics,
-    SdeDatasetFiles.GROUPS: Groups,
-    SdeDatasetFiles.ICONS: Icons,
-    SdeDatasetFiles.LANDMARKS: Landmarks,
-    SdeDatasetFiles.MAP_ASTEROID_BELTS: MapAsteroidBelts,
-    SdeDatasetFiles.MAP_CONSTELLATIONS: MapConstellations,
-    SdeDatasetFiles.MAP_MOONS: MapMoons,
-    SdeDatasetFiles.MAP_PLANETS: MapPlanets,
-    SdeDatasetFiles.MAP_REGIONS: MapRegions,
-    SdeDatasetFiles.MAP_SECONDARY_SUNS: MapSecondarySuns,
-    SdeDatasetFiles.MAP_SOLAR_SYSTEMS: MapSolarSystems,
-    SdeDatasetFiles.MAP_STARGATES: MapStargates,
-    SdeDatasetFiles.MAP_STARS: MapStars,
-    SdeDatasetFiles.MARKET_GROUPS: MarketGroups,
-    SdeDatasetFiles.MASTERIES: Masteries,
-    SdeDatasetFiles.META_GROUPS: MetaGroups,
-    SdeDatasetFiles.MERCENARY_TACTICAL_OPERATIONS: MercenaryTacticalOperations,
-    SdeDatasetFiles.NPC_CHARACTERS: NpcCharacters,
-    SdeDatasetFiles.NPC_CORPORATION_DIVISIONS: NpcCorporationDivisions,
-    SdeDatasetFiles.NPC_CORPORATIONS: NpcCorporations,
-    SdeDatasetFiles.NPC_STATIONS: NpcStations,
-    SdeDatasetFiles.PLANET_RESOURCES: PlanetResources,
-    SdeDatasetFiles.PLANET_SCHEMATICS: PlanetSchematics,
-    SdeDatasetFiles.RACES: Races,
-    SdeDatasetFiles.SDE_INFO: SdeInfo,
-    SdeDatasetFiles.SKIN_LICENSES: SkinLicenses,
-    SdeDatasetFiles.SKIN_MATERIALS: SkinMaterials,
-    SdeDatasetFiles.SKINS: Skins,
-    SdeDatasetFiles.SOVEREIGNTY_UPGRADES: SovereigntyUpgrades,
-    SdeDatasetFiles.STATION_OPERATIONS: StationOperations,
-    SdeDatasetFiles.STATION_SERVICES: StationServices,
-    SdeDatasetFiles.TRANSLATION_LANGUAGES: TranslationLanguages,
-    SdeDatasetFiles.TYPE_BONUS: TypeBonus,
-    SdeDatasetFiles.TYPE_DOGMA: TypeDogma,
-    SdeDatasetFiles.TYPE_MATERIALS: TypeMaterials,
-    SdeDatasetFiles.TYPES: EveTypes,
+LOOKUP: dict[SdeDatasets, type[SdeDatasetRecord]] = {
+    SdeDatasets.AGENTS_IN_SPACE: AgentsInSpace,
+    SdeDatasets.AGENT_TYPES: AgentTypes,
+    SdeDatasets.ANCESTRIES: Ancestries,
+    SdeDatasets.BLOODLINES: Bloodlines,
+    SdeDatasets.BLUEPRINTS: Blueprints,
+    SdeDatasets.CATEGORIES: Categories,
+    SdeDatasets.CERTIFICATES: Certificates,
+    SdeDatasets.CHARACTER_ATTRIBUTES: CharacterAttributes,
+    SdeDatasets.CLONE_GRADES: CloneGrades,
+    SdeDatasets.COMPRESSIBLE_TYPES: CompressibleTypes,
+    SdeDatasets.CONTRABAND_TYPES: ContrabandTypes,
+    SdeDatasets.CONTROL_TOWER_RESOURCES: ControlTowerResources,
+    SdeDatasets.CORPORATION_ACTIVITIES: CorporationActivities,
+    SdeDatasets.DBUFF_COLLECTIONS: DebuffCollections,
+    SdeDatasets.DOGMA_ATTRIBUTE_CATEGORIES: DogmaAttributeCategories,
+    SdeDatasets.DOGMA_ATTRIBUTES: DogmaAttributes,
+    SdeDatasets.DOGMA_EFFECTS: DogmaEffects,
+    SdeDatasets.DOGMA_UNITS: DogmaUnits,
+    SdeDatasets.DYNAMIC_ITEM_ATTRIBUTES: DynamicItemAttributes,
+    SdeDatasets.FACTIONS: Factions,
+    SdeDatasets.FREELANCE_JOB_SCHEMAS: FreelanceJobSchemas,
+    SdeDatasets.GRAPHICS: Graphics,
+    SdeDatasets.GROUPS: Groups,
+    SdeDatasets.ICONS: Icons,
+    SdeDatasets.LANDMARKS: Landmarks,
+    SdeDatasets.MAP_ASTEROID_BELTS: MapAsteroidBelts,
+    SdeDatasets.MAP_CONSTELLATIONS: MapConstellations,
+    SdeDatasets.MAP_MOONS: MapMoons,
+    SdeDatasets.MAP_PLANETS: MapPlanets,
+    SdeDatasets.MAP_REGIONS: MapRegions,
+    SdeDatasets.MAP_SECONDARY_SUNS: MapSecondarySuns,
+    SdeDatasets.MAP_SOLAR_SYSTEMS: MapSolarSystems,
+    SdeDatasets.MAP_STARGATES: MapStargates,
+    SdeDatasets.MAP_STARS: MapStars,
+    SdeDatasets.MARKET_GROUPS: MarketGroups,
+    SdeDatasets.MASTERIES: Masteries,
+    SdeDatasets.META_GROUPS: MetaGroups,
+    SdeDatasets.MERCENARY_TACTICAL_OPERATIONS: MercenaryTacticalOperations,
+    SdeDatasets.NPC_CHARACTERS: NpcCharacters,
+    SdeDatasets.NPC_CORPORATION_DIVISIONS: NpcCorporationDivisions,
+    SdeDatasets.NPC_CORPORATIONS: NpcCorporations,
+    SdeDatasets.NPC_STATIONS: NpcStations,
+    SdeDatasets.PLANET_RESOURCES: PlanetResources,
+    SdeDatasets.PLANET_SCHEMATICS: PlanetSchematics,
+    SdeDatasets.RACES: Races,
+    SdeDatasets.SDE_INFO: SdeInfo,
+    SdeDatasets.SKIN_LICENSES: SkinLicenses,
+    SdeDatasets.SKIN_MATERIALS: SkinMaterials,
+    SdeDatasets.SKINS: Skins,
+    SdeDatasets.SOVEREIGNTY_UPGRADES: SovereigntyUpgrades,
+    SdeDatasets.STATION_OPERATIONS: StationOperations,
+    SdeDatasets.STATION_SERVICES: StationServices,
+    SdeDatasets.TRANSLATION_LANGUAGES: TranslationLanguages,
+    SdeDatasets.TYPE_BONUS: TypeBonus,
+    SdeDatasets.TYPE_DOGMA: TypeDogma,
+    SdeDatasets.TYPE_MATERIALS: TypeMaterials,
+    SdeDatasets.TYPES: EveTypes,
 }
-REVERSE: dict[str, SdeDatasetFiles] = {
+REVERSE: dict[str, SdeDatasets] = {
     model.__name__: dataset_file for dataset_file, model in LOOKUP.items()
 }
 
 
-def get_model_for_dataset_file(dataset_file: SdeDatasetFiles) -> type[SdeDatasetRecord]:
+def get_model_for_dataset_file(dataset_file: SdeDatasets) -> type[SdeDatasetRecord]:
     """Get the pydantic model class for a given SDE dataset file.
 
     Args:
@@ -1283,7 +1283,7 @@ def get_transformer[T: SdeDatasetRecord](
 
 def get_dataset_file_for_model[T: SdeDatasetRecord](
     model: type[T],
-) -> SdeDatasetFiles:
+) -> SdeDatasets:
     """Get the corresponding SDE dataset file for a given model.
 
     Args:

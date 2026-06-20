@@ -1,9 +1,9 @@
-"""This module defines the SdeDatasetFiles enum, which contains the names of all the dataset files in the SDE."""
+"""This module defines the SdeDatasets enum, which contains the names of all the dataset files in the SDE."""
 
 from enum import StrEnum
 
 
-class SdeDatasetFiles(StrEnum):
+class SdeDatasets(StrEnum):
     AGENTS_IN_SPACE = "agentsInSpace"
     AGENT_TYPES = "agentTypes"
     ANCESTRIES = "ancestries"

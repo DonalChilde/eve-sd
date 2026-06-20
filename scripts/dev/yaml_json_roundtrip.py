@@ -88,7 +88,7 @@ def main(
     ],
 ) -> None:
     """Script to test YAML fixture round-tripping through JSON."""
-    for sde_file, root_model in yaml_datasets.files_to_root_model_lookup().items():
+    for sde_file, root_model in yaml_datasets.datasets_to_root_model_lookup().items():
         yaml_file_path = sde_path / sde_file.as_yaml()
         print(f"Processing {yaml_file_path}...")
         with yaml_file_path.open(encoding="utf-8") as file_handle:

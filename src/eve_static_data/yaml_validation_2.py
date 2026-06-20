@@ -29,7 +29,7 @@ from eve_static_data.helpers import schema_report
 from eve_static_data.helpers.http_client import config_http_client
 from eve_static_data.helpers.save_text_file import save_text_file
 from eve_static_data.models import yaml_datasets
-from eve_static_data.models.dataset_filenames import SdeDatasetFiles
+from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.sde_tools import SDETools
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class YamlValidationSummary:
     datasets: dict[str, DatasetValidationResult]
 
 
-def _dataset_candidates(dataset: SdeDatasetFiles) -> list[tuple[str, str]]:
+def _dataset_candidates(dataset: SdeDatasets) -> list[tuple[str, str]]:
     """Return preferred file candidates and flavor names for a dataset.
 
     Args:
@@ -149,7 +149,7 @@ def _dataset_candidates(dataset: SdeDatasetFiles) -> list[tuple[str, str]]:
 
 
 def _resolve_dataset_file(
-    sde_path: Path, dataset: SdeDatasetFiles
+    sde_path: Path, dataset: SdeDatasets
 ) -> DatasetFileResolution | None:
     """Resolve the first available source file for a dataset.
 
@@ -170,7 +170,7 @@ def _resolve_dataset_file(
 def _expected_candidate_names() -> set[str]:
     """Return all accepted dataset file names across all supported flavors."""
     names: set[str] = set()
-    for dataset in SdeDatasetFiles:
+    for dataset in SdeDatasets:
         for file_name, _ in _dataset_candidates(dataset):
             names.add(file_name)
     return names
@@ -436,11 +436,11 @@ def validate_yaml_datasets(
     resolved_output_path = output_path or (sde_path / "validation_results")
     resolved_output_path.mkdir(parents=True, exist_ok=True)
 
-    root_model_lookup = yaml_datasets.files_to_root_model_lookup()
+    root_model_lookup = yaml_datasets.datasets_to_root_model_lookup()
     dataset_results: dict[str, DatasetValidationResult] = {}
     build_number: int | None = None
 
-    for dataset in SdeDatasetFiles:
+    for dataset in SdeDatasets:
         result = DatasetValidationResult(dataset=dataset.name, file_name=dataset.value)
         root_model: RootModelType = root_model_lookup[dataset]
         resolved = _resolve_dataset_file(sde_path, dataset)
@@ -481,7 +481,7 @@ def validate_yaml_datasets(
                 )
         result.validation_time_seconds = perf_counter() - validate_start
 
-        if dataset == SdeDatasetFiles.SDE_INFO:
+        if dataset == SdeDatasets.SDE_INFO:
             build_number = _extract_build_number(payload)
 
         dataset_results[dataset.name] = result
@@ -499,7 +499,7 @@ def validate_yaml_datasets(
         output_path=str(resolved_output_path),
         generated_at_utc=datetime.now(UTC).isoformat(timespec="seconds"),
         build_number=build_number,
-        expected_dataset_count=len(SdeDatasetFiles),
+        expected_dataset_count=len(SdeDatasets),
         present_dataset_count=sum(
             1 for result in dataset_results.values() if not result.missing_file
         ),

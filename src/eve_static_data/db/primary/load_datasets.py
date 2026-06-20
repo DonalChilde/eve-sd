@@ -37,9 +37,9 @@ def import_yaml_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) -> 
     """
     # Load the SDE metadata from the _sde.yaml file
     sde_metadata = load_sde_metadata(sde_path)
-    if sde_metadata.source_format != "yaml":
+    if sde_metadata.source_format != "yaml-model":
         raise ValueError(
-            f"Expected source format 'yaml' in SDE metadata, but got '{sde_metadata.source_format}'."
+            f"Expected source format 'yaml-model' in SDE metadata, but got '{sde_metadata.source_format}'."
         )
     # And insert the SDE metadata into the database
     write_sde_metadata(connection, sde_metadata)
@@ -106,9 +106,9 @@ def import_jsonl_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) ->
     """
     # Load the SDE metadata from the _sde.jsonl file
     sde_metadata = load_sde_metadata(sde_path)
-    if sde_metadata.source_format != "jsonl":
+    if sde_metadata.source_format != "jsonl-model":
         raise ValueError(
-            f"Expected source format 'jsonl' in SDE metadata, but got '{sde_metadata.source_format}'."
+            f"Expected source format 'jsonl-model' in SDE metadata, but got '{sde_metadata.source_format}'."
         )
     # And insert the SDE metadata into the database
     write_sde_metadata(connection, sde_metadata)

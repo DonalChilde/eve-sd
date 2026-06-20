@@ -74,11 +74,25 @@ def jsonl_loads(jsonl_string: str) -> Iterator[Any]:
             yield from_json(line)
 
 
+def jsonl_loads_indexed(jsonl_string: str) -> Iterator[tuple[int, Any]]:
+    """Load a JSONL string into a list of Python objects, yielding (line_number, object) tuples."""
+    for line_number, line in enumerate(jsonl_string.splitlines(), start=1):
+        if line.strip():
+            yield line_number, from_json(line)
+
+
 def jsonl_load_bytes(jsonl_bytes: bytes) -> Iterator[Any]:
     """Load a JSONL bytes into a list of Python objects."""
     for line in jsonl_bytes.splitlines():
         if line.strip():
             yield from_json(line)
+
+
+def jsonl_load_bytes_indexed(jsonl_bytes: bytes) -> Iterator[tuple[int, Any]]:
+    """Load a JSONL bytes into a list of Python objects, yielding (line_number, object) tuples."""
+    for line_number, line in enumerate(jsonl_bytes.splitlines(), start=1):
+        if line.strip():
+            yield line_number, from_json(line)
 
 
 def jsonl_load_path(filepath: Path) -> Iterator[Any]:
@@ -87,6 +101,14 @@ def jsonl_load_path(filepath: Path) -> Iterator[Any]:
         for line in f:
             if line.strip():
                 yield from_json(line)
+
+
+def jsonl_load_path_indexed(filepath: Path) -> Iterator[tuple[int, Any]]:
+    """Load a JSONL file into a list of Python objects, yielding (line_number, object) tuples."""
+    with filepath.open("r", encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            if line.strip():
+                yield line_number, from_json(line)
 
 
 def jsonl_dump_path(
