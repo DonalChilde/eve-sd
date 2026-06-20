@@ -1,8 +1,8 @@
 """Helper functions for loading and dumping JSON data using the pydantic json library."""
 
-from io import TextIOWrapper
+from collections.abc import Iterator
 from pathlib import Path
-from typing import IO, Any, BinaryIO, Iterator
+from typing import IO, Any
 
 from pydantic_core import from_json, to_json
 
