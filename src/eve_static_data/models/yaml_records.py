@@ -50,7 +50,7 @@ from eve_static_data.models.common import (
 # ------------------------------------------------------------------------------
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Materials:
     """Model used in multiple datasets for materials, e.g. in blueprints and typeMaterials."""
 
@@ -58,7 +58,7 @@ class Materials:
     quantity: int
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Skills:
     """Model used in multiple datasets for skills, e.g. in blueprints and npcCharacters."""
 
@@ -66,7 +66,7 @@ class Skills:
     level: int
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Color:
     """Model used in multiple datasets for color, e.g. in metaGroups."""
 
@@ -75,7 +75,7 @@ class Color:
     r: float
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Position:
     """Model used in multiple datasets for position, e.g. in celestialObjects and npcCharacters."""
 
@@ -84,7 +84,7 @@ class Position:
     z: float
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Position2D:
     """Model used in multiple datasets for 2D position, e.g. in mapSolarSystems."""
 
@@ -98,10 +98,49 @@ class Position2D:
 
 
 @dataclass(slots=True, kw_only=True)
-class AgentsInSpace:
+class DatasetRecordInt:
+    """Base model for dataset records with integer keys.
+
+    The yaml datasets are dicts at the top level. When they are deserialized,
+    the top level dict key is stored in the record as _record_key, and the record_key
+    property is used to access it. This will simplify access to the record_key in some
+    situations.
+    """
+
+    _record_key: int | None = None
+
+    @property
+    def record_key(self) -> int:
+        """Return the record key for this record, which is the top level dict key in the source dataset."""
+        if self._record_key is None:
+            raise ValueError("Record key is not set for this record.")
+        return self._record_key
+
+
+@dataclass(slots=True, kw_only=True)
+class DatasetRecordStr:
+    """Base model for dataset records with string keys.
+
+    The yaml datasets are dicts at the top level. When they are deserialized,
+    the top level dict key is stored in the record as _record_key, and the record_key
+    property is used to access it. This will simplify access to the record_key in some
+    situations.
+    """
+
+    _record_key: str | None = None
+
+    @property
+    def record_key(self) -> str:
+        """Return the record key for this record, which is the top level dict key in the source dataset."""
+        if self._record_key is None:
+            raise ValueError("Record key is not set for this record.")
+        return self._record_key
+
+
+@dataclass(slots=True, kw_only=True)
+class AgentsInSpace(DatasetRecordInt):
     """Model for the agentsInSpace.yaml dataset."""
 
-    agents_in_space_id: int | None = None
     dungeonID: int
     solarSystemID: int
     spawnPointID: int
@@ -109,18 +148,16 @@ class AgentsInSpace:
 
 
 @dataclass(slots=True, kw_only=True)
-class AgentTypes:
+class AgentTypes(DatasetRecordInt):
     """Model for the agentTypes.yaml dataset."""
 
-    agent_types_id: int | None = None
     name: str
 
 
 @dataclass(slots=True, kw_only=True)
-class Ancestries(LocalizableRecord):
+class Ancestries(DatasetRecordInt, LocalizableRecord):
     """Model for the ancestries.yaml dataset."""
 
-    ancestries_id: int | None = None
     bloodlineID: int
     charisma: int
     description: LocalizedString
@@ -156,10 +193,9 @@ class Ancestries(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Archetypes(LocalizableRecord):
+class Archetypes(DatasetRecordInt, LocalizableRecord):
     """Model for the archetypes.yaml dataset."""
 
-    archetypes_id: int | None = None
     description: LocalizedString
     title: LocalizedString | None = None
 
@@ -186,10 +222,9 @@ class Archetypes(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Bloodlines(LocalizableRecord):
+class Bloodlines(DatasetRecordInt, LocalizableRecord):
     """Model for the bloodlines.yaml dataset."""
 
-    bloodlines_id: int | None = None
     charisma: int
     corporationID: int
     description: LocalizedString
@@ -255,20 +290,18 @@ class Blueprints_Activities:
 
 
 @dataclass(slots=True, kw_only=True)
-class Blueprints:
+class Blueprints(DatasetRecordInt):
     """Model for the blueprints.yaml SDE file."""
 
-    blueprints_id: int | None = None
     activities: Blueprints_Activities
     blueprintTypeID: int
     maxProductionLimit: int
 
 
 @dataclass(slots=True, kw_only=True)
-class Categories(LocalizableRecord):
+class Categories(DatasetRecordInt, LocalizableRecord):
     """Model for the categories.yaml SDE file."""
 
-    categories_id: int | None = None
     name: LocalizedString
     published: bool
     iconID: int | None = None
@@ -297,10 +330,9 @@ class Certificates_SkillType:
 
 
 @dataclass(slots=True, kw_only=True)
-class Certificates(LocalizableRecord):
+class Certificates(DatasetRecordInt, LocalizableRecord):
     """Model for the certificates.yaml SDE file."""
 
-    certificates_id: int | None = None
     description: LocalizedString
     groupID: int
     name: LocalizedString
@@ -330,10 +362,9 @@ class Certificates(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class CharacterAttributes(LocalizableRecord):
+class CharacterAttributes(DatasetRecordInt, LocalizableRecord):
     """Model for the characterAttributes.yaml SDE file."""
 
-    character_attributes_id: int | None = None
     description: str
     iconID: int
     name: LocalizedString
@@ -353,19 +384,17 @@ class CharacterAttributes(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class CloneGrades:
+class CloneGrades(DatasetRecordInt):
     """Model for the cloneGrades.yaml SDE file."""
 
-    clone_grades_id: int | None = None
     name: str
     skills: list[Skills]
 
 
 @dataclass(slots=True, kw_only=True)
-class CompressibleTypes:
+class CompressibleTypes(DatasetRecordInt):
     """Model for the compressibleTypes.yaml SDE file."""
 
-    compressible_types_id: int | None = None
     compressedTypeID: int
 
 
@@ -380,10 +409,9 @@ class ContrabandTypes_Faction:
 
 
 @dataclass(slots=True, kw_only=True)
-class ContrabandTypes:
+class ContrabandTypes(DatasetRecordInt):
     """Model for the contrabandTypes.yaml SDE file."""
 
-    contraband_types_id: int | None = None
     factions: dict[int, ContrabandTypes_Faction]
 
 
@@ -399,18 +427,16 @@ class ControlTowerResources_Resource:
 
 
 @dataclass(slots=True, kw_only=True)
-class ControlTowerResources:
+class ControlTowerResources(DatasetRecordInt):
     """Model for the controlTowerResources.yaml SDE file."""
 
-    control_tower_resources_id: int | None = None
     resources: list[ControlTowerResources_Resource]
 
 
 @dataclass(slots=True, kw_only=True)
-class CorporationActivities(LocalizableRecord):
+class CorporationActivities(DatasetRecordInt, LocalizableRecord):
     """Model for the corporationActivities.yaml SDE file."""
 
-    corporation_activities_id: int | None = None
     name: LocalizedString
 
     def localized_fields(self, lang: Lang | None) -> dict[Literal["name"], str | None]:
@@ -456,10 +482,9 @@ class DbuffCollections_ItemModifier:
 
 
 @dataclass(slots=True, kw_only=True)
-class DbuffCollections(LocalizableRecord):
+class DbuffCollections(DatasetRecordInt, LocalizableRecord):
     """Model for the dbuffCollections.yaml SDE file."""
 
-    dbuff_collections_id: int | None = None
     aggregateMode: str
     developerDescription: str
     itemModifiers: list[DbuffCollections_ItemModifier] | None = None
@@ -501,10 +526,9 @@ class DogmaAttributeCategories:
 
 
 @dataclass(slots=True, kw_only=True)
-class DogmaAttributes(LocalizableRecord):
+class DogmaAttributes(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaAttributes.yaml SDE file."""
 
-    dogma_attributes_id: int | None = None
     attributeCategoryID: int | None = None
     dataType: int
     defaultValue: float
@@ -582,10 +606,9 @@ class DogmaEffects_ModifierInfo:
 
 
 @dataclass(slots=True, kw_only=True)
-class DogmaEffects(LocalizableRecord):
+class DogmaEffects(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaEffects.yaml SDE file."""
 
-    dogma_effects_id: int | None = None
     disallowAutoRepeat: bool
     dischargeAttributeID: int | None = None
     durationAttributeID: int | None = None
@@ -643,10 +666,9 @@ class DogmaEffects(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class DogmaUnits(LocalizableRecord):
+class DogmaUnits(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaUnits.yaml SDE file."""
 
-    dogma_units_id: int | None = None
     description: LocalizedString | None = None
     displayName: LocalizedString | None = None
     name: str
@@ -682,10 +704,9 @@ class DogmaUnits(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Dungeons(LocalizableRecord):
+class Dungeons(DatasetRecordInt, LocalizableRecord):
     """Model for the dungeons.yaml SDE file."""
 
-    dungeons_id: int | None = None
     allowedShipsList: list[int] | None = None
     archetypeID: int
     description: LocalizedString | None = None
@@ -747,19 +768,17 @@ class DynamicItemAttributes_InputOutputMapping:
 
 
 @dataclass(slots=True, kw_only=True)
-class DynamicItemAttributes:
+class DynamicItemAttributes(DatasetRecordInt):
     """Model for the dynamicItemAttributes.yaml SDE file."""
 
-    dynamic_item_attributes_id: int | None = None
     attributeIDs: dict[int, DynamicItemAttributes_AttributeID]
     inputOutputMapping: list[DynamicItemAttributes_InputOutputMapping]
 
 
 @dataclass(slots=True, kw_only=True)
-class Factions(LocalizableRecord):
+class Factions(DatasetRecordInt, LocalizableRecord):
     """Model for the factions.yaml SDE file."""
 
-    factions_id: int | None = None
     corporationID: int | None = None
     description: LocalizedString
     flatLogo: str | None = None
@@ -810,10 +829,9 @@ type FreelanceJobSchemas = dict[str, Any]
 
 
 @dataclass(slots=True, kw_only=True)
-class Graphics:
+class Graphics(DatasetRecordInt):
     """Model for the graphics.yaml SDE file."""
 
-    graphics_id: int | None = None
     graphicFile: str | None = None
     iconFolder: str | None = None
     sofFactionName: str | None = None
@@ -824,10 +842,9 @@ class Graphics:
 
 
 @dataclass(slots=True, kw_only=True)
-class Groups(LocalizableRecord):
+class Groups(DatasetRecordInt, LocalizableRecord):
     """Model for the groups.yaml SDE file."""
 
-    groups_id: int | None = None
     anchorable: bool
     anchored: bool
     categoryID: int
@@ -850,18 +867,16 @@ class Groups(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Icons:
+class Icons(DatasetRecordInt):
     """Model for the icons.yaml SDE file."""
 
-    icons_id: int | None = None
     iconFile: str
 
 
 @dataclass(slots=True, kw_only=True)
-class Landmarks(LocalizableRecord):
+class Landmarks(DatasetRecordInt, LocalizableRecord):
     """Model for the landmarks.yaml SDE file."""
 
-    landmarks_id: int | None = None
     description: LocalizedString
     name: LocalizedString
     position: Position
@@ -909,10 +924,9 @@ class MapAsteroidBelts_Statistics:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapAsteroidBelts(LocalizableRecord):
+class MapAsteroidBelts(DatasetRecordInt, LocalizableRecord):
     """Model for the mapAsteroidBelts.yaml SDE file."""
 
-    map_asteroid_belts_id: int | None = None
     celestialIndex: int
     orbitID: int
     orbitIndex: int
@@ -940,10 +954,9 @@ class MapAsteroidBelts(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class MapConstellations(LocalizableRecord):
+class MapConstellations(DatasetRecordInt, LocalizableRecord):
     """Model for the mapConstellations.yaml SDE file."""
 
-    map_constellations_id: int | None = None
     factionID: int | None = None
     name: LocalizedString
     position: Position
@@ -992,10 +1005,9 @@ class MapMoons_Statistics:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapMoons(LocalizableRecord):
+class MapMoons(DatasetRecordInt, LocalizableRecord):
     """Model for the mapMoons.yaml SDE file."""
 
-    map_moons_id: int | None = None
     attributes: MapMoons_Attributes
     celestialIndex: int
     orbitID: int
@@ -1054,10 +1066,9 @@ class MapPlanets_Statistics:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapPlanets(LocalizableRecord):
+class MapPlanets(DatasetRecordInt, LocalizableRecord):
     """Model for the mapPlanets.yaml SDE file."""
 
-    map_planets_id: int | None = None
     asteroidBeltIDs: list[int] | None = None
     attributes: MapPlanets_Attributes
     celestialIndex: int
@@ -1088,10 +1099,9 @@ class MapPlanets(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class MapRegions(LocalizableRecord):
+class MapRegions(DatasetRecordInt, LocalizableRecord):
     """Model for the mapRegions.yaml SDE file."""
 
-    map_regions_id: int | None = None
     constellationIDs: list[int]
     description: LocalizedString | None = None
     factionID: int | None = None
@@ -1128,10 +1138,9 @@ class MapRegions(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class MapSecondarySuns:
+class MapSecondarySuns(DatasetRecordInt):
     """Model for the mapSecondarySuns.yaml SDE file."""
 
-    map_secondary_suns_id: int | None = None
     effectBeaconTypeID: int
     position: Position
     solarSystemID: int
@@ -1139,10 +1148,9 @@ class MapSecondarySuns:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapSolarSystems(LocalizableRecord):
+class MapSolarSystems(DatasetRecordInt, LocalizableRecord):
     """Model for the mapSolarSystems.yaml SDE file."""
 
-    map_solar_systems_id: int | None = None
     border: bool | None = None
     constellationID: int
     corridor: bool | None = None
@@ -1188,10 +1196,9 @@ class MapStargates_Destination:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapStargates:
+class MapStargates(DatasetRecordInt):
     """Model for the mapStargates.yaml SDE file."""
 
-    map_stargates_id: int | None = None
     destination: MapStargates_Destination
     position: Position
     solarSystemID: int
@@ -1210,10 +1217,9 @@ class MapStars_Statistics:
 
 
 @dataclass(slots=True, kw_only=True)
-class MapStars:
+class MapStars(DatasetRecordInt):
     """Model for the mapStars.yaml SDE file."""
 
-    map_stars_id: int | None = None
     radius: int
     solarSystemID: int
     statistics: MapStars_Statistics
@@ -1221,10 +1227,9 @@ class MapStars:
 
 
 @dataclass(slots=True, kw_only=True)
-class MarketGroups(LocalizableRecord):
+class MarketGroups(DatasetRecordInt, LocalizableRecord):
     """Model for the marketGroups.yaml SDE file."""
 
-    market_groups_id: int | None = None
     description: LocalizedString | None = None
     hasTypes: bool
     iconID: int | None = None
@@ -1265,10 +1270,9 @@ type Masteries = dict[int, list[int]]
 
 
 @dataclass(slots=True, kw_only=True)
-class MetaGroups(LocalizableRecord):
+class MetaGroups(DatasetRecordInt, LocalizableRecord):
     """Model for the metaGroups.yaml SDE file."""
 
-    meta_groups_id: int | None = None
     color: Color | None = None
     name: LocalizedString
     iconID: int | None = None
@@ -1302,10 +1306,9 @@ class MetaGroups(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class MercenaryTacticalOperations(LocalizableRecord):
+class MercenaryTacticalOperations(DatasetRecordInt, LocalizableRecord):
     """Model for the mercenaryTacticalOperations.yaml SDE file."""
 
-    mercenary_tactical_operations_id: int | None = None
     anarchyImpact: int
     developmentImpact: int
     infomorphBonus: int
@@ -1357,10 +1360,9 @@ class NpcCharacters_Agent:
 
 
 @dataclass(slots=True, kw_only=True)
-class NpcCharacters(LocalizableRecord):
+class NpcCharacters(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCharacters.yaml SDE file."""
 
-    npc_characters_id: int | None = None
     bloodlineID: int
     ceo: bool
     corporationID: int
@@ -1391,10 +1393,9 @@ class NpcCharacters(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class NpcCorporationDivisions(LocalizableRecord):
+class NpcCorporationDivisions(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCorporationDivisions.yaml SDE file."""
 
-    npc_corporation_divisions_id: int | None = None
     displayName: str | None = None
     internalName: str
     leaderTypeName: LocalizedString
@@ -1443,10 +1444,9 @@ class NpcCorporations_Divisions:
 
 
 @dataclass(slots=True, kw_only=True)
-class NpcCorporations(LocalizableRecord):
+class NpcCorporations(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCorporations.yaml SDE file."""
 
-    npc_corporations_id: int | None = None
     ceoID: int | None = None
     deleted: bool
     description: LocalizedString | None = None
@@ -1507,10 +1507,9 @@ class NpcCorporations(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class NpcStations:
+class NpcStations(DatasetRecordInt):
     """Model for the npcStations.yaml SDE file."""
 
-    npc_stations_id: int | None = None
     celestialIndex: int | None = None
     operationID: int
     orbitID: int
@@ -1537,10 +1536,9 @@ class PlanetResources_Reagent:
 
 
 @dataclass(slots=True, kw_only=True)
-class PlanetResources:
+class PlanetResources(DatasetRecordInt):
     """Model for the planetResources.yaml SDE file."""
 
-    planet_resources_id: int | None = None
     power: int | None = None
     workforce: int | None = None
     reagent: PlanetResources_Reagent | None = None
@@ -1555,10 +1553,9 @@ class PlanetSchematics_Types:
 
 
 @dataclass(slots=True, kw_only=True)
-class PlanetSchematics(LocalizableRecord):
+class PlanetSchematics(DatasetRecordInt, LocalizableRecord):
     """Model for the planetSchematics.yaml SDE file."""
 
-    planet_schematics_id: int | None = None
     cycleTime: int
     name: LocalizedString
     pins: list[int]
@@ -1577,10 +1574,9 @@ class PlanetSchematics(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Races(LocalizableRecord):
+class Races(DatasetRecordInt, LocalizableRecord):
     """Model for the races.yaml SDE file."""
 
-    races_id: int | None = None
     description: LocalizedString | None = None
     iconID: int | None = None
     name: LocalizedString
@@ -1614,19 +1610,17 @@ class Races(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class SdeInfo:
+class SdeInfo(DatasetRecordStr):
     """Model for the sdeInfo.yaml SDE file."""
 
-    sde_info_id: str | None = None  # Included for completeness. is always 'sde'.
     buildNumber: int
     releaseDate: str
 
 
 @dataclass(slots=True, kw_only=True)
-class SkinLicenses:
+class SkinLicenses(DatasetRecordInt):
     """Model for the skinLicenses.yaml SDE file."""
 
-    skin_licenses_id: int | None = None
     duration: int
     licenseTypeID: int
     skinID: int
@@ -1634,10 +1628,9 @@ class SkinLicenses:
 
 
 @dataclass(slots=True, kw_only=True)
-class SkinMaterials(LocalizableRecord):
+class SkinMaterials(DatasetRecordInt, LocalizableRecord):
     """Model for the skinMaterials.yaml SDE file."""
 
-    skin_materials_id: int | None = None
     displayName: LocalizedString | None = None
     materialSetID: int
 
@@ -1660,10 +1653,9 @@ class SkinMaterials(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class Skins(LocalizableRecord):
+class Skins(DatasetRecordInt, LocalizableRecord):
     """Model for the skins.yaml SDE file."""
 
-    skins_id: int | None = None
     allowCCPDevs: bool
     internalName: str
     skinMaterialID: int
@@ -1702,10 +1694,9 @@ class SovereigntyUpgrades_Fuel:
 
 
 @dataclass(slots=True, kw_only=True)
-class SovereigntyUpgrades:
+class SovereigntyUpgrades(DatasetRecordInt):
     """Model for the sovereigntyUpgrades.yaml SDE file."""
 
-    sovereignty_upgrades_id: int | None = None
     fuel: SovereigntyUpgrades_Fuel | None = None
     mutually_exclusive_group: str
     power_allocation: int | None = None
@@ -1715,10 +1706,9 @@ class SovereigntyUpgrades:
 
 
 @dataclass(slots=True, kw_only=True)
-class StationOperations(LocalizableRecord):
+class StationOperations(DatasetRecordInt, LocalizableRecord):
     """Model for the stationOperations.yaml SDE file."""
 
-    station_operations_id: int | None = None
     activityID: int
     border: float
     corridor: float
@@ -1759,10 +1749,9 @@ class StationOperations(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class StationServices(LocalizableRecord):
+class StationServices(DatasetRecordInt, LocalizableRecord):
     """Model for the stationServices.yaml SDE file."""
 
-    station_services_id: int | None = None
     serviceName: LocalizedString
     description: LocalizedString | None = None
 
@@ -1793,10 +1782,9 @@ class StationServices(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class TranslationLanguages:
+class TranslationLanguages(DatasetRecordStr):
     """Model for the translationLanguages.yaml SDE file."""
 
-    translation_languages_id: str | None = None
     name: str
 
 
@@ -1871,10 +1859,9 @@ class TypeBonus_MiscBonus(LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class TypeBonus:
+class TypeBonus(DatasetRecordInt):
     """Model for the typeBonus.yaml SDE file."""
 
-    type_bonus_id: int | None = None
     roleBonuses: list[TypeBonus_RoleBonus] | None = None
     types: dict[int, list[TypeBonus_Types_Bonus]] | None = None
     iconID: int | None = None
@@ -1898,19 +1885,17 @@ class TypeDogma_Effects:
 
 
 @dataclass(slots=True, kw_only=True)
-class TypeDogma:
+class TypeDogma(DatasetRecordInt):
     """Model for the typeDogma.yaml SDE file."""
 
-    type_dogma_id: int | None = None
     dogmaAttributes: list[TypeDogma_Attributes]
     dogmaEffects: list[TypeDogma_Effects] | None = None
 
 
 @dataclass(slots=True, kw_only=True)
-class TypeLists(LocalizableRecord):
+class TypeLists(DatasetRecordInt, LocalizableRecord):
     """Model for the typeLists.yaml SDE file."""
 
-    type_lists_id: int | None = None
     displayDescription: LocalizedString | None = None
     displayName: LocalizedString | None = None
     excludedCategoryIDs: list[int] | None = None
@@ -1969,19 +1954,17 @@ class TypeMaterials_RandomizedMaterial:
 
 
 @dataclass(slots=True, kw_only=True)
-class TypeMaterials:
+class TypeMaterials(DatasetRecordInt):
     """Model for the typeMaterials.yaml SDE file."""
 
-    type_materials_id: int | None = None
     materials: list[TypeMaterials_Material] | None = None
     randomizedMaterials: list[TypeMaterials_RandomizedMaterial] | None = None
 
 
 @dataclass(slots=True, kw_only=True)
-class EveTypes(LocalizableRecord):
+class EveTypes(DatasetRecordInt, LocalizableRecord):
     """Model for the types.yaml SDE file."""
 
-    type_id: int | None = None
     groupID: int
     mass: float | None = None
     name: LocalizedString
