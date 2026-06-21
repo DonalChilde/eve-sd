@@ -12,7 +12,7 @@ import yaml
 from pydantic import RootModel
 
 import tests.resources.sde_data.yaml as _yaml_pkg
-from eve_static_data.access.yaml_datasets import SdeYamlDatasetLoader
+from eve_static_data.access.yaml_file_datasets_dc import SdeYamlDatasetLoaderDC
 from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.models.yaml_format import yaml_datasets_dc
 
@@ -62,7 +62,7 @@ def _read_yaml_fixture(file_name: str) -> dict[Any, Any]:
 
 def test_loader_reads_sde_metadata_from_yaml() -> None:
     """Loader should read file type and metadata from the committed YAML _sde file."""
-    loader = SdeYamlDatasetLoader(YAML_FIXTURE_DIR)
+    loader = SdeYamlDatasetLoaderDC(YAML_FIXTURE_DIR)
 
     assert loader.file_type == ".yaml"
     assert loader.buildNumber > -1
@@ -92,7 +92,7 @@ def test_loader_requires_exactly_one_sde_file(
         (tmp_path / file_name).write_text(content, encoding="utf-8")
 
     with pytest.raises(ValueError, match=error_message):
-        SdeYamlDatasetLoader(tmp_path)
+        SdeYamlDatasetLoaderDC(tmp_path)
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ def test_loader_requires_exactly_one_sde_file(
 
 def test_narrow_file_path_returns_yaml_path_for_yaml_sde() -> None:
     """Path narrowing should resolve the YAML dataset file in a YAML SDE directory."""
-    loader = SdeYamlDatasetLoader(YAML_FIXTURE_DIR)
+    loader = SdeYamlDatasetLoaderDC(YAML_FIXTURE_DIR)
     expected = YAML_FIXTURE_DIR / SdeDatasets.AGENT_TYPES.as_yaml()
 
     assert loader._narrow_file_path(SdeDatasets.AGENT_TYPES) == expected
@@ -113,7 +113,7 @@ def test_narrow_file_path_raises_when_dataset_missing(tmp_path: Path) -> None:
     (tmp_path / "_sde.yaml").write_text(
         (YAML_FIXTURE_DIR / "_sde.yaml").read_text(encoding="utf-8"), encoding="utf-8"
     )
-    loader = SdeYamlDatasetLoader(tmp_path)
+    loader = SdeYamlDatasetLoaderDC(tmp_path)
 
     with pytest.raises(FileNotFoundError, match="agentTypes.yaml"):
         loader._narrow_file_path(SdeDatasets.AGENT_TYPES)
@@ -129,7 +129,7 @@ def test_narrow_file_path_raises_when_dataset_missing(tmp_path: Path) -> None:
 @pytest.mark.parametrize("case", LOADER_CASES, ids=lambda case: case.case_id)
 def test_dataset_loader_methods_return_validated_root_models(case: LoaderCase) -> None:
     """Each loader method should return a validated root model matching the fixture."""
-    loader = SdeYamlDatasetLoader(YAML_FIXTURE_DIR)
+    loader = SdeYamlDatasetLoaderDC(YAML_FIXTURE_DIR)
     loaded = getattr(loader, case.method_name)()
 
     expected = case.root_model.model_validate(

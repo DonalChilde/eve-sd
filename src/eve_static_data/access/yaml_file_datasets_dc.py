@@ -20,7 +20,7 @@ def _load_file(file_path: Path) -> dict[str, Any]:
             raise ValueError(f"Unsupported file type: {file_path.suffix}")
 
 
-class SdeYamlDatasetLoader:
+class SdeYamlDatasetLoaderDC:
     def __init__(self, sde_path: Path):
         """Loader for SDE YAML datasets.
 
