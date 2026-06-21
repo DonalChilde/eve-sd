@@ -1,85 +1,98 @@
+"""Validation logic for YAML datasets."""
+
 from collections.abc import Iterable
-from dataclasses import dataclass
+from time import perf_counter_ns
 
-from httpx2 import Client
+from pydantic import ValidationError
+from whenever import Instant
 
-from eve_static_data.helpers.http_client import config_http_client
 from eve_static_data.helpers.sde_metadata import SdeMetadata
 from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.models.yaml_datasets import datasets_to_root_model_lookup
-from eve_static_data.sde_tools import SDETools
 from eve_static_data.validation.models import (
     DatasetInput,
     DatasetValidationResult,
-    EnhancedValidationResults,
     FailedRecordValidation,
     SdeValidationSummary,
 )
 
-
-@dataclass
-class NetworkArtifacts:
-    schema_changes: str
-    data_changes: str
-
-
-def _fetch_changes(
-    build_number: int, sde_tools: SDETools, session: Client
-) -> NetworkArtifacts:
-    """Fetch schema changelog for a given dataset and source format."""
-
-    schema_changes = sde_tools.fetch_schema_changelog(build_number, session=session)
-    data_changes = sde_tools.fetch_data_changes(build_number, session=session)
-
-    return NetworkArtifacts(
-        schema_changes=schema_changes if schema_changes else "",
-        data_changes=data_changes if data_changes else "",
-    )
+# TODO implement source media detection and include in summary results- include in SdeMetadata?
 
 
 def validate_yaml_datasets(
     datasets: Iterable[DatasetInput],
     sde_metadata: SdeMetadata,
-    *,
-    sde_tools: SDETools | None = None,
-    session: Client | None = None,
 ) -> SdeValidationSummary:
-    if sde_tools is None:
-        sde_tools = SDETools()
-    if session is None:
-        session = config_http_client()
-    network_artifacts = _fetch_changes(
-        build_number=sde_metadata.buildNumber,
-        sde_tools=sde_tools,
-        session=session,
-    )
+    """Validate YAML datasets against pydantic models and return a summary of results.
+
+    For each datset, this function looks up the corresponding RootModel class, then
+    validates each top-level record in the dataset against that model. Validation errors
+    are collected and included in the final summary.
+
+    Args:
+        datasets: An iterable of dataset inputs, each containing the dataset name and data.
+        sde_metadata: Metadata for the SDE being validated.
+
+    Returns:
+        A summary of the validation results.
+    """
+    validation_results: dict[str, DatasetValidationResult] = {}
+    provided_dataset_names: set[str] = set()
+    expected_dataset_names: set[str] = set(item.value for item in SdeDatasets)
+    unexpected_dataset_names: set[str] = set()
     for dataset_input in datasets:
         dataset_name = dataset_input["dataset_name"]
+        provided_dataset_names.add(dataset_name)
         dataset_data = dataset_input["dataset_data"]
-        dataset_enum = SdeDatasets(dataset_name)
+        try:
+            dataset_enum = SdeDatasets(dataset_name)
+        except ValueError:
+            # Skip datasets that are not part of the expected SDE datasets
+            unexpected_dataset_names.add(dataset_name)
+            continue
         root_model_lookup = datasets_to_root_model_lookup()
         root_model_class = root_model_lookup.get(dataset_enum)
         if root_model_class is None:
             raise ValueError(f"No RootModel class found for dataset {dataset_name}")
+        start = perf_counter_ns()
+        validation_failures: list[FailedRecordValidation] = []
+        for record_key, record_data in dataset_data.items():
+            test_record = {record_key: record_data}
+            try:
+                root_model_class.model_validate(test_record)
+            except ValidationError as ve:
+                validation_failures.append(
+                    FailedRecordValidation(
+                        dataset=dataset_name,
+                        top_level_key=record_key,
+                        error_messages=[str(x) for x in ve.errors()],
+                    )
+                )
 
-        try:
-            root_model_class.model_validate(dataset_data)
-            validation_result = DatasetValidationResult(
-                dataset=dataset_name,
-                source_format="yaml-model",
-                record_count=len(dataset_data),
-            )
-        except Exception as e:
-            validation_result = DatasetValidationResult(
-                dataset=dataset_name,
-                source_format="yaml-model",
-                record_count=len(dataset_data),
-                parse_error=str(e),
-            )
-        yield validation_result
-
-
-# for yaml record models, add record_key to each top level model.
-# When loading from file, add record_key to each top level record, using the key from the dict.
-# Check logic for change w/ db load.
-# make a yaml loader that inserts the record_key into each top level record when loading from file.
+            except Exception as e:
+                validation_failures.append(
+                    FailedRecordValidation(
+                        dataset=dataset_name,
+                        top_level_key=record_key,
+                        error_messages=[f"Unexpected error: {str(e)}"],
+                    )
+                )
+        validation_result = DatasetValidationResult(
+            dataset=dataset_name,
+            source_format="yaml-model",
+            record_count=len(dataset_data),
+            validation_time_nanoseconds=perf_counter_ns() - start,
+            failed_records=validation_failures,
+        )
+        validation_results[dataset_name] = validation_result
+    return SdeValidationSummary(
+        sde_metadata=sde_metadata,
+        source_format="yaml-model",
+        source_media="yaml-file",
+        generated_at_utc=Instant.now().format_iso(),
+        expected_datasets=len(SdeDatasets),
+        validated_datasets=len(validation_results),
+        missing_datasets=expected_dataset_names - provided_dataset_names,
+        unexpected_datasets=unexpected_dataset_names,
+        validation_results=validation_results,
+    )

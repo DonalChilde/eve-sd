@@ -15,7 +15,7 @@ class FailedRecordValidation:
     """
 
     dataset: str
-    top_level_key: str
+    top_level_key: str | int
     error_messages: list[str]
 
 
@@ -38,14 +38,13 @@ class DatasetValidationResult:
     source_format: Literal["yaml-model", "jsonl-model"]
     record_count: int = 0
     validation_time_nanoseconds: int | None = None
-    parse_error: str | None = None
     failed_records: list[FailedRecordValidation] = field(
         default_factory=list[FailedRecordValidation]
     )
 
     def is_valid(self) -> bool:
         """Return ``True`` when dataset validation has no errors."""
-        return self.parse_error is None and len(self.failed_records) == 0
+        return len(self.failed_records) == 0
 
 
 @dataclass
@@ -53,14 +52,14 @@ class SdeValidationSummary:
     """Complete validation result payload for an SDE directory."""
 
     sde_metadata: SdeMetadata
+    source_format: Literal["yaml-model", "jsonl-model"]
+    source_media: Literal["json-file", "yaml-file", "jsonl-file", "db"]
     generated_at_utc: str
-    build_number: int | None
-    expected_dataset_count: int
-    present_dataset_count: int
-    missing_dataset_count: int
-    extra_files: list[str]
-    network_warnings: list[str]
-    datasets: dict[str, DatasetValidationResult]
+    expected_datasets: int
+    validated_datasets: int
+    missing_datasets: set[str]
+    unexpected_datasets: set[str]
+    validation_results: dict[str, DatasetValidationResult]
 
 
 @dataclass
@@ -87,4 +86,3 @@ class DatasetInput(TypedDict):
 
     dataset_name: str
     dataset_data: dict[int | str, Any]
-    sde_metadata: SdeMetadata
