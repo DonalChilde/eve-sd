@@ -1,4 +1,4 @@
-"""TypedDict definitions for EVE SDE Datasets.
+"""TypedDict definitions for EVE SDE Datasets JSONL version.
 
 NOTE this is not currently in use, and not updated. This was an initial attempt to create
 TypedDict definitions for the SDE datasets, but I switched to using Pydantic models instead,

@@ -13,8 +13,8 @@ from pydantic import RootModel
 
 import tests.resources.sde_data.yaml as _yaml_pkg
 from eve_static_data.access.yaml_datasets import SdeYamlDatasetLoader
-from eve_static_data.models import yaml_datasets
 from eve_static_data.models.dataset_filenames import SdeDatasets
+from eve_static_data.models.yaml_format import yaml_datasets_dc
 
 # Directory of the committed YAML fixture files — used directly for happy-path tests.
 YAML_FIXTURE_DIR = Path(_yaml_pkg.__file__).parent
@@ -36,13 +36,13 @@ LOADER_CASES: list[LoaderCase] = [
         case_id="agent_types",
         method_name="agent_types",
         fixture_file_name="agentTypes.yaml",
-        root_model=yaml_datasets.AgentTypesRoot,
+        root_model=yaml_datasets_dc.AgentTypesRoot,
     ),
     LoaderCase(
         case_id="agents_in_space",
         method_name="agents_in_space",
         fixture_file_name="agentsInSpace.yaml",
-        root_model=yaml_datasets.AgentsInSpaceRoot,
+        root_model=yaml_datasets_dc.AgentsInSpaceRoot,
     ),
 ]
 

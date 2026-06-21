@@ -2,15 +2,15 @@
 
 import sqlite3
 
-import eve_static_data.models.yaml_datasets
-from eve_static_data.models import yaml_datasets
-from eve_static_data.models import yaml_records as yaml_records
+import eve_static_data.models.yaml_format.yaml_datasets_dc
 from eve_static_data.models.common import (
     ACTIVITIES,
     Lang,
     LocalizableRecord,
     PossibleTranslationLanguages,
 )
+from eve_static_data.models.yaml_format import yaml_datasets_dc
+from eve_static_data.models.yaml_format import yaml_records_dc as yaml_records_dc
 
 
 def _langs_in_record(record: LocalizableRecord) -> set[Lang]:
@@ -27,7 +27,9 @@ def _langs_in_record(record: LocalizableRecord) -> set[Lang]:
     return languages.intersection(PossibleTranslationLanguages)
 
 
-def agent_types(cursor: sqlite3.Cursor, records: yaml_datasets.AgentTypesRoot) -> None:
+def agent_types(
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.AgentTypesRoot
+) -> None:
     """Insert records into the agent_types table."""
     for agent_types_id, record in records.root.items():
         cursor.execute(
@@ -38,7 +40,7 @@ def agent_types(cursor: sqlite3.Cursor, records: yaml_datasets.AgentTypesRoot) -
 
 def agents_in_space(
     cursor: sqlite3.Cursor,
-    records: eve_static_data.models.yaml_datasets.AgentsInSpaceRoot,
+    records: eve_static_data.models.yaml_format.yaml_datasets_dc.AgentsInSpaceRoot,
 ) -> None:
     """Insert records into the agents_in_space table."""
     for agents_in_space_id, record in records.root.items():
@@ -54,7 +56,9 @@ def agents_in_space(
         )
 
 
-def ancestries(cursor: sqlite3.Cursor, records: yaml_datasets.AncestriesRoot) -> None:
+def ancestries(
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.AncestriesRoot
+) -> None:
     """Insert records into the ancestries table."""
     for ancestries_id, record in records.root.items():
         cursor.execute(
@@ -85,7 +89,9 @@ def ancestries(cursor: sqlite3.Cursor, records: yaml_datasets.AncestriesRoot) ->
             )
 
 
-def bloodlines(cursor: sqlite3.Cursor, records: yaml_datasets.BloodlinesRoot) -> None:
+def bloodlines(
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.BloodlinesRoot
+) -> None:
     """Insert records into the bloodlines table."""
     for bloodlines_id, record in records.root.items():
         cursor.execute(
@@ -115,7 +121,9 @@ def bloodlines(cursor: sqlite3.Cursor, records: yaml_datasets.BloodlinesRoot) ->
             )
 
 
-def blueprints(cursor: sqlite3.Cursor, records: yaml_datasets.BlueprintsRoot) -> None:
+def blueprints(
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.BlueprintsRoot
+) -> None:
     """Insert records into the blueprints table."""
     for blueprints_id, record in records.root.items():
         cursor.execute(
@@ -127,7 +135,7 @@ def blueprints(cursor: sqlite3.Cursor, records: yaml_datasets.BlueprintsRoot) ->
             ),
         )
         for activity_name in ACTIVITIES:
-            activity_value: yaml_records.Blueprints_Activity | None = getattr(
+            activity_value: yaml_records_dc.Blueprints_Activity | None = getattr(
                 record.activities, activity_name
             )
             if activity_value is not None:
@@ -161,7 +169,9 @@ def blueprints(cursor: sqlite3.Cursor, records: yaml_datasets.BlueprintsRoot) ->
                         )
 
 
-def categories(cursor: sqlite3.Cursor, records: yaml_datasets.CategoriesRoot) -> None:
+def categories(
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.CategoriesRoot
+) -> None:
     """Insert records into the categories table."""
     for categories_id, record in records.root.items():
         cursor.execute(
@@ -181,7 +191,7 @@ def categories(cursor: sqlite3.Cursor, records: yaml_datasets.CategoriesRoot) ->
 
 
 def certificates(
-    cursor: sqlite3.Cursor, records: yaml_datasets.CertificatesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_dc.CertificatesRoot
 ) -> None:
     """Insert records into the certificates table."""
     for certificates_id, record in records.root.items():
