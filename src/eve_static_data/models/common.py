@@ -1,5 +1,6 @@
 """Common type definitions for the EVE static data models."""
 
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Literal, TypedDict
 
@@ -145,3 +146,8 @@ def narrow_localizable_json_dict(
                 for item in value
             ]
     return json_record
+
+
+@dataclass(slots=True, kw_only=True)
+class DatasetRecordBase:
+    """The base class for all dataset records."""
