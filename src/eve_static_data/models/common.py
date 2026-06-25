@@ -1,8 +1,11 @@
 """Common type definitions for the EVE static data models."""
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Literal, TypedDict
+from typing import Any, ClassVar, Literal, TypedDict
+
+from eve_static_data.models.dataset_filenames import SdeDatasets
 
 TRANSLATION_MISSING = "NOT_AVAILABLE"
 
@@ -151,3 +154,5 @@ def narrow_localizable_json_dict(
 @dataclass(slots=True, kw_only=True)
 class DatasetRecordBase:
     """The base class for all dataset records."""
+
+    dataset: ClassVar[SdeDatasets]

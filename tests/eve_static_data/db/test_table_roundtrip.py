@@ -17,7 +17,7 @@ from pydantic import RootModel
 from rich.pretty import pprint as rich_print
 
 from eve_static_data.db import insert_records, request_records
-from eve_static_data.models.yaml_format import yaml_datasets_dc, yaml_records_dc
+from eve_static_data.models.yaml_format import yaml_datasets_root, yaml_records
 
 
 @dataclass(frozen=True)
@@ -92,7 +92,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="agent_types",
         fixture_file_name="agentTypes.yaml",
         sql_file_name="agent-types.sql",
-        root_model=yaml_datasets_dc.AgentTypesRoot,
+        root_model=yaml_datasets_root.AgentTypesRoot,
         insert_func=insert_records.agent_types,
         retrieve_func=request_records.agent_types,
         key_field="agent_types_id",
@@ -101,7 +101,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="agents_in_space",
         fixture_file_name="agentsInSpace.yaml",
         sql_file_name="agents-in-space.sql",
-        root_model=yaml_datasets_dc.AgentsInSpaceRoot,
+        root_model=yaml_datasets_root.AgentsInSpaceRoot,
         insert_func=insert_records.agents_in_space,
         retrieve_func=request_records.agents_in_space,
         key_field="agents_in_space_id",
@@ -110,7 +110,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="ancestries",
         fixture_file_name="ancestries.yaml",
         sql_file_name="ancestries.sql",
-        root_model=yaml_datasets_dc.AncestriesRoot,
+        root_model=yaml_datasets_root.AncestriesRoot,
         insert_func=insert_records.ancestries,
         retrieve_func=request_records.ancestries,
         key_field="ancestries_id",
@@ -119,7 +119,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="bloodlines",
         fixture_file_name="bloodlines.yaml",
         sql_file_name="bloodlines.sql",
-        root_model=yaml_datasets_dc.BloodlinesRoot,
+        root_model=yaml_datasets_root.BloodlinesRoot,
         insert_func=insert_records.bloodlines,
         retrieve_func=request_records.bloodlines,
         key_field="bloodlines_id",
@@ -128,7 +128,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="blueprints",
         fixture_file_name="blueprints.yaml",
         sql_file_name="blueprints.sql",
-        root_model=yaml_datasets_dc.BlueprintsRoot,
+        root_model=yaml_datasets_root.BlueprintsRoot,
         insert_func=insert_records.blueprints,
         retrieve_func=request_records.blueprints,
         key_field="blueprints_id",
@@ -137,7 +137,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="categories",
         fixture_file_name="categories.yaml",
         sql_file_name="categories.sql",
-        root_model=yaml_datasets_dc.CategoriesRoot,
+        root_model=yaml_datasets_root.CategoriesRoot,
         insert_func=insert_records.categories,
         retrieve_func=request_records.categories,
         key_field="categories_id",
@@ -146,7 +146,7 @@ ROUND_TRIP_CASES: list[RoundTripCase] = [
         case_id="certificates",
         fixture_file_name="certificates.yaml",
         sql_file_name="certificates.sql",
-        root_model=yaml_datasets_dc.CertificatesRoot,
+        root_model=yaml_datasets_root.CertificatesRoot,
         insert_func=insert_records.certificates,
         retrieve_func=request_records.certificates,
         key_field="certificates_id",

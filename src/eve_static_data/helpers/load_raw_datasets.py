@@ -2,7 +2,7 @@
 
 import sqlite3
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from eve_static_data.helpers import json_io
 from eve_static_data.helpers.yaml_loader import safe_load_path
@@ -48,7 +48,7 @@ def _load_yaml_as_dict(yaml_path: Path) -> dict[str | int, Any]:
 
 def load_dataset_from_file(
     dataset: SdeDatasets, *, sde_path: Path
-) -> dict[str | int, Any]:
+) -> tuple[dict[str | int, Any], Literal["jsonl-model"] | Literal["yaml-model"]]:
     """Loads a dataset from a file in the given SDE path.
 
     Automatically detects the file format (JSONL, YAML, or JSON) and
@@ -91,12 +91,12 @@ def load_dataset_from_file(
             )
     if source_format == "jsonl-model":
         # No further processing needed.
-        return dataset_dict
+        return dataset_dict, source_format
     elif source_format == "yaml-model":
-        # Add the "_record_key" field to each record in the dataset, using the key from the YAML mapping.
-        for key, value in dataset_dict.items():
-            value["_record_key"] = key
-        return dataset_dict
+        # # Add the "_record_key" field to each record in the dataset, using the key from the YAML mapping.
+        # for key, value in dataset_dict.items():
+        #     value["_record_key"] = key
+        return dataset_dict, source_format
     else:
         raise ValueError(
             f"Could not determine source format for dataset '{dataset.value}' from file '{file_candidates[0]}'."

@@ -8,7 +8,7 @@ from whenever import Instant
 
 from eve_static_data.helpers.sde_metadata import SdeMetadata
 from eve_static_data.models.dataset_filenames import SdeDatasets
-from eve_static_data.models.yaml_format.yaml_datasets_dc import (
+from eve_static_data.models.yaml_format.yaml_datasets_root import (
     datasets_to_root_model_lookup,
 )
 from eve_static_data.validation.models import (

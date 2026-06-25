@@ -7,7 +7,7 @@ from typing import Any
 from yaml import safe_load
 
 from eve_static_data.models.dataset_filenames import SdeDatasets
-from eve_static_data.models.yaml_format import yaml_datasets_dc as YD
+from eve_static_data.models.yaml_format import yaml_datasets_root as YD
 
 
 def _load_file(file_path: Path) -> dict[str, Any]:

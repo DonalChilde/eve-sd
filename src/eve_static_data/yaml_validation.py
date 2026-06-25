@@ -27,7 +27,7 @@ from yaml import YAMLError, safe_load
 from eve_static_data.helpers import schema_report
 from eve_static_data.helpers.save_text_file import save_text_file
 from eve_static_data.models.dataset_filenames import SdeDatasets
-from eve_static_data.models.yaml_format import yaml_datasets_dc
+from eve_static_data.models.yaml_format import yaml_datasets_root
 from eve_static_data.sde_tools import SDETools
 
 logger = logging.getLogger(__name__)
@@ -431,7 +431,7 @@ async def validate_yaml_datasets(
     resolved_output_path = output_path or (sde_path / "validation_results")
     resolved_output_path.mkdir(parents=True, exist_ok=True)
 
-    root_model_lookup = yaml_datasets_dc.datasets_to_root_model_lookup()
+    root_model_lookup = yaml_datasets_root.datasets_to_root_model_lookup()
     dataset_results: dict[str, DatasetValidationResult] = {}
     build_number: int | None = None
 

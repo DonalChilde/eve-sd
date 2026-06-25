@@ -2,15 +2,15 @@
 
 import sqlite3
 
-import eve_static_data.models.yaml_format.yaml_datasets_dc
+import eve_static_data.models.yaml_format.yaml_datasets_root
 from eve_static_data.models.common import (
     ACTIVITIES,
     Lang,
     LocalizableRecord,
     PossibleTranslationLanguages,
 )
-from eve_static_data.models.yaml_format import yaml_datasets_dc
-from eve_static_data.models.yaml_format import yaml_records_dc as yaml_records_dc
+from eve_static_data.models.yaml_format import yaml_datasets_root
+from eve_static_data.models.yaml_format import yaml_records as yaml_records
 
 
 def _langs_in_record(record: LocalizableRecord) -> set[Lang]:
@@ -28,7 +28,7 @@ def _langs_in_record(record: LocalizableRecord) -> set[Lang]:
 
 
 def agent_types(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.AgentTypesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.AgentTypesRoot
 ) -> None:
     """Insert records into the agent_types table."""
     for agent_types_id, record in records.root.items():
@@ -40,7 +40,7 @@ def agent_types(
 
 def agents_in_space(
     cursor: sqlite3.Cursor,
-    records: eve_static_data.models.yaml_format.yaml_datasets_dc.AgentsInSpaceRoot,
+    records: eve_static_data.models.yaml_format.yaml_datasets_root.AgentsInSpaceRoot,
 ) -> None:
     """Insert records into the agents_in_space table."""
     for agents_in_space_id, record in records.root.items():
@@ -57,7 +57,7 @@ def agents_in_space(
 
 
 def ancestries(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.AncestriesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.AncestriesRoot
 ) -> None:
     """Insert records into the ancestries table."""
     for ancestries_id, record in records.root.items():
@@ -90,7 +90,7 @@ def ancestries(
 
 
 def bloodlines(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.BloodlinesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.BloodlinesRoot
 ) -> None:
     """Insert records into the bloodlines table."""
     for bloodlines_id, record in records.root.items():
@@ -122,7 +122,7 @@ def bloodlines(
 
 
 def blueprints(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.BlueprintsRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.BlueprintsRoot
 ) -> None:
     """Insert records into the blueprints table."""
     for blueprints_id, record in records.root.items():
@@ -135,7 +135,7 @@ def blueprints(
             ),
         )
         for activity_name in ACTIVITIES:
-            activity_value: yaml_records_dc.Blueprints_Activity | None = getattr(
+            activity_value: yaml_records.Blueprints_Activity | None = getattr(
                 record.activities, activity_name
             )
             if activity_value is not None:
@@ -170,7 +170,7 @@ def blueprints(
 
 
 def categories(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.CategoriesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.CategoriesRoot
 ) -> None:
     """Insert records into the categories table."""
     for categories_id, record in records.root.items():
@@ -191,7 +191,7 @@ def categories(
 
 
 def certificates(
-    cursor: sqlite3.Cursor, records: yaml_datasets_dc.CertificatesRoot
+    cursor: sqlite3.Cursor, records: yaml_datasets_root.CertificatesRoot
 ) -> None:
     """Insert records into the certificates table."""
     for certificates_id, record in records.root.items():
