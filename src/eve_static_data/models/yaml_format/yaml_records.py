@@ -162,7 +162,7 @@ class DatasetRecordStr(DatasetRecordBase):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class AgentsInSpace(DatasetRecordInt):
+class AgentsInSpaceRecord(DatasetRecordInt):
     """Model for the agentsInSpace.yaml dataset."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.AGENTS_IN_SPACE
@@ -175,7 +175,7 @@ class AgentsInSpace(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class AgentTypes(DatasetRecordInt):
+class AgentTypesRecord(DatasetRecordInt):
     """Model for the agentTypes.yaml dataset."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.AGENT_TYPES
@@ -185,7 +185,7 @@ class AgentTypes(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Ancestries(DatasetRecordInt, LocalizableRecord):
+class AncestriesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the ancestries.yaml dataset."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.ANCESTRIES
@@ -226,7 +226,7 @@ class Ancestries(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Archetypes(DatasetRecordInt, LocalizableRecord):
+class ArchetypesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the archetypes.yaml dataset."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.ARCHETYPES
@@ -257,7 +257,7 @@ class Archetypes(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Bloodlines(DatasetRecordInt, LocalizableRecord):
+class BloodlinesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the bloodlines.yaml dataset."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.BLOODLINES
@@ -328,7 +328,7 @@ class Blueprints_Activities:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Blueprints(DatasetRecordInt):
+class BlueprintsRecord(DatasetRecordInt):
     """Model for the blueprints.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.BLUEPRINTS
@@ -340,7 +340,7 @@ class Blueprints(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Categories(DatasetRecordInt, LocalizableRecord):
+class CategoriesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the categories.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CATEGORIES
@@ -374,7 +374,7 @@ class Certificates_SkillType:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Certificates(DatasetRecordInt, LocalizableRecord):
+class CertificatesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the certificates.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CERTIFICATES
@@ -409,7 +409,7 @@ class Certificates(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class CharacterAttributes(DatasetRecordInt, LocalizableRecord):
+class CharacterAttributesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the characterAttributes.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CHARACTER_ATTRIBUTES
@@ -434,7 +434,7 @@ class CharacterAttributes(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class CloneGrades(DatasetRecordInt):
+class CloneGradesRecord(DatasetRecordInt):
     """Model for the cloneGrades.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CLONE_GRADES
@@ -445,7 +445,7 @@ class CloneGrades(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class CompressibleTypes(DatasetRecordInt):
+class CompressibleTypesRecord(DatasetRecordInt):
     """Model for the compressibleTypes.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.COMPRESSIBLE_TYPES
@@ -465,7 +465,7 @@ class ContrabandTypes_Faction:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class ContrabandTypes(DatasetRecordInt):
+class ContrabandTypesRecord(DatasetRecordInt):
     """Model for the contrabandTypes.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CONTRABAND_TYPES
@@ -486,7 +486,7 @@ class ControlTowerResources_Resource:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class ControlTowerResources(DatasetRecordInt):
+class ControlTowerResourcesRecord(DatasetRecordInt):
     """Model for the controlTowerResources.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CONTROL_TOWER_RESOURCES
@@ -496,7 +496,7 @@ class ControlTowerResources(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class CorporationActivities(DatasetRecordInt, LocalizableRecord):
+class CorporationActivitiesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the corporationActivities.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.CORPORATION_ACTIVITIES
@@ -547,7 +547,7 @@ class DbuffCollections_ItemModifier:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class DbuffCollections(DatasetRecordInt, LocalizableRecord):
+class DbuffCollectionsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the dbuffCollections.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DBUFF_COLLECTIONS
@@ -585,7 +585,7 @@ class DbuffCollections(DatasetRecordInt, LocalizableRecord):
 
 
 @dataclass(slots=True, kw_only=True)
-class DogmaAttributeCategories:
+class DogmaAttributeCategoriesRecord:
     """Model for the dogmaAttributeCategories.yaml SDE file."""
 
     description: str | None = None
@@ -594,7 +594,7 @@ class DogmaAttributeCategories:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class DogmaAttributes(DatasetRecordInt, LocalizableRecord):
+class DogmaAttributesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaAttributes.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DOGMA_ATTRIBUTES
@@ -677,7 +677,7 @@ class DogmaEffects_ModifierInfo:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class DogmaEffects(DatasetRecordInt, LocalizableRecord):
+class DogmaEffectsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaEffects.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DOGMA_EFFECTS
@@ -740,7 +740,7 @@ class DogmaEffects(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class DogmaUnits(DatasetRecordInt, LocalizableRecord):
+class DogmaUnitsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the dogmaUnits.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DOGMA_UNITS
@@ -781,7 +781,7 @@ class DogmaUnits(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Dungeons(DatasetRecordInt, LocalizableRecord):
+class DungeonsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the dungeons.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DUNGEONS
@@ -848,7 +848,7 @@ class DynamicItemAttributes_InputOutputMapping:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class DynamicItemAttributes(DatasetRecordInt):
+class DynamicItemAttributesRecord(DatasetRecordInt):
     """Model for the dynamicItemAttributes.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.DYNAMIC_ITEM_ATTRIBUTES
@@ -859,7 +859,7 @@ class DynamicItemAttributes(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Factions(DatasetRecordInt, LocalizableRecord):
+class FactionsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the factions.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.FACTIONS
@@ -909,13 +909,13 @@ class Factions(DatasetRecordInt, LocalizableRecord):
         )
 
 
-type FreelanceJobSchemas = dict[str, Any]
+type FreelanceJobSchemasRecord = dict[str, Any]
 """Model for the freelanceJobSchemas.yaml SDE file."""
 
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Graphics(DatasetRecordInt):
+class GraphicsRecord(DatasetRecordInt):
     """Model for the graphics.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.GRAPHICS
@@ -931,7 +931,7 @@ class Graphics(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Groups(DatasetRecordInt, LocalizableRecord):
+class GroupsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the groups.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.GROUPS
@@ -959,7 +959,7 @@ class Groups(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Icons(DatasetRecordInt):
+class IconsRecord(DatasetRecordInt):
     """Model for the icons.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.ICONS
@@ -969,7 +969,7 @@ class Icons(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Landmarks(DatasetRecordInt, LocalizableRecord):
+class LandmarksRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the landmarks.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.LANDMARKS
@@ -1022,7 +1022,7 @@ class MapAsteroidBelts_Statistics:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapAsteroidBelts(DatasetRecordInt, LocalizableRecord):
+class MapAsteroidBeltsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapAsteroidBelts.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_ASTEROID_BELTS
@@ -1055,7 +1055,7 @@ class MapAsteroidBelts(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapConstellations(DatasetRecordInt, LocalizableRecord):
+class MapConstellationsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapConstellations.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_CONSTELLATIONS
@@ -1109,7 +1109,7 @@ class MapMoons_Statistics:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapMoons(DatasetRecordInt, LocalizableRecord):
+class MapMoonsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapMoons.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_MOONS
@@ -1173,7 +1173,7 @@ class MapPlanets_Statistics:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapPlanets(DatasetRecordInt, LocalizableRecord):
+class MapPlanetsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapPlanets.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_PLANETS
@@ -1209,7 +1209,7 @@ class MapPlanets(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapRegions(DatasetRecordInt, LocalizableRecord):
+class MapRegionsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapRegions.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_REGIONS
@@ -1251,7 +1251,7 @@ class MapRegions(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapSecondarySuns(DatasetRecordInt):
+class MapSecondarySunsRecord(DatasetRecordInt):
     """Model for the mapSecondarySuns.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_SECONDARY_SUNS
@@ -1264,7 +1264,7 @@ class MapSecondarySuns(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapSolarSystems(DatasetRecordInt, LocalizableRecord):
+class MapSolarSystemsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mapSolarSystems.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_SOLAR_SYSTEMS
@@ -1315,7 +1315,7 @@ class MapStargates_Destination:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapStargates(DatasetRecordInt):
+class MapStargatesRecord(DatasetRecordInt):
     """Model for the mapStargates.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_STARGATES
@@ -1339,7 +1339,7 @@ class MapStars_Statistics:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MapStars(DatasetRecordInt):
+class MapStarsRecord(DatasetRecordInt):
     """Model for the mapStars.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MAP_STARS
@@ -1352,7 +1352,7 @@ class MapStars(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MarketGroups(DatasetRecordInt, LocalizableRecord):
+class MarketGroupsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the marketGroups.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MARKET_GROUPS
@@ -1392,13 +1392,13 @@ class MarketGroups(DatasetRecordInt, LocalizableRecord):
 
 # FIXME: check to see if this is following the same pattern,
 # where the _id field is captured in the records from the database.
-type Masteries = dict[int, list[int]]
+type MasteriesRecord = dict[int, list[int]]
 """Model for the masteries.yaml SDE file."""
 
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MetaGroups(DatasetRecordInt, LocalizableRecord):
+class MetaGroupsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the metaGroups.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.META_GROUPS
@@ -1437,7 +1437,7 @@ class MetaGroups(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class MercenaryTacticalOperations(DatasetRecordInt, LocalizableRecord):
+class MercenaryTacticalOperationsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the mercenaryTacticalOperations.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.MERCENARY_TACTICAL_OPERATIONS
@@ -1494,7 +1494,7 @@ class NpcCharacters_Agent:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class NpcCharacters(DatasetRecordInt, LocalizableRecord):
+class NpcCharactersRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCharacters.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.NPC_CHARACTERS
@@ -1530,7 +1530,7 @@ class NpcCharacters(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class NpcCorporationDivisions(DatasetRecordInt, LocalizableRecord):
+class NpcCorporationDivisionsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCorporationDivisions.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.NPC_CORPORATION_DIVISIONS
@@ -1584,7 +1584,7 @@ class NpcCorporations_Divisions:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class NpcCorporations(DatasetRecordInt, LocalizableRecord):
+class NpcCorporationsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the npcCorporations.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.NPC_CORPORATIONS
@@ -1650,7 +1650,7 @@ class NpcCorporations(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class NpcStations(DatasetRecordInt):
+class NpcStationsRecord(DatasetRecordInt):
     """Model for the npcStations.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.NPC_STATIONS
@@ -1682,7 +1682,7 @@ class PlanetResources_Reagent:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class PlanetResources(DatasetRecordInt):
+class PlanetResourcesRecord(DatasetRecordInt):
     """Model for the planetResources.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.PLANET_RESOURCES
@@ -1702,7 +1702,7 @@ class PlanetSchematics_Types:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class PlanetSchematics(DatasetRecordInt, LocalizableRecord):
+class PlanetSchematicsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the planetSchematics.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.PLANET_SCHEMATICS
@@ -1726,7 +1726,7 @@ class PlanetSchematics(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Races(DatasetRecordInt, LocalizableRecord):
+class RacesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the races.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.RACES
@@ -1765,7 +1765,7 @@ class Races(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class SdeInfo(DatasetRecordStr):
+class SdeInfoRecord(DatasetRecordStr):
     """Model for the sdeInfo.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.SDE_INFO
@@ -1776,7 +1776,7 @@ class SdeInfo(DatasetRecordStr):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class SkinLicenses(DatasetRecordInt):
+class SkinLicensesRecord(DatasetRecordInt):
     """Model for the skinLicenses.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.SKIN_LICENSES
@@ -1789,7 +1789,7 @@ class SkinLicenses(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class SkinMaterials(DatasetRecordInt, LocalizableRecord):
+class SkinMaterialsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the skinMaterials.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.SKIN_MATERIALS
@@ -1817,7 +1817,7 @@ class SkinMaterials(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class Skins(DatasetRecordInt, LocalizableRecord):
+class SkinsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the skins.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.SKINS
@@ -1861,7 +1861,7 @@ class SovereigntyUpgrades_Fuel:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class SovereigntyUpgrades(DatasetRecordInt):
+class SovereigntyUpgradesRecord(DatasetRecordInt):
     """Model for the sovereigntyUpgrades.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.SOVEREIGNTY_UPGRADES
@@ -1876,7 +1876,7 @@ class SovereigntyUpgrades(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class StationOperations(DatasetRecordInt, LocalizableRecord):
+class StationOperationsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the stationOperations.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.STATION_OPERATIONS
@@ -1922,7 +1922,7 @@ class StationOperations(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class StationServices(DatasetRecordInt, LocalizableRecord):
+class StationServicesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the stationServices.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.STATION_SERVICES
@@ -1958,7 +1958,7 @@ class StationServices(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class TranslationLanguages(DatasetRecordStr):
+class TranslationLanguagesRecord(DatasetRecordStr):
     """Model for the translationLanguages.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TRANSLATION_LANGUAGES
@@ -2038,7 +2038,7 @@ class TypeBonus_MiscBonus(LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class TypeBonus(DatasetRecordInt):
+class TypeBonusRecord(DatasetRecordInt):
     """Model for the typeBonus.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TYPE_BONUS
@@ -2067,7 +2067,7 @@ class TypeDogma_Effects:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class TypeDogma(DatasetRecordInt):
+class TypeDogmaRecord(DatasetRecordInt):
     """Model for the typeDogma.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TYPE_DOGMA
@@ -2078,7 +2078,7 @@ class TypeDogma(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class TypeLists(DatasetRecordInt, LocalizableRecord):
+class TypeListsRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the typeLists.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TYPE_LISTS
@@ -2142,7 +2142,7 @@ class TypeMaterials_RandomizedMaterial:
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class TypeMaterials(DatasetRecordInt):
+class TypeMaterialsRecord(DatasetRecordInt):
     """Model for the typeMaterials.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TYPE_MATERIALS
@@ -2153,7 +2153,7 @@ class TypeMaterials(DatasetRecordInt):
 
 @register()
 @dataclass(slots=True, kw_only=True)
-class EveTypes(DatasetRecordInt, LocalizableRecord):
+class EveTypesRecord(DatasetRecordInt, LocalizableRecord):
     """Model for the types.yaml SDE file."""
 
     dataset: ClassVar[SdeDatasets] = SdeDatasets.TYPES
