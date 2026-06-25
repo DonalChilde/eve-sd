@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import RootModel
 
-from eve_static_data.helpers.yaml_loader import safe_load_IO, safe_load_path
+from eve_static_data.helpers.yaml_io import safe_load_IO, safe_load_path
 
 
 @dataclass(slots=True, kw_only=True)

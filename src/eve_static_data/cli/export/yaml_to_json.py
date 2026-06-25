@@ -8,7 +8,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from eve_static_data.helpers.yaml_loader import safe_load_IO
+from eve_static_data.helpers.yaml_io import safe_load_IO
 from eve_static_data.models.common import LangEnum, narrow_localizable_json_dict
 
 app = typer.Typer(no_args_is_help=True)

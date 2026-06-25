@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 from eve_static_data.helpers import json_io
-from eve_static_data.helpers.yaml_loader import safe_load_path
+from eve_static_data.helpers.yaml_io import safe_load_path
 from eve_static_data.models.dataset_filenames import SdeDatasets
 
 

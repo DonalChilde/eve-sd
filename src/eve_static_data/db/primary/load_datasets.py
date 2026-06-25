@@ -16,7 +16,7 @@ from eve_static_data.db.primary.helpers import (
 )
 from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
-from eve_static_data.helpers.yaml_loader import safe_load_path
+from eve_static_data.helpers.yaml_io import safe_load_path
 
 logger = logging.getLogger(__name__)
 

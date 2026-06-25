@@ -13,7 +13,7 @@ from eve_static_data.helpers.schema_report.schema_report import (
     build_schema_report,
 )
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
-from eve_static_data.helpers.yaml_loader import safe_load_path
+from eve_static_data.helpers.yaml_io import safe_load_path
 
 
 def get_jsonl_schema_report(sde_directory: Path) -> SchemaReport:
