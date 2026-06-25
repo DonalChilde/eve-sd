@@ -6,6 +6,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 from eve_static_data.helpers.load_raw_datasets import load_dataset_from_file
 from eve_static_data.helpers.sde_metadata import (
     SdeMetadata,
@@ -20,6 +22,34 @@ from eve_static_data.models.yaml_format.yaml_record_root import (
 from eve_static_data.record_loader.protocols import LoaderProtocol
 
 logger = logging.getLogger(__name__)
+
+
+def deserialize_yaml_record[T: DatasetRecordBase](
+    record_model: type[T], *, record_key: int | str, record_dict: dict[str, Any]
+) -> T | ValidationError:
+    """Deserialize a raw record dictionary into a yaml-format record model instance.
+
+    Adds the record_key to the record_dict before deserializing into the record_model.
+
+    Returning a ValidationError indicates that the record_dict is invalid for the record_model.
+
+    Args:
+        record_model (type[T]): A subclass of DatasetRecordBase that specifies
+            the dataset to load.
+        record_key (int | str): The key of the record being deserialized.
+        record_dict (dict[str, Any]): The raw record dictionary to deserialize.
+
+    Returns:
+        T | ValidationError: The deserialized record model instance, or a
+            ValidationError if the record_dict is invalid for the record_model.
+    """
+    root_model = get_root_model_for_record(record_model)
+    modified_record_dict: dict[str, Any] = {**record_dict, "record_key": record_key}
+    try:
+        record = root_model.model_validate(modified_record_dict).root
+        return record
+    except ValidationError as e:
+        return e
 
 
 class YamlFileLoader(LoaderProtocol):
@@ -63,13 +93,15 @@ class YamlFileLoader(LoaderProtocol):
             ValidationError: If a raw record fails validation when deserializing into
                 the record_model.
         """
-        root_model = get_root_model_for_record(record_model)
         for record_key, record_dict in self.load_raw_records(
             record_model.dataset, record_keys=record_keys
         ):
-            record_dict["record_key"] = record_key  # type: ignore
-            record_instance = root_model.model_validate(record_dict).root
-            yield record_key, record_instance
+            record = deserialize_yaml_record(
+                record_model, record_key=record_key, record_dict=record_dict
+            )
+            if isinstance(record, ValidationError):
+                raise record
+            yield record_key, record
 
     def load_raw_records(
         self, dataset: SdeDatasets, *, record_keys: set[int | str] | None = None

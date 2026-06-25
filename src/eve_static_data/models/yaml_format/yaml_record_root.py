@@ -20,6 +20,7 @@ BlueprintsRecordRoot = RootModel[yaml_records.BlueprintsRecord]
 CategoriesRecordRoot = RootModel[yaml_records.CategoriesRecord]
 CertificatesRecordRoot = RootModel[yaml_records.CertificatesRecord]
 CharacterAttributesRecordRoot = RootModel[yaml_records.CharacterAttributesRecord]
+CharacterTitlesRecordRoot = RootModel[yaml_records.CharacterTitlesRecord]
 CloneGradesRecordRoot = RootModel[yaml_records.CloneGradesRecord]
 CompressibleTypesRecordRoot = RootModel[yaml_records.CompressibleTypesRecord]
 ContrabandTypesRecordRoot = RootModel[yaml_records.ContrabandTypesRecord]
@@ -95,6 +96,7 @@ _dataset_to_root_model_map: dict[SdeDatasets, type[RootModel[Any]]] = {
     SdeDatasets.CATEGORIES: CategoriesRecordRoot,
     SdeDatasets.CERTIFICATES: CertificatesRecordRoot,
     SdeDatasets.CHARACTER_ATTRIBUTES: CharacterAttributesRecordRoot,
+    SdeDatasets.CHARACTER_TITLES: CharacterTitlesRecordRoot,
     SdeDatasets.CLONE_GRADES: CloneGradesRecordRoot,
     SdeDatasets.COMPRESSIBLE_TYPES: CompressibleTypesRecordRoot,
     SdeDatasets.CONTRABAND_TYPES: ContrabandTypesRecordRoot,

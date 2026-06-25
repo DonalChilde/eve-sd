@@ -103,6 +103,21 @@ def load_dataset_from_file(
         )
 
 
+def load_jsonl_as_dataset_dict(jsonl_path: Path) -> dict[str | int, Any]:
+    """Load a JSONL file as a dataset dictionary.
+
+    Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
+    The "_key" field will be used as the key in the returned dataset dictionary.
+
+    Args:
+        jsonl_path: Path to the JSONL file.
+
+    Returns:
+        dict[str | int, Any]: A dictionary mapping record keys to record dictionaries.
+    """
+    return _load_jsonl_as_dict(jsonl_path)
+
+
 def load_dataset_from_db(
     dataset: SdeDatasets, *, connection: sqlite3.Connection
 ) -> dict[str | int, Any]: ...

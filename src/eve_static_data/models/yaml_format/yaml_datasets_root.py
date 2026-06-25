@@ -19,6 +19,7 @@ BlueprintsRoot = RootModel[dict[int, yaml_records.BlueprintsRecord]]
 CategoriesRoot = RootModel[dict[int, yaml_records.CategoriesRecord]]
 CertificatesRoot = RootModel[dict[int, yaml_records.CertificatesRecord]]
 CharacterAttributesRoot = RootModel[dict[int, yaml_records.CharacterAttributesRecord]]
+CharacterTitlesRoot = RootModel[dict[str, yaml_records.CharacterTitlesRecord]]
 CloneGradesRoot = RootModel[dict[int, yaml_records.CloneGradesRecord]]
 CompressibleTypesRoot = RootModel[dict[int, yaml_records.CompressibleTypesRecord]]
 ContrabandTypesRoot = RootModel[dict[int, yaml_records.ContrabandTypesRecord]]
@@ -40,7 +41,7 @@ DynamicItemAttributesRoot = RootModel[
     dict[int, yaml_records.DynamicItemAttributesRecord]
 ]
 FactionsRoot = RootModel[dict[int, yaml_records.FactionsRecord]]
-FreelanceJobSchemasRoot = RootModel[dict[int, yaml_records.FreelanceJobSchemas]]
+FreelanceJobSchemasRoot = RootModel[dict[int, yaml_records.FreelanceJobSchemasRecord]]
 GraphicsRoot = RootModel[dict[int, yaml_records.GraphicsRecord]]
 GroupsRoot = RootModel[dict[int, yaml_records.GroupsRecord]]
 IconsRoot = RootModel[dict[int, yaml_records.IconsRecord]]
@@ -55,7 +56,7 @@ MapSolarSystemsRoot = RootModel[dict[int, yaml_records.MapSolarSystemsRecord]]
 MapStargatesRoot = RootModel[dict[int, yaml_records.MapStargatesRecord]]
 MapStarsRoot = RootModel[dict[int, yaml_records.MapStarsRecord]]
 MarketGroupsRoot = RootModel[dict[int, yaml_records.MarketGroupsRecord]]
-MasteriesRoot = RootModel[dict[int, yaml_records.Masteries]]
+MasteriesRoot = RootModel[dict[int, yaml_records.MasteriesRecord]]
 MetaGroupsRoot = RootModel[dict[int, yaml_records.MetaGroupsRecord]]
 MercenaryTacticalOperationsRoot = RootModel[
     dict[int, yaml_records.MercenaryTacticalOperationsRecord]
@@ -94,6 +95,7 @@ _dataset_to_root_model_map: dict[SdeDatasets, type[RootModel[Any]]] = {
     SdeDatasets.CATEGORIES: CategoriesRoot,
     SdeDatasets.CERTIFICATES: CertificatesRoot,
     SdeDatasets.CHARACTER_ATTRIBUTES: CharacterAttributesRoot,
+    SdeDatasets.CHARACTER_TITLES: CharacterTitlesRoot,
     SdeDatasets.CLONE_GRADES: CloneGradesRoot,
     SdeDatasets.COMPRESSIBLE_TYPES: CompressibleTypesRoot,
     SdeDatasets.CONTRABAND_TYPES: ContrabandTypesRoot,

@@ -36,8 +36,11 @@ defined as types instead of dataclasses.
 """
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar, Literal, TypeVar
+
+from pydantic import ConfigDict, RootModel, model_validator
+from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 from eve_static_data.models.common import (
     TRANSLATION_MISSING,
@@ -434,6 +437,27 @@ class CharacterAttributesRecord(DatasetRecordInt, LocalizableRecord):
 
 @register()
 @dataclass(slots=True, kw_only=True)
+class CharacterTitlesRecord(DatasetRecordStr, LocalizableRecord):
+    """Model for the characterTitles.yaml SDE file."""
+
+    dataset: ClassVar[SdeDatasets] = SdeDatasets.CHARACTER_TITLES
+
+    name: LocalizedString
+
+    def localized_fields(self, lang: Lang | None) -> dict[Literal["name"], str | None]:
+        """Returns a dict of the localized fields in the model."""
+        if lang is None:
+            return {"name": None}
+        return {"name": self.localized_name(lang)}
+
+    def localized_name(self, lang: Lang) -> str:
+        """Returns the localized name for the given language."""
+        lang_check(lang)
+        return self.name.get(lang, TRANSLATION_MISSING)
+
+
+@register()
+@dataclass(slots=True, kw_only=True)
 class CloneGradesRecord(DatasetRecordInt):
     """Model for the cloneGrades.yaml SDE file."""
 
@@ -584,9 +608,12 @@ class DbuffCollectionsRecord(DatasetRecordInt, LocalizableRecord):
         )
 
 
+@register()
 @dataclass(slots=True, kw_only=True)
-class DogmaAttributeCategoriesRecord:
+class DogmaAttributeCategoriesRecord(DatasetRecordInt):
     """Model for the dogmaAttributeCategories.yaml SDE file."""
+
+    dataset: ClassVar[SdeDatasets] = SdeDatasets.DOGMA_ATTRIBUTE_CATEGORIES
 
     description: str | None = None
     name: str
@@ -909,8 +936,23 @@ class FactionsRecord(DatasetRecordInt, LocalizableRecord):
         )
 
 
-type FreelanceJobSchemasRecord = dict[str, Any]
-"""Model for the freelanceJobSchemas.yaml SDE file."""
+@register()
+@dataclass(slots=True, kw_only=True)
+class FreelanceJobSchemasRecord(DatasetRecordInt):
+    """Model for the freelanceJobSchemas.yaml SDE file."""
+
+    dataset: ClassVar[SdeDatasets] = SdeDatasets.FREELANCE_JOB_SCHEMAS
+
+    BoostShield: dict[str, Any] = field(default_factory=dict[str, Any])
+    CaptureFWComplex: dict[str, Any] = field(default_factory=dict[str, Any])
+    DamageShip: dict[str, Any] = field(default_factory=dict[str, Any])
+    DefendFWComplex: dict[str, Any] = field(default_factory=dict[str, Any])
+    DeliverItem: dict[str, Any] = field(default_factory=dict[str, Any])
+    KillCapsuleer: dict[str, Any] = field(default_factory=dict[str, Any])
+    KillNPC: dict[str, Any] = field(default_factory=dict[str, Any])
+    MineOre: dict[str, Any] = field(default_factory=dict[str, Any])
+    RepairArmor: dict[str, Any] = field(default_factory=dict[str, Any])
+    ShipInsurance: dict[str, Any] = field(default_factory=dict[str, Any])
 
 
 @register()
@@ -1390,10 +1432,57 @@ class MarketGroupsRecord(DatasetRecordInt, LocalizableRecord):
         )
 
 
-# FIXME: check to see if this is following the same pattern,
-# where the _id field is captured in the records from the database.
-type MasteriesRecord = dict[int, list[int]]
-"""Model for the masteries.yaml SDE file."""
+record = {
+    0: [96, 139, 85, 87, 94],
+    1: [96, 139, 85, 87, 94],
+    2: [96, 139, 85, 87, 94],
+    3: [96, 139, 85, 87, 94],
+    4: [96, 139, 85, 118, 87, 94],
+}
+
+MasteryTier = Literal[0, 1, 2, 3, 4]
+
+
+class MasteryTierMap(RootModel[dict[MasteryTier, list[int]]]):
+    pass
+
+
+@register()
+@pydantic_dataclass(slots=True, kw_only=True)
+class MasteriesRecord(DatasetRecordInt):
+    """Model for the masteries.yaml SDE file.
+
+    Because the masteries.yaml file has a non-standard structure,
+    this model has altered field names.
+
+    The actual fields in the masteries.yaml file are:
+
+    Example:
+        record = {
+            0: [96, 139, 85, 87, 94],
+            1: [96, 139, 85, 87, 94],
+            2: [96, 139, 85, 87, 94],
+            3: [96, 139, 85, 87, 94],
+            4: [96, 139, 85, 118, 87, 94],
+        }
+    """
+
+    dataset: ClassVar[SdeDatasets] = SdeDatasets.MASTERIES
+
+    masteries: MasteryTierMap
+
+    __pydantic_config__ = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_raw_shape(cls, data: object) -> object:
+        """Normalizes the raw shape of the data before validation."""
+        if not isinstance(data, dict):
+            return data
+
+        record_key = data.get("record_key")  # type: ignore
+        mastery_map = {k: v for k, v in data.items() if k != "record_key"}  # type: ignore
+        return {"record_key": record_key, "masteries": mastery_map}  # type: ignore
 
 
 @register()

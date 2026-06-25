@@ -13,6 +13,7 @@ class SdeDatasets(StrEnum):
     CATEGORIES = "categories"
     CERTIFICATES = "certificates"
     CHARACTER_ATTRIBUTES = "characterAttributes"
+    CHARACTER_TITLES = "characterTitles"
     CLONE_GRADES = "cloneGrades"
     COMPRESSIBLE_TYPES = "compressibleTypes"
     CONTRABAND_TYPES = "contrabandTypes"

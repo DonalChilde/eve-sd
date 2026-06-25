@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def save_text_file(
-    text: str, output_path: Path, file_name: str, overwrite: bool = False
+    *, text: str, output_path: Path, file_name: str, overwrite: bool = False
 ) -> Path:
     """Save text to a file, optionally overwriting if it exists."""
     output_file = output_path / file_name

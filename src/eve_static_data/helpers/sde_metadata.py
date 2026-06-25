@@ -22,7 +22,8 @@ class SdeMetadata:
 
     buildNumber: int
     releaseDate: str
-    source_format: Literal["yaml-model", "jsonl-model"] | None = None
+    source_format: Literal["yaml-model", "jsonl-model"]
+    source_media: Literal[".yaml", ".json", ".jsonl", ".db"]
 
 
 SdeMetadataRoot = RootModel[SdeMetadata]
@@ -84,6 +85,7 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
                 "buildNumber": sde_info["buildNumber"],
                 "releaseDate": sde_info["releaseDate"],
                 "source_format": "jsonl-model",
+                "source_media": sde_info_path_jsonl.suffix,
             }
             return SdeMetadataRoot.model_validate(values).root
     elif sde_info_path_yaml.exists():
@@ -92,6 +94,7 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
             "buildNumber": sde_info["sde"]["buildNumber"],
             "releaseDate": sde_info["sde"]["releaseDate"],
             "source_format": "yaml-model",
+            "source_media": sde_info_path_yaml.suffix,
         }
         return SdeMetadataRoot.model_validate(values).root
     elif sde_info_path_json.exists():
@@ -104,12 +107,14 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
                     "source_format": "jsonl-model",
+                    "source_media": sde_info_path_json.suffix,
                 }
             else:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["sde"]["buildNumber"],
                     "releaseDate": sde_info["sde"]["releaseDate"],
                     "source_format": "yaml-model",
+                    "source_media": sde_info_path_json.suffix,
                 }
             return SdeMetadataRoot.model_validate(values).root
     else:
@@ -155,6 +160,7 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
                     "source_format": "jsonl",
+                    "source_media": ".jsonl",
                 }
                 return SdeMetadataRoot.model_validate(values).root
         else:
@@ -165,6 +171,7 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
                     "source_format": "yaml",
+                    "source_media": ".yaml",
                 }
             return SdeMetadataRoot.model_validate(values).root
 

@@ -1,93 +1,32 @@
 """Validate the SDE data."""
 
-import asyncio
+import json
+from dataclasses import asdict
+from enum import Enum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 from rich.console import Console
 
-from eve_static_data.cli.helpers import get_esd_settings_from_context
-
-# from eve_static_data.validation import validation_report
-from eve_static_data.yaml_validation import validate_yaml_datasets
+from eve_static_data.helpers.save_text_file import save_text_file
+from eve_static_data.validation.markdown_report import generate_markdown_report
+from eve_static_data.validation.validation_from_files import validate_sde_yaml_datasets
 
 app = typer.Typer(no_args_is_help=True)
 
 
-@app.command()
-def validate_json(
-    ctx: typer.Context,
-    sde_path: Annotated[
-        Path,
-        typer.Argument(
-            help="The path to the json SDE data.",
-        ),
-    ],
-    report_path: Annotated[
-        Path | None,
-        typer.Option(
-            "--report-path",
-            help="The directory path to save the validation reports to. If not provided, "
-            "the reports will be saved to the `<sde_path>/validation_reports` directory.",
-            file_okay=False,
-            dir_okay=True,
-        ),
-    ] = None,
-    overwrite: Annotated[
-        bool,
-        typer.Option(
-            "--overwrite",
-            help="Whether to overwrite existing validation reports.",
-        ),
-    ] = False,
-):
-    """Validate the SDE files in a directory."""
-    console = Console()
-    console.print("[bold green]Validating SDE Data[/bold green]")
-    settings = get_esd_settings_from_context(ctx)
-    sde_tools = settings.sde_tools()
-    if not sde_path.exists():
-        console.print(
-            f"[bold red]Error:[/bold red] SDE path {sde_path} does not exist."
-        )
-        raise typer.Exit(code=1)
-    if not sde_path.is_dir():
-        console.print(
-            f"[bold red]Error:[/bold red] SDE path {sde_path} is not a directory."
-        )
-        raise typer.Exit(code=1)
-    sde_info_path = sde_path / "_sde.json"
-    if not sde_info_path.exists():
-        if sde_path:
-            console.print(
-                f"[bold red]Error:[/bold red] SDE info file {sde_info_path} does not exist. Is this a valid SDE data directory?"
-            )
-        else:
-            console.print(
-                f"[bold red]Error:[/bold red]Application SDE info file {sde_info_path} does not exist. Download the SDE data first?"
-            )
-
-        raise typer.Exit(code=1)
-    if report_path is None:
-        report_path = sde_path / "validation_reports"
-    report_path.mkdir(parents=True, exist_ok=True)
-    msg = f"Validating SDE data in {sde_path} and saving reports to {report_path}"
-    console.print(f"[bold blue]{msg}[/bold blue]")
-
-    # FIXME validation needs to be updated to work with the new SDE loading and model validation code, so commenting out for now
-    # asyncio.run(
-    #     validation_report(
-    #         sde_path=sde_path,
-    #         output_path=report_path,
-    #         sde_tools=sde_tools,
-    #         overwrite=overwrite,
-    #         console=console,
-    #     )
-    # )
+def _json_default(value: object) -> object:
+    """Convert non-JSON-native validation summary values to serializable forms."""
+    if isinstance(value, set):
+        typed_value = cast(set[object], value)
+        return sorted(str(item) for item in typed_value)
+    if isinstance(value, Enum):
+        return value.value
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
-@app.command()
+@app.command(name="yaml-files")
 def yaml_model(
     ctx: typer.Context,
     sde_path: Annotated[
@@ -100,8 +39,8 @@ def yaml_model(
         Path | None,
         typer.Option(
             "--report-path",
-            help="The directory path to save the validation reports to. If not provided, "
-            "the reports will be saved to the `<sde_path>/validation_reports` directory.",
+            help="The directory path to save the validation report json and markdown to. If not provided, "
+            "the markdown report output will be output to the terminal.",
             file_okay=False,
             dir_okay=True,
         ),
@@ -114,35 +53,35 @@ def yaml_model(
         ),
     ] = False,
 ):
-    """Validate the SDE YAML datasets."""
+    """Validate the SDE YAML datasets.
+
+    Validates the yaml-format datasets in the given SDE path and outputs a summary of
+    the validation results.
+
+    If a report path is provided, the validation summary will be saved as a JSON and
+    Markdown report in the specified directory. If no report path is provided, the
+    validation summary will be printed to the terminal in Markdown format.
+    """
     console = Console()
     console.print("[bold green]Validating SDE YAML Datasets[/bold green]")
-    settings = get_esd_settings_from_context(ctx)
-    sde_tools = settings.sde_tools()
-    if not sde_path.exists():
-        console.print(
-            f"[bold red]Error:[/bold red] SDE path {sde_path} does not exist."
-        )
-        raise typer.Exit(code=1)
-    if not sde_path.is_dir():
-        console.print(
-            f"[bold red]Error:[/bold red] SDE path {sde_path} is not a directory."
-        )
-        raise typer.Exit(code=1)
-    sde_info_yaml = sde_path / "_sde.yaml"
-    sde_info_json = sde_path / "_sde.json"
-    if not sde_info_yaml.exists() and not sde_info_json.exists():
-        console.print(
-            f"[bold red]Error:[/bold red] SDE info file {sde_info_yaml} or {sde_info_json} does not exist. Is this a valid SDE data directory?"
-        )
-        raise typer.Exit(code=1)
-    msg = f"Validating SDE YAML datasets in {sde_path}"
-    console.print(f"[bold blue]{msg}[/bold blue]")
-    asyncio.run(
-        validate_yaml_datasets(
-            sde_path=sde_path,
-            sde_tools=sde_tools,
-            output_path=report_path,
-            overwrite=overwrite,
-        )
+    summary = validate_sde_yaml_datasets(sde_path)
+    markdown_report = generate_markdown_report(summary)
+
+    if report_path is None:
+        console.print(markdown_report)
+        return
+
+    build_suffix = str(summary.sde_metadata.buildNumber)
+    save_text_file(
+        text=json.dumps(asdict(summary), indent=2, default=_json_default),
+        output_path=report_path,
+        file_name=f"yaml_validation_result_{build_suffix}.json",
+        overwrite=overwrite,
     )
+    save_text_file(
+        text=markdown_report,
+        output_path=report_path,
+        file_name=f"yaml_validation_report_{build_suffix}.md",
+        overwrite=overwrite,
+    )
+    console.print(f"Saved validation reports to {report_path}")
