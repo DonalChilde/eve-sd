@@ -1,3 +1,5 @@
+"""Helper functions to create objects from Settings."""
+
 from eve_static_data.sde_tools import SDETools
 from eve_static_data.settings import EveStaticDataSettings
 

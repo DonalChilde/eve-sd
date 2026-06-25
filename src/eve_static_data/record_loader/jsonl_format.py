@@ -1,4 +1,4 @@
-"""Loader for loading SDE records from yaml-format sources."""
+"""Loader for loading SDE records from jsonl-format sources."""
 
 import logging
 import sqlite3
@@ -14,15 +14,12 @@ from eve_static_data.helpers.sde_metadata import (
 )
 from eve_static_data.models.common import DatasetRecordBase
 from eve_static_data.models.dataset_filenames import SdeDatasets
-from eve_static_data.models.yaml_format.yaml_record_root import (
-    get_root_model_for_record,
-)
 from eve_static_data.record_loader.protocols import LoaderProtocol
 
 logger = logging.getLogger(__name__)
 
 
-class YamlFileLoader(LoaderProtocol):
+class JsonlFileLoader(LoaderProtocol):
     def __init__(self, sde_path: Path):
         """Initialize the loader with the path to the SDE directory."""
         self._sde_path = sde_path
@@ -63,24 +60,18 @@ class YamlFileLoader(LoaderProtocol):
             ValidationError: If a raw record fails validation when deserializing into
                 the record_model.
         """
-        root_model = get_root_model_for_record(record_model)
-        for record_key, record_dict in self.load_raw_records(
-            record_model.dataset, record_keys=record_keys
-        ):
-            record_dict["record_key"] = record_key  # type: ignore
-            record_instance = root_model.model_validate(record_dict).root
-            yield record_key, record_instance
+        raise NotImplementedError("Record models not yet available for jsonl format.")
 
     def load_raw_records(
-        self, dataset: SdeDatasets, *, record_keys: set[int | str] | None = None
+        self,
+        dataset: SdeDatasets,
+        *,
+        record_keys: set[int | str] | None = None,
     ) -> Iterable[tuple[int | str, dict[str, Any]]]:
-        """Load raw records from a dataset file.
+        """Load raw records from a dataset.
 
-        The dataset is determined by the dataset argument. If record_keys is provided,
+        The dataset is specified by the dataset parameter. If record_keys is provided,
         only records with those keys will be loaded.
-
-        Raw records are returned as dictionaries without any validation. If a record is
-        missing a required field or has an invalid type, it will be returned as-is.
 
         Args:
             dataset (SdeDatasets): The dataset to load.
@@ -90,17 +81,13 @@ class YamlFileLoader(LoaderProtocol):
         Returns:
             Iterable[tuple[int | str, dict[str, Any]]]: An iterable of tuples, each
                 containing a record key and the corresponding raw record dictionary.
-
-        Raises:
-            FileNotFoundError: If the dataset file does not exist.
-            ValueError: If the dataset file is not a valid YAML file.
         """
         dataset_dict, source_format = load_dataset_from_file(
             dataset, sde_path=self._sde_path
         )
-        if source_format != "yaml-model":
+        if source_format != "jsonl-model":
             raise ValueError(
-                f"Expected a YAML mapping (dict) in file '{dataset.value}', but got {source_format}."
+                f"Expected a JSONL mapping (dict) in file '{dataset.value}', but got {source_format}."
             )
         # log request for keys that are not present in the dataset
         if record_keys is not None:
@@ -114,14 +101,14 @@ class YamlFileLoader(LoaderProtocol):
                 yield key, record
 
 
-class YamlDBLoader(LoaderProtocol):
+class JsonlDBLoader(LoaderProtocol):
     def __init__(self, connection: sqlite3.Connection):
         """Initialize the loader with a SQLite database connection."""
         self._connection = connection
         self._sde_metadata: SdeMetadata | None = None
 
     def sde_metadata(self) -> SdeMetadata:
-        """Get the SDE metadata, loading it from the SDE path if necessary."""
+        """Get the SDE metadata, loading it from the database if necessary."""
         if self._sde_metadata is None:
             self._sde_metadata = load_sde_metadata_from_sqlite(self._connection)
         return self._sde_metadata
@@ -155,18 +142,18 @@ class YamlDBLoader(LoaderProtocol):
             ValidationError: If a raw record fails validation when deserializing into
                 the record_model.
         """
-        ...
+        raise NotImplementedError("Record models not yet available for jsonl format.")
 
     def load_raw_records(
-        self, dataset: SdeDatasets, *, record_keys: set[int | str] | None = None
+        self,
+        dataset: SdeDatasets,
+        *,
+        record_keys: set[int | str] | None = None,
     ) -> Iterable[tuple[int | str, dict[str, Any]]]:
-        """Load raw records from a dataset file.
+        """Load raw records from a dataset.
 
-        The dataset is determined by the dataset argument. If record_keys is provided,
+        The dataset is specified by the dataset parameter. If record_keys is provided,
         only records with those keys will be loaded.
-
-        Raw records are returned as dictionaries without any validation. If a record is
-        missing a required field or has an invalid type, it will be returned as-is.
 
         Args:
             dataset (SdeDatasets): The dataset to load.
@@ -176,9 +163,5 @@ class YamlDBLoader(LoaderProtocol):
         Returns:
             Iterable[tuple[int | str, dict[str, Any]]]: An iterable of tuples, each
                 containing a record key and the corresponding raw record dictionary.
-
-        Raises:
-            FileNotFoundError: If the dataset file does not exist.
-            ValueError: If the dataset file is not a valid YAML file.
         """
-        ...
+        raise NotImplementedError("Raw records not yet available for jsonl format.")
