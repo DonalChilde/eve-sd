@@ -8,12 +8,12 @@ from importlib.resources import files as resource_files
 from typing import Any
 from uuid import uuid4
 
-from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
+from eve_static_data.db.models import DatasetDbRecordInt, DatasetDbRecordStr
 from eve_static_data.helpers.sde_metadata import SdeMetadata
 
 logger = logging.getLogger(__name__)
 
-_table_def_parent = "eve_static_data.db.primary"
+_table_def_parent = "eve_static_data.db"
 _table_def_sql = "table_defs.sql"
 
 
@@ -39,7 +39,7 @@ def transaction(conn: sqlite3.Connection):
 
 
 def deserialize_int_records(
-    records: Iterable[DatasetRecordInt],
+    records: Iterable[DatasetDbRecordInt],
 ) -> dict[str, dict[int, Any]]:
     """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
     result: dict[str, dict[int, Any]] = {}
@@ -51,7 +51,7 @@ def deserialize_int_records(
 
 
 def deserialize_str_records(
-    records: Iterable[DatasetRecordStr],
+    records: Iterable[DatasetDbRecordStr],
 ) -> dict[str, dict[str, Any]]:
     """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
     result: dict[str, dict[str, Any]] = {}
@@ -98,7 +98,7 @@ def create_read_write_connection(db_path: str) -> sqlite3.Connection:
 
 
 def write_int_records(
-    records: Iterable[DatasetRecordInt],
+    records: Iterable[DatasetDbRecordInt],
     *,
     connection: sqlite3.Connection,
 ) -> None:
@@ -118,7 +118,7 @@ def write_int_records(
 
 
 def write_str_records(
-    records: Iterable[DatasetRecordStr],
+    records: Iterable[DatasetDbRecordStr],
     *,
     connection: sqlite3.Connection,
 ) -> None:
@@ -152,14 +152,14 @@ def write_key_type(conn: sqlite3.Connection, dataset_name: str, key_type: str) -
         )
 
 
-def read_key_types(conn: sqlite3.Connection) -> dict[str, str]:
+def query_key_types(conn: sqlite3.Connection) -> dict[str, str]:
     """Read all dataset key types from the database."""
     with transaction(conn):
         cursor = conn.execute("SELECT dataset_name, key_type FROM DatasetKeyType")
         return {row["dataset_name"]: row["key_type"] for row in cursor}
 
 
-def read_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
+def query_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
     """Read all integer keys for a dataset from the database."""
     with transaction(conn):
         cursor = conn.execute(
@@ -173,7 +173,7 @@ def read_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
         return {row["record_key"] for row in cursor}
 
 
-def read_str_keys(conn: sqlite3.Connection, dataset_name: str) -> set[str]:
+def query_str_keys(conn: sqlite3.Connection, dataset_name: str) -> set[str]:
     """Read all string keys for a dataset from the database."""
     with transaction(conn):
         cursor = conn.execute(
@@ -187,9 +187,9 @@ def read_str_keys(conn: sqlite3.Connection, dataset_name: str) -> set[str]:
         return {row["record_key"] for row in cursor}
 
 
-def read_int_records(
+def query_int_records(
     conn: sqlite3.Connection, dataset_name: str, record_keys: set[int] | None = None
-) -> Iterable[DatasetRecordInt]:
+) -> Iterable[DatasetDbRecordInt]:
     """Read all records for a dataset with integer keys from the database.
 
     If record_keys is provided, only return records with keys in the set.
@@ -208,7 +208,7 @@ def read_int_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetRecordInt(
+                yield DatasetDbRecordInt(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -225,7 +225,7 @@ def read_int_records(
                 (dataset_name, *record_keys),
             )
             for row in cursor:
-                yield DatasetRecordInt(
+                yield DatasetDbRecordInt(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -256,7 +256,7 @@ def read_int_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetRecordInt(
+                yield DatasetDbRecordInt(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -264,9 +264,9 @@ def read_int_records(
             conn.execute(f"DROP TABLE {table_name}")
 
 
-def read_str_records(
+def query_str_records(
     conn: sqlite3.Connection, dataset_name: str, record_keys: set[str] | None = None
-) -> Iterable[DatasetRecordStr]:
+) -> Iterable[DatasetDbRecordStr]:
     """Read all records for a dataset with string keys from the database.
 
     If record_keys is provided, only return records with keys in the set.
@@ -285,7 +285,7 @@ def read_str_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetRecordStr(
+                yield DatasetDbRecordStr(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -302,7 +302,7 @@ def read_str_records(
                 (dataset_name, *record_keys),
             )
             for row in cursor:
-                yield DatasetRecordStr(
+                yield DatasetDbRecordStr(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -333,7 +333,7 @@ def read_str_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetRecordStr(
+                yield DatasetDbRecordStr(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
                     record_json=row["record_json"],
@@ -343,18 +343,39 @@ def read_str_records(
 
 def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> None:
     """Write the SDE metadata to the database."""
-    if sde_metadata.source_format is None:
-        raise ValueError("source_format must be provided in sde_metadata.")
     with transaction(conn):
         conn.execute(
             """
-                INSERT INTO SdeMetadata (buildNumber, releaseDate, source_format)
-                VALUES (?, ?, ?)
-                ON CONFLICT(buildNumber) DO UPDATE SET releaseDate=excluded.releaseDate, source_format=excluded.source_format
+                INSERT INTO SdeMetadata (buildNumber, releaseDate, source_format, source_media)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(buildNumber) DO UPDATE SET releaseDate=excluded.releaseDate, source_format=excluded.source_format, source_media=excluded.source_media
                 """,
             (
                 sde_metadata.buildNumber,
                 sde_metadata.releaseDate,
                 sde_metadata.source_format,
+                ".db",
             ),
+        )
+
+
+def query_sde_metadata(conn: sqlite3.Connection) -> SdeMetadata | None:
+    """Query the SDE metadata from the database."""
+    with transaction(conn):
+        cursor = conn.execute(
+            """
+                SELECT buildNumber, releaseDate, source_format, source_media
+                FROM SdeMetadata
+                ORDER BY row_id DESC
+                LIMIT 1
+                """
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return SdeMetadata(
+            buildNumber=row["buildNumber"],
+            releaseDate=row["releaseDate"],
+            source_format=row["source_format"],
+            source_media=row["source_media"],
         )

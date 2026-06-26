@@ -7,8 +7,8 @@ from typing import Annotated
 
 import typer
 
-from eve_static_data.db.primary.helpers import create_read_write_connection
-from eve_static_data.db.primary.load_datasets import import_jsonl_sde_to_db
+from eve_static_data.db.helpers import create_read_write_connection
+from eve_static_data.db.load_datasets import import_jsonl_sde_to_db
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
 
 logger = logging.getLogger(__name__)

@@ -28,5 +28,6 @@ CREATE TABLE IF NOT EXISTS SdeMetadata (
     row_id        INTEGER PRIMARY KEY,
     buildNumber   TEXT    NOT NULL UNIQUE, -- The build number of the sde datasets.
     releaseDate   TEXT    NOT NULL, -- The release date of the sde datasets.
-    source_format TEXT    NOT NULL -- The source format of the sde datasets, either 'yaml' or 'jsonl'.
+    source_format TEXT    NOT NULL, -- The source format of the sde datasets, either 'yaml' or 'jsonl'.
+    source_media  TEXT    NOT NULL -- The source media of the sde datasets.
 ) STRICT;

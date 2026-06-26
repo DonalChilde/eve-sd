@@ -8,13 +8,13 @@ from typing import Any, Literal, cast
 from more_itertools import peekable
 from pydantic_core import from_json
 
-from eve_static_data.db.primary.helpers import (
+from eve_static_data.db.helpers import (
     write_int_records,
     write_key_type,
     write_sde_metadata,
     write_str_records,
 )
-from eve_static_data.db.primary.models import DatasetRecordInt, DatasetRecordStr
+from eve_static_data.db.models import DatasetDbRecordInt, DatasetDbRecordStr
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
 from eve_static_data.helpers.yaml_io import safe_load_path
 
@@ -75,14 +75,14 @@ def import_yaml_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) -> 
             case "int":
                 dataset_records = cast(dict[int, Any], dataset_records)
                 records = (
-                    DatasetRecordInt.from_yaml_record(dataset_name, key, value)
+                    DatasetDbRecordInt.from_yaml_record(dataset_name, key, value)
                     for key, value in dataset_records.items()
                 )
                 write_int_records(records, connection=connection)
             case "str":
                 dataset_records = cast(dict[str, Any], dataset_records)
                 records = (
-                    DatasetRecordStr.from_yaml_record(dataset_name, key, value)
+                    DatasetDbRecordStr.from_yaml_record(dataset_name, key, value)
                     for key, value in dataset_records.items()
                 )
                 write_str_records(records, connection=connection)
@@ -138,13 +138,13 @@ def import_jsonl_sde_to_db(sde_path: Path, *, connection: sqlite3.Connection) ->
             match key_type:
                 case "int":
                     records = (
-                        DatasetRecordInt.from_jsonl_record(dataset_name, record)
+                        DatasetDbRecordInt.from_jsonl_record(dataset_name, record)
                         for record in peekable_records
                     )
                     write_int_records(records, connection=connection)
                 case "str":
                     records = (
-                        DatasetRecordStr.from_jsonl_record(dataset_name, record)
+                        DatasetDbRecordStr.from_jsonl_record(dataset_name, record)
                         for record in peekable_records
                     )
                     write_str_records(records, connection=connection)

@@ -22,7 +22,7 @@ from pydantic_core import from_json, to_json
 
 
 @dataclass(slots=True, kw_only=True)
-class DatasetRecordInt:
+class DatasetDbRecordInt:
     record_key: int
     dataset_name: str
     record_json: bytes
@@ -38,7 +38,7 @@ class DatasetRecordInt:
 
     @classmethod
     def from_jsonl_record(cls, dataset_name: str, record: dict[str, Any]) -> Self:
-        """Create a DatasetRecordInt instance from a record in JSONL format.
+        """Create a DatasetDbRecordInt instance from a record in JSONL format.
 
         The record is expected to be a dictionary with a top-level key that is `_key`
         with a value that is an int.
@@ -64,7 +64,7 @@ class DatasetRecordInt:
 
     @classmethod
     def from_yaml_record(cls, dataset_name: str, record_key: int, record: Any) -> Self:
-        """Create a DatasetRecordInt instance from a record in YAML format.
+        """Create a DatasetDbRecordInt instance from a record in YAML format.
 
         The entire record is serialized to JSON and stored as bytes in the record_json field.
         """
@@ -79,7 +79,7 @@ class DatasetRecordInt:
 
 
 @dataclass(slots=True, kw_only=True)
-class DatasetRecordStr:
+class DatasetDbRecordStr:
     record_key: str
     dataset_name: str
     record_json: bytes
@@ -95,7 +95,7 @@ class DatasetRecordStr:
 
     @classmethod
     def from_jsonl_record(cls, dataset_name: str, record: dict[str, Any]) -> Self:
-        """Create a DatasetRecordStr instance from a record in JSONL format.
+        """Create a DatasetDbRecordStr instance from a record in JSONL format.
 
         The record is expected to be a dictionary with a top-level key that is `_key`
         with a value that is a str.
@@ -121,7 +121,7 @@ class DatasetRecordStr:
 
     @classmethod
     def from_yaml_record(cls, dataset_name: str, record_key: str, record: Any) -> Self:
-        """Create a DatasetRecordStr instance from a record in YAML format.
+        """Create a DatasetDbRecordStr instance from a record in YAML format.
 
         The entire record is serialized to JSON and stored as bytes in the record_json field.
         """

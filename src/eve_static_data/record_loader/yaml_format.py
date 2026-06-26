@@ -8,11 +8,11 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from eve_static_data.db.query import DatasetDbQuery
 from eve_static_data.helpers.load_raw_datasets import load_dataset_from_file
 from eve_static_data.helpers.sde_metadata import (
     SdeMetadata,
     load_sde_metadata,
-    load_sde_metadata_from_sqlite,
 )
 from eve_static_data.models.common import DatasetRecordBase
 from eve_static_data.models.dataset_filenames import SdeDatasets
@@ -150,13 +150,23 @@ class YamlDBLoader(LoaderProtocol):
     def __init__(self, connection: sqlite3.Connection):
         """Initialize the loader with a SQLite database connection."""
         self._connection = connection
-        self._sde_metadata: SdeMetadata | None = None
+        self._dataset_query = DatasetDbQuery(connection)
+
+    @property
+    def dataset_key_types(self) -> dict[str, str]:
+        """Get the dataset key types from the database.
+
+        Returns:
+            dict[str, str]: A dictionary mapping dataset names to their key types.
+        """
+        return self._dataset_query.dataset_key_types
 
     def sde_metadata(self) -> SdeMetadata:
         """Get the SDE metadata, loading it from the SDE path if necessary."""
-        if self._sde_metadata is None:
-            self._sde_metadata = load_sde_metadata_from_sqlite(self._connection)
-        return self._sde_metadata
+        sde_metadata = self._dataset_query.sde_metadata
+        if sde_metadata is None:
+            raise ValueError("SDE metadata not found in the database.")
+        return sde_metadata
 
     def load_records[T: DatasetRecordBase](
         self,
@@ -187,7 +197,15 @@ class YamlDBLoader(LoaderProtocol):
             ValidationError: If a raw record fails validation when deserializing into
                 the record_model.
         """
-        ...
+        for record_key, record_dict in self.load_raw_records(
+            record_model.dataset, record_keys=record_keys
+        ):
+            record = deserialize_yaml_record(
+                record_model, record_key=record_key, record_dict=record_dict
+            )
+            if isinstance(record, ValidationError):
+                raise record
+            yield record_key, record
 
     def load_raw_records(
         self, dataset: SdeDatasets, *, record_keys: set[int | str] | None = None
@@ -213,4 +231,37 @@ class YamlDBLoader(LoaderProtocol):
             FileNotFoundError: If the dataset file does not exist.
             ValueError: If the dataset file is not a valid YAML file.
         """
-        ...
+        key_type = self._dataset_query.dataset_key_types.get(dataset.value)
+        if key_type is None:
+            raise ValueError(
+                f"Dataset '{dataset.value}' not found in the database. "
+                "Ensure that the dataset has been loaded into the database."
+            )
+        match key_type:
+            case "int":
+                if record_keys is not None and not all(
+                    isinstance(k, int) for k in record_keys
+                ):
+                    raise ValueError(
+                        f"Expected integer keys for dataset '{dataset.value}', but got {record_keys}."
+                    )
+
+                yield from self._dataset_query.get_int_records(
+                    dataset_name=dataset.value,
+                    record_keys=record_keys,  # type: ignore
+                )
+            case "str":
+                if record_keys is not None and not all(
+                    isinstance(k, str) for k in record_keys
+                ):
+                    raise ValueError(
+                        f"Expected string keys for dataset '{dataset.value}', but got {record_keys}."
+                    )
+                yield from self._dataset_query.get_str_records(
+                    dataset_name=dataset.value,
+                    record_keys=record_keys,  # type: ignore
+                )
+            case _:
+                raise ValueError(
+                    f"Unexpected key type '{key_type}' for dataset '{dataset.value}'."
+                )

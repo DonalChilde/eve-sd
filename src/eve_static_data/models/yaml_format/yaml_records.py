@@ -1481,7 +1481,7 @@ class MasteriesRecord(DatasetRecordInt):
             return data
 
         record_key = data.get("record_key")  # type: ignore
-        mastery_map = {k: v for k, v in data.items() if k != "record_key"}  # type: ignore
+        mastery_map = {int(k): v for k, v in data.items() if k != "record_key"}  # type: ignore
         return {"record_key": record_key, "masteries": mastery_map}  # type: ignore
 
 

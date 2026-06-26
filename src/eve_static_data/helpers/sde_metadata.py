@@ -1,7 +1,6 @@
 """Functions for loading SDE info from a given input path or SDE zip file."""
 
 import json
-import sqlite3
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -174,24 +173,3 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                     "source_media": ".yaml",
                 }
             return SdeMetadataRoot.model_validate(values).root
-
-
-def load_sde_metadata_from_sqlite(connection: sqlite3.Connection) -> SdeMetadata:
-    """Get the SDE metadata from the given SDE SQLite database connection.
-
-    This function opens the given SDE SQLite database file, queries the `sde_info` table
-    for the build number and release date, and returns it as an SdeMetadata instance.
-
-    Args:
-        connection: The SQLite database connection.
-
-    Returns:
-        An SdeMetadata containing the SDE info from the `sde_info` table.
-
-    Raises:
-        sqlite3.DatabaseError: If there is an error querying the database.
-    """
-    raise NotImplementedError(
-        "Loading SDE metadata from SQLite is not yet implemented."
-    )
-    ...

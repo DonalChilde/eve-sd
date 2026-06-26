@@ -18,7 +18,7 @@ from eve_static_data.validation.yaml_validation import (
 )
 
 
-def validate_sde_yaml_datasets(sde_path: Path) -> SdeValidationSummary:
+def validate_yaml_datasets_file(sde_path: Path) -> SdeValidationSummary:
     """Validate all YAML datasets in the given SDE path and return a summary of results.
 
     Args:

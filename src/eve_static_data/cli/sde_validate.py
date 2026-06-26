@@ -9,9 +9,13 @@ from typing import Annotated, cast
 import typer
 from rich.console import Console
 
+from eve_static_data.db.helpers import create_read_write_connection
 from eve_static_data.helpers.save_text_file import save_text_file
 from eve_static_data.validation.markdown_report import generate_markdown_report
-from eve_static_data.validation.validation_from_files import validate_sde_yaml_datasets
+from eve_static_data.validation.validation_from_db import validate_yaml_datasets_db
+from eve_static_data.validation.validation_from_files import (
+    validate_yaml_datasets_file,
+)
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -27,12 +31,81 @@ def _json_default(value: object) -> object:
 
 
 @app.command(name="yaml-files")
-def yaml_model(
+def yaml_files(
     ctx: typer.Context,
     sde_path: Annotated[
         Path,
         typer.Argument(
             help="The path to the yaml SDE data.",
+        ),
+    ],
+    report_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--report-path",
+            help="The directory path to save the validation report json and markdown to. If not provided, "
+            "the markdown report output will be output to the terminal.",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ] = None,
+    write_to_db: Annotated[
+        bool,
+        typer.Option(
+            "-w",
+            "--write-to-db",
+            help="Whether to write the validated dataset reports to the SQLite database.",
+        ),
+    ] = False,
+    overwrite: Annotated[
+        bool,
+        typer.Option(
+            "--overwrite",
+            help="Whether to overwrite existing validation reports.",
+        ),
+    ] = False,
+):
+    """Validate the SDE YAML datasets.
+
+    Validates the yaml-format datasets in the given SDE path and outputs a summary of
+    the validation results.
+
+    If a report path is provided, the validation summary will be saved as a JSON and
+    Markdown report in the specified directory. If no report path is provided, the
+    validation summary will be printed to the terminal in Markdown format.
+    """
+    console = Console()
+    console.print("[bold green]Validating SDE YAML Datasets[/bold green]")
+    summary = validate_yaml_datasets_file(sde_path)
+    markdown_report = generate_markdown_report(summary)
+
+    if report_path is None:
+        console.print(markdown_report)
+        return
+
+    build_suffix = str(summary.sde_metadata.buildNumber)
+    save_text_file(
+        text=json.dumps(asdict(summary), indent=2, default=_json_default),
+        output_path=report_path,
+        file_name=f"yaml_validation_result_{build_suffix}.json",
+        overwrite=overwrite,
+    )
+    save_text_file(
+        text=markdown_report,
+        output_path=report_path,
+        file_name=f"yaml_validation_report_{build_suffix}.md",
+        overwrite=overwrite,
+    )
+    console.print(f"Saved validation reports to {report_path}")
+
+
+@app.command(name="yaml-db")
+def yaml_db(
+    ctx: typer.Context,
+    db_path: Annotated[
+        Path,
+        typer.Argument(
+            help="The path to the SQLite database containing the SDE data.",
         ),
     ],
     report_path: Annotated[
@@ -53,9 +126,9 @@ def yaml_model(
         ),
     ] = False,
 ):
-    """Validate the SDE YAML datasets.
+    """Validate the SDE YAML datasets in a SQLite database.
 
-    Validates the yaml-format datasets in the given SDE path and outputs a summary of
+    Validates the yaml-format datasets in the given SQLite database and outputs a summary of
     the validation results.
 
     If a report path is provided, the validation summary will be saved as a JSON and
@@ -63,8 +136,10 @@ def yaml_model(
     validation summary will be printed to the terminal in Markdown format.
     """
     console = Console()
-    console.print("[bold green]Validating SDE YAML Datasets[/bold green]")
-    summary = validate_sde_yaml_datasets(sde_path)
+    console.print("[bold green]Validating SDE YAML Datasets from Database[/bold green]")
+    connection = create_read_write_connection(str(db_path))
+
+    summary = validate_yaml_datasets_db(connection)
     markdown_report = generate_markdown_report(summary)
 
     if report_path is None:
