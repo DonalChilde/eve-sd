@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from eve_static_data.helpers.sde_metadata import SourceFormat
 from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.models.yaml_format.yaml_records import get_record_model_for_dataset
 from eve_static_data.record_loader.yaml_format import deserialize_yaml_record
@@ -48,7 +49,7 @@ def validate_yaml_dataset(
             )
     validation_result = DatasetValidationResult(
         dataset=dataset_enum,
-        source_format="yaml-model",
+        source_format=SourceFormat.YAML_MODEL,
         record_count=count,
         validation_time_nanoseconds=perf_counter_ns() - start,
         failed_records=validation_failures,

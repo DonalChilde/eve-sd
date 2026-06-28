@@ -1,6 +1,6 @@
 """Tests for validation markdown report rendering."""
 
-from eve_static_data.helpers.sde_metadata import SdeMetadata
+from eve_static_data.helpers.sde_metadata import SdeMetadata, SourceFormat, SourceMedia
 from eve_static_data.models.dataset_filenames import SdeDatasets
 from eve_static_data.validation.markdown_report import generate_markdown_report
 from eve_static_data.validation.models import (
@@ -15,8 +15,8 @@ def _metadata() -> SdeMetadata:
     return SdeMetadata(
         buildNumber=3393779,
         releaseDate="2026-06-14T11:47:47Z",
-        source_format="yaml-model",
-        source_media=".yaml",
+        source_format=SourceFormat.YAML_MODEL,
+        source_media=SourceMedia.YAML,
     )
 
 
@@ -29,7 +29,7 @@ def _result(
     """Build one dataset result for report tests."""
     return DatasetValidationResult(
         dataset=dataset,
-        source_format="yaml-model",
+        source_format=SourceFormat.YAML_MODEL,
         record_count=record_count,
         validation_time_nanoseconds=validation_time_nanoseconds,
         failed_records=failed_records,

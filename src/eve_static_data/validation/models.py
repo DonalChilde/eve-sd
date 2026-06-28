@@ -1,9 +1,8 @@
 """Models for validation results and summary of SDE datasets."""
 
 from dataclasses import dataclass, field
-from typing import Literal
 
-from eve_static_data.helpers.sde_metadata import SdeMetadata
+from eve_static_data.helpers.sde_metadata import SdeMetadata, SourceFormat
 from eve_static_data.models.dataset_filenames import SdeDatasets
 
 
@@ -28,7 +27,7 @@ class DatasetValidationResult:
 
     dataset: SdeDatasets
     """The dataset enum name, e.g., SdeDatasets.invTypes."""
-    source_format: Literal["yaml-model", "jsonl-model"]
+    source_format: SourceFormat
     """The source format of the dataset, either 'yaml-model' or 'jsonl-model'."""
     record_count: int = 0
     """The number of records validated in the dataset."""
