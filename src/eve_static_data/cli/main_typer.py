@@ -10,8 +10,7 @@ from eve_static_data.cli.config_info import app as config_info_app
 from eve_static_data.cli.db import app as sde_import_app
 from eve_static_data.cli.dev import app as dev_app
 from eve_static_data.cli.export import app as sde_export_app
-from eve_static_data.cli.sde_metadata import app as sde_metadata_app
-from eve_static_data.cli.sde_validate import app as sde_validate_app
+from eve_static_data.cli.sde_metadata.latest import app as sde_latest_app
 from eve_static_data.cli.sde_zip import app as sde_zip_app
 from eve_static_data.logging_config import setup_logging
 from eve_static_data.settings import get_settings
@@ -23,16 +22,17 @@ app.add_typer(
     sde_import_app, name="db", help="Commands for working with the SDE database."
 )
 app.add_typer(
-    sde_metadata_app, name="metadata", help="Commands for working with SDE metadata."
+    sde_latest_app,
 )
 app.add_typer(sde_zip_app, name="zip", help="Commands for working with SDE zip files.")
-app.add_typer(
-    sde_validate_app, name="validate", help="Commands for validating SDE data."
-)
 app.add_typer(sde_export_app, name="export", help="Commands for exporting SDE data.")
 app.add_typer(dev_app, name="dev", help="Commands for development workflows.")
 # app.add_typer(sde_import_app, name="import", help="Commands for importing SDE data.")
-app.add_typer(config_info_app)
+app.add_typer(
+    config_info_app,
+    name="self",
+    help="Commands for displaying configuration information about the current environment.",
+)
 
 
 @app.callback(invoke_without_command=True)

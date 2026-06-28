@@ -1,44 +1,20 @@
 """Generate small fixture datasets from local SDE files."""
 
 from collections.abc import Iterator
-from enum import Enum
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import typer
 
 from eve_static_data.helpers import json_io
+from eve_static_data.helpers.sde_metadata import (
+    SourceFormat,
+    SourceMedia,
+    load_sde_metadata,
+)
 from eve_static_data.helpers.yaml_io import safe_dump_path, safe_load_path
 
 app = typer.Typer(no_args_is_help=True)
-
-
-class DatasetFormat(str, Enum):
-    """Supported source dataset formats for fixture generation."""
-
-    auto = "auto"
-    yaml = "yaml"
-    jsonl = "jsonl"
-
-
-def _has_files(sde_path: Path, suffix: str) -> bool:
-    """Return whether the directory contains at least one file with suffix."""
-    return next(sde_path.glob(f"*{suffix}"), None) is not None
-
-
-def _resolve_format(sde_path: Path, dataset_format: DatasetFormat) -> DatasetFormat:
-    """Resolve auto format selection based on files present in the directory."""
-    if dataset_format is not DatasetFormat.auto:
-        return dataset_format
-
-    if _has_files(sde_path, ".yaml"):
-        return DatasetFormat.yaml
-    if _has_files(sde_path, ".jsonl"):
-        return DatasetFormat.jsonl
-
-    raise typer.BadParameter(
-        "No supported dataset files found. Expected .yaml or .jsonl files."
-    )
 
 
 def _first_items(data: dict[Any, Any], count: int) -> dict[Any, Any]:
@@ -72,29 +48,49 @@ def _write_text(path: Path, text: str, overwrite: bool) -> None:
         file_handle.write(text)
 
 
+def _load_mapping_file(path: Path, source_media: SourceMedia) -> dict[Any, Any] | None:
+    """Load a mapping dataset file based on source media."""
+    if source_media is SourceMedia.YAML:
+        loaded_data = safe_load_path(path)
+    else:
+        raise ValueError(
+            f"Unsupported source media {source_media!r} for mapping dataset loading."
+        )
+    if not isinstance(loaded_data, dict):
+        return None
+    return cast(dict[Any, Any], loaded_data)
+
+
 def _generate_yaml_test_data(
     sde_path: Path,
     output_path: Path,
     records_per_file: int,
     overwrite: bool,
+    source_media: SourceMedia,
 ) -> int:
-    """Generate YAML and JSON fixture files from YAML SDE datasets."""
+    """Generate YAML and JSON fixture files from YAML-model datasets."""
+    if source_media is not SourceMedia.YAML:
+        raise ValueError(
+            f"Unsupported source media {source_media!r} for YAML-model fixture generation."
+        )
+
     yaml_output = output_path / "yaml"
     json_output = output_path / "json"
     generated_files = 0
+    glob_pattern = f"*{source_media.value}"
 
-    for yaml_input_file in sorted(sde_path.glob("*.yaml")):
-        loaded_data = safe_load_path(yaml_input_file)
-        if not isinstance(loaded_data, dict):
+    for input_file in sorted(sde_path.glob(glob_pattern)):
+        loaded_data = _load_mapping_file(input_file, source_media=source_media)
+        if loaded_data is None:
             continue
 
         fixture_data = _first_items(loaded_data, records_per_file)
-        yaml_target = yaml_output / yaml_input_file.name
-        json_target = json_output / f"{yaml_input_file.stem}.json"
+        yaml_target = yaml_output / f"{input_file.stem}.yaml"
+        json_target = json_output / f"{input_file.stem}.json"
 
         if not overwrite and (yaml_target.exists() or json_target.exists()):
             raise FileExistsError(
-                f"Fixture output already exists for {yaml_input_file.name}. "
+                f"Fixture output already exists for {input_file.name}. "
                 "Use --overwrite to replace existing files."
             )
 
@@ -116,20 +112,26 @@ def _generate_jsonl_test_data(
     output_path: Path,
     records_per_file: int,
     overwrite: bool,
+    source_media: SourceMedia,
 ) -> int:
-    """Generate JSONL fixture files from JSONL SDE datasets."""
+    """Generate JSONL fixture files from JSONL-model datasets."""
+    if source_media is not SourceMedia.JSONL:
+        raise ValueError(
+            f"Unsupported source media {source_media!r} for JSONL-model fixture generation."
+        )
+
     generated_files = 0
+    glob_pattern = f"*{source_media.value}"
 
-    for jsonl_input_file in sorted(sde_path.glob("*.jsonl")):
-        target_file = output_path / jsonl_input_file.name
-
+    for input_file in sorted(sde_path.glob(glob_pattern)):
+        target_file = output_path / input_file.name
         if not overwrite and target_file.exists():
             raise FileExistsError(
-                f"Fixture output already exists for {jsonl_input_file.name}. "
+                f"Fixture output already exists for {target_file.name}. "
                 "Use --overwrite to replace existing files."
             )
 
-        first_lines = "".join(_iter_first_lines(jsonl_input_file, records_per_file))
+        first_lines = "".join(_iter_first_lines(input_file, records_per_file))
         _write_text(target_file, first_lines, overwrite=overwrite)
         generated_files += 1
 
@@ -156,14 +158,6 @@ def generate_files(
             dir_okay=True,
         ),
     ],
-    dataset_format: Annotated[
-        DatasetFormat,
-        typer.Option(
-            "--format",
-            help="Source dataset format. Defaults to auto detection.",
-            case_sensitive=False,
-        ),
-    ] = DatasetFormat.auto,
     records_per_file: Annotated[
         int,
         typer.Option(
@@ -180,15 +174,29 @@ def generate_files(
         ),
     ] = False,
 ) -> None:
-    """Generate small fixture datasets from local SDE dataset files."""
-    resolved_format = _resolve_format(sde_path, dataset_format)
+    """Generate small fixture datasets from local SDE dataset files.
 
-    if resolved_format is DatasetFormat.yaml:
+    This should replicate the structure of the original SDE datasets, but with a
+    limited number of records per file for testing purposes.
+    """
+    try:
+        sde_metadata = load_sde_metadata(sde_path)
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    if sde_metadata.source_media not in {SourceMedia.YAML, SourceMedia.JSONL}:
+        raise typer.BadParameter(
+            "Test data generation requires original source datasets. "
+            "Use a path containing _sde.yaml or _sde.jsonl metadata."
+        )
+
+    if sde_metadata.source_format is SourceFormat.YAML_MODEL:
         generated_files = _generate_yaml_test_data(
             sde_path=sde_path,
             output_path=output_path,
             records_per_file=records_per_file,
             overwrite=overwrite,
+            source_media=sde_metadata.source_media,
         )
     else:
         generated_files = _generate_jsonl_test_data(
@@ -196,8 +204,11 @@ def generate_files(
             output_path=output_path,
             records_per_file=records_per_file,
             overwrite=overwrite,
+            source_media=sde_metadata.source_media,
         )
 
     typer.echo(
-        f"Generated {generated_files} fixture files from {resolved_format.value} datasets in {output_path}."
+        "Generated "
+        f"{generated_files} fixture files from {sde_metadata.source_format.value} "
+        f"datasets ({sde_metadata.source_media.value}) in {output_path}."
     )

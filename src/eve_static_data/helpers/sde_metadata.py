@@ -1,14 +1,32 @@
 """Functions for loading SDE info from a given input path or SDE zip file."""
 
 import json
+import sqlite3
 import zipfile
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import RootModel
 
 from eve_static_data.helpers.yaml_io import safe_load_IO, safe_load_path
+
+
+class SourceFormat(StrEnum):
+    """Enum for the source format of the SDE data."""
+
+    YAML_MODEL = "yaml-model"
+    JSONL_MODEL = "jsonl-model"
+
+
+class SourceMedia(StrEnum):
+    """Enum for the source media of the SDE data."""
+
+    YAML = ".yaml"
+    JSONL = ".jsonl"
+    JSON = ".json"
+    DB = ".db"
 
 
 @dataclass(slots=True, kw_only=True)
@@ -21,8 +39,8 @@ class SdeMetadata:
 
     buildNumber: int
     releaseDate: str
-    source_format: Literal["yaml-model", "jsonl-model"]
-    source_media: Literal[".yaml", ".json", ".jsonl", ".db"]
+    source_format: SourceFormat
+    source_media: SourceMedia
 
 
 SdeMetadataRoot = RootModel[SdeMetadata]
@@ -68,23 +86,32 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
     sde_info_path_jsonl = input_path / "_sde.jsonl"
     sde_info_path_json = input_path / "_sde.json"
 
-    if not sde_info_path_jsonl.exists() and not sde_info_path_yaml.exists():
+    existing_metadata_files: list[Path] = [
+        path
+        for path in (sde_info_path_yaml, sde_info_path_jsonl, sde_info_path_json)
+        if path.exists()
+    ]
+
+    if not existing_metadata_files:
         raise FileNotFoundError(
-            f"_sde.jsonl or _sde.yaml file not found at {input_path}."
+            f"No _sde.jsonl, _sde.yaml, or _sde.json file found at {input_path}."
         )
-    if sde_info_path_jsonl.exists() and sde_info_path_yaml.exists():
+    if len(existing_metadata_files) > 1:
+        found_names = ", ".join(path.name for path in existing_metadata_files)
         raise ValueError(
-            f"Both _sde.jsonl and _sde.yaml files found at {input_path}. Expected only one of them."
+            f"Multiple _sde metadata files found at {input_path}: {found_names}. "
+            "Expected exactly one metadata file."
         )
+
     if sde_info_path_jsonl.exists():
-        with open(sde_info_path_jsonl) as f:
+        with sde_info_path_jsonl.open(encoding="utf-8") as f:
             first_line = f.readline()
             sde_info = json.loads(first_line)
             values: dict[str, Any] = {
                 "buildNumber": sde_info["buildNumber"],
                 "releaseDate": sde_info["releaseDate"],
-                "source_format": "jsonl-model",
-                "source_media": sde_info_path_jsonl.suffix,
+                "source_format": SourceFormat.JSONL_MODEL,
+                "source_media": SourceMedia.JSONL,
             }
             return SdeMetadataRoot.model_validate(values).root
     elif sde_info_path_yaml.exists():
@@ -92,34 +119,32 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
         values: dict[str, Any] = {
             "buildNumber": sde_info["sde"]["buildNumber"],
             "releaseDate": sde_info["sde"]["releaseDate"],
-            "source_format": "yaml-model",
-            "source_media": sde_info_path_yaml.suffix,
+            "source_format": SourceFormat.YAML_MODEL,
+            "source_media": SourceMedia.YAML,
         }
         return SdeMetadataRoot.model_validate(values).root
     elif sde_info_path_json.exists():
-        with open(sde_info_path_json) as f:
+        with sde_info_path_json.open(encoding="utf-8") as f:
             sde_info = json.load(f)
-            # If "_key" is present, its the jsonl-model format.
-            has_key = "_key" in sde_info
-            if has_key:
+
+            if is_jsonl_format(sde_info):
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": "jsonl-model",
-                    "source_media": sde_info_path_json.suffix,
+                    "source_format": SourceFormat.JSONL_MODEL,
+                    "source_media": SourceMedia.JSON,
                 }
             else:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["sde"]["buildNumber"],
                     "releaseDate": sde_info["sde"]["releaseDate"],
-                    "source_format": "yaml-model",
-                    "source_media": sde_info_path_json.suffix,
+                    "source_format": SourceFormat.YAML_MODEL,
+                    "source_media": SourceMedia.JSON,
                 }
             return SdeMetadataRoot.model_validate(values).root
-    else:
-        raise FileNotFoundError(
-            f"No _sde.jsonl, _sde.yaml, or _sde.json file found at {input_path}."
-        )
+    raise FileNotFoundError(
+        f"No _sde.jsonl, _sde.yaml, or _sde.json file found at {input_path}."
+    )
 
 
 def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
@@ -158,8 +183,8 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": "jsonl",
-                    "source_media": ".jsonl",
+                    "source_format": SourceFormat.JSONL_MODEL,
+                    "source_media": SourceMedia.JSONL,
                 }
                 return SdeMetadataRoot.model_validate(values).root
         else:
@@ -169,7 +194,33 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": "yaml",
-                    "source_media": ".yaml",
+                    "source_format": SourceFormat.YAML_MODEL,
+                    "source_media": SourceMedia.YAML,
                 }
             return SdeMetadataRoot.model_validate(values).root
+
+
+def is_jsonl_format(dict_obj: dict[str | int, Any]) -> bool:
+    """Determine if the given dictionary represents a JSONL format SDE record.
+
+    Args:
+        dict_obj: A dictionary representing an SDE dataset record.
+
+    Returns:
+        True if the dictionary represents a JSONL format SDE record, False otherwise.
+    """
+    return "_key" in dict_obj
+
+
+def load_sde_metadata_from_db(connection: sqlite3.Connection) -> SdeMetadata:
+    """Get the SDE metadata from the given SQLite database connection.
+
+    This function queries the `sde_metadata` table in the SQLite database to retrieve the SDE metadata.
+
+    Args:
+        connection: A SQLite database connection.
+
+    Returns:
+        An SdeMetadata containing the SDE info from the `sde_metadata` table in the SQLite database.
+    """
+    ...

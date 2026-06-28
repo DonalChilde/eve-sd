@@ -27,9 +27,25 @@ LATEST_INFO_URL: str = (
     "https://developers.eveonline.com/static-data/tranquility/latest.jsonl"
 )
 DATA_FILENAME_TEMPLATE: str = "eve-online-static-data-${build_number}-${variant}.zip"
+
 from eve_static_data.sde_tools import SDETools
 
-# TODO decide on the objects to make available as part of the public api.
 __all__ = [
+    "__app_name__",
+    "__description__",
+    "__license__",
+    "__url__",
+    "__version__",
+    "AFTER_BUILD_NUMBER",
+    "APPLICATION_NAME",
+    "DATA_CHANGES_URL_TEMPLATE",
+    "DATA_FILENAME_TEMPLATE",
+    "DEFAULT_APP_DIR",
+    "LATEST_INFO_URL",
+    "NAMESPACE",
+    "RELEASE_DATE",
+    "SCHEMA_CHANGELOG_URL",
     "SDETools",
+    "SDE_URL_TEMPLATE",
+    "USER_AGENT",
 ]

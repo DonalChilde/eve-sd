@@ -1,5 +1,8 @@
 # EVE Static Data Roadmap
 
+Note: active execution planning now lives in dev-docs/plans/master-plan.md.
+This roadmap file is retained as legacy context and idea history.
+
 EVE Static Data is a cli program used to download, validate, access, and export the EVE static dataset.
 
 Typical Flow:

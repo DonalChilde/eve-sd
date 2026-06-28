@@ -1,6 +1,5 @@
 """Generate schema reports for local SDE datasets."""
 
-from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -16,39 +15,12 @@ from eve_static_data.helpers.schema_report.report_from_files import (
     get_jsonl_schema_report,
     get_yaml_schema_report,
 )
+from eve_static_data.helpers.sde_metadata import (
+    SourceMedia,
+    load_sde_metadata,
+)
 
 app = typer.Typer(no_args_is_help=True)
-
-
-class DatasetFormat(str, Enum):
-    """Supported dataset formats for schema report generation."""
-
-    auto = "auto"
-    yaml = "yaml"
-    jsonl = "jsonl"
-    json = "json"
-
-
-def _has_files(sde_path: Path, suffix: str) -> bool:
-    """Return whether the directory contains at least one file with suffix."""
-    return next(sde_path.glob(f"*{suffix}"), None) is not None
-
-
-def _resolve_format(sde_path: Path, dataset_format: DatasetFormat) -> DatasetFormat:
-    """Resolve auto format selection based on files present in the directory."""
-    if dataset_format is not DatasetFormat.auto:
-        return dataset_format
-
-    if _has_files(sde_path, ".yaml"):
-        return DatasetFormat.yaml
-    if _has_files(sde_path, ".jsonl"):
-        return DatasetFormat.jsonl
-    if _has_files(sde_path, ".json"):
-        return DatasetFormat.json
-
-    raise typer.BadParameter(
-        "No supported dataset files found. Expected .yaml, .jsonl, or .json files."
-    )
 
 
 @app.command(name="files")
@@ -63,14 +35,6 @@ def report_files(
             readable=True,
         ),
     ],
-    dataset_format: Annotated[
-        DatasetFormat,
-        typer.Option(
-            "--format",
-            help="Dataset format in the directory. Defaults to auto detection.",
-            case_sensitive=False,
-        ),
-    ] = DatasetFormat.auto,
     report_path: Annotated[
         Path | None,
         typer.Option(
@@ -92,23 +56,31 @@ def report_files(
     ] = False,
 ) -> None:
     """Generate a schema report from local datasets in one directory."""
-    resolved_format = _resolve_format(sde_path, dataset_format)
+    try:
+        sde_metadata = load_sde_metadata(sde_path)
+    except (FileNotFoundError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
-    if resolved_format is DatasetFormat.yaml:
+    if sde_metadata.source_media is SourceMedia.YAML:
         schema_report = get_yaml_schema_report(sde_path)
-    elif resolved_format is DatasetFormat.jsonl:
+    elif sde_metadata.source_media is SourceMedia.JSONL:
         schema_report = get_jsonl_schema_report(sde_path)
-    else:
+    elif sde_metadata.source_media is SourceMedia.JSON:
         schema_report = get_json_schema_report(sde_path)
+    else:
+        raise typer.BadParameter(
+            f"Unsupported source media {sde_metadata.source_media!r} for schema reporting."
+        )
 
     markdown_report = generate_markdown_report(schema_report)
     if report_path is None:
         typer.echo(markdown_report)
         return
 
-    format_name = resolved_format.value
-    json_file_name = f"schema_report_{format_name}.json"
-    markdown_file_name = f"schema_report_{format_name}.md"
+    build_suffix = sde_metadata.buildNumber
+    format_name = sde_metadata.source_format.value
+    json_file_name = f"schema_report_{format_name}_{build_suffix}.json"
+    markdown_file_name = f"schema_report_{format_name}_{build_suffix}.md"
     save_text_file(
         text=json_io.json_dumps(schema_report, indent=2),
         output_dir=report_path,

@@ -1,5 +1,8 @@
 # Planned Refactors
 
+Note: active execution priorities are tracked in dev-docs/plans/master-plan.md.
+This file remains useful as a backlog of refactor ideas and context.
+
 ## NOW
 
 ### FIXME

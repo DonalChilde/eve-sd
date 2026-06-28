@@ -53,9 +53,9 @@ validation, import, and scripted local workflows.
 ## Known Gaps and Risks
 
 - JSONL record loading/validation path is incomplete in parts of loader surface.
-- Public package API boundary is not finalized.
-- Dev CLI command group is currently only a placeholder.
-- Schema update guide is marked as needing validation.
+- Public package API boundary still needs broader usage examples.
+- New dev commands need deeper behavioral test coverage.
+- Schema update workflow is updated, but should be exercised on the next schema release.
 - Planning information is distributed across multiple legacy docs.
 
 ## Active Milestones
@@ -136,13 +136,21 @@ This section should be updated continuously during active work.
 
 ### Current Focus
 
-- M1 Public API cleanup
 - M2 Dev CLI tooling baseline
-- M3 Documentation consolidation
+- M1 Public API cleanup
+- M4 JSONL parity prep
+
+### Done Recently
+
+- Created canonical planning docs in dev-docs/plans.
+- Added dev CLI command group with schema-report and generate-test-data commands.
+- Added baseline CLI tests for dev command registration and failure paths.
+- Updated schema update instructions to a current, executable workflow.
+- Added canonical-plan pointers in legacy roadmap and refactor docs.
 
 ### Next Up
 
 1. Wire dev command group into CLI.
-2. Implement first dev commands with basic verification.
-3. Finalize public API export list and usage notes.
-4. Rewrite schema update instructions against current code.
+2. Add success-path tests for new dev commands with small sample datasets.
+3. Add short public API usage examples in README.
+4. Start JSONL parity task breakdown under M4.

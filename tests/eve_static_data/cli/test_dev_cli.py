@@ -24,6 +24,32 @@ def test_dev_help_includes_expected_subcommands() -> None:
     assert result.exit_code == 0
     assert "schema-report" in result.stdout
     assert "generate-test-data" in result.stdout
+    assert "validate" in result.stdout
+    assert "schema-changes" in result.stdout
+    assert "data-changes" in result.stdout
+    assert "rollup" in result.stdout
+
+
+def test_validate_is_not_top_level_command() -> None:
+    """Validation commands should be nested under the dev group."""
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert " validate " not in result.stdout
+
+
+def test_metadata_help_no_longer_includes_changes_commands() -> None:
+    """If metadata command exists, it should not expose schema/data changes commands."""
+    root_help = runner.invoke(app, ["--help"])
+
+    assert root_help.exit_code == 0
+    if "metadata" not in root_help.stdout:
+        return
+
+    result = runner.invoke(app, ["metadata", "--help"])
+    assert result.exit_code == 0
+    assert "schema-changes" not in result.stdout
+    assert "data-changes" not in result.stdout
 
 
 def test_schema_report_files_fails_for_empty_directory(tmp_path: Path) -> None:
