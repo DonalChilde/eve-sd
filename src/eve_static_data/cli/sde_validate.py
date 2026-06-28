@@ -88,13 +88,13 @@ def yaml_files(
     build_suffix = str(summary.sde_metadata.buildNumber)
     save_text_file(
         text=json.dumps(asdict(summary), indent=2, default=_json_default),
-        output_path=report_path,
+        output_dir=report_path,
         file_name=f"yaml_validation_result_{build_suffix}.json",
         overwrite=overwrite,
     )
     save_text_file(
         text=markdown_report,
-        output_path=report_path,
+        output_dir=report_path,
         file_name=f"yaml_validation_report_{build_suffix}.md",
         overwrite=overwrite,
     )
@@ -151,13 +151,13 @@ def yaml_db(
     build_suffix = str(summary.sde_metadata.buildNumber)
     save_text_file(
         text=json.dumps(asdict(summary), indent=2, default=_json_default),
-        output_path=report_path,
+        output_dir=report_path,
         file_name=f"yaml_validation_result_{build_suffix}.json",
         overwrite=overwrite,
     )
     save_text_file(
         text=markdown_report,
-        output_path=report_path,
+        output_dir=report_path,
         file_name=f"yaml_validation_report_{build_suffix}.md",
         overwrite=overwrite,
     )

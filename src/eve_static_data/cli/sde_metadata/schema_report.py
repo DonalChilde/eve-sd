@@ -56,13 +56,13 @@ def report_files(
 
         save_text_file(
             text=json_io.json_dumps(schema_report, indent=2),
-            output_path=report_path,
+            output_dir=report_path,
             file_name=json_file.name,
             overwrite=overwrite,
         )
         save_text_file(
             text=markdown_report,
-            output_path=report_path,
+            output_dir=report_path,
             file_name=markdown_file.name,
             overwrite=overwrite,
         )

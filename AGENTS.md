@@ -1,7 +1,7 @@
 ---
 description: "Python coding conventions and guidelines"
 applyTo: "**/*.py"
-project-name: "esi-auth"
+project-name: "eve-static-data"
 ---
 
 # Python Coding Conventions
@@ -15,6 +15,7 @@ project-name: "esi-auth"
 - During development, use the virtual environment found at the project root - `./.venv`
 - all code should be typed. eg. `foo:list[int] = [1,2,3]`
 - use red/green TDD
+- Use python 3.14 syntax and features.
 
 ## General Instructions
 
