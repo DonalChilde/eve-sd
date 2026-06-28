@@ -1,3 +1,5 @@
+<!-->TODO these steps need to be updated and validated.<-->
+
 # Steps for updating the eve-static-data code with a new schema.
 
 ## Download and validate the new SDE dataset.

@@ -1,3 +1,5 @@
+"""Helper function to write an iterable of dictionaries to a csv file."""
+
 import csv
 from collections.abc import Iterable
 from pathlib import Path

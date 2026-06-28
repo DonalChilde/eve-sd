@@ -1,4 +1,7 @@
-"""Loader for loading SDE records from yaml-format sources."""
+"""Loader for loading SDE records from yaml-format sources.
+
+This is the primary entry point for loading SDE records from yaml-format sources.
+"""
 
 import logging
 import sqlite3

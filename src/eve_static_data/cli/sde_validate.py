@@ -1,5 +1,7 @@
 """Validate the SDE data."""
 
+# TODO this could go to dev, and be part of a `dev info` (working name) roll up command that would include other dev commands like generating test data, etc.
+
 import json
 from dataclasses import asdict
 from enum import Enum

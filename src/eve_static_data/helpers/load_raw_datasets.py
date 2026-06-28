@@ -8,6 +8,9 @@ from eve_static_data.helpers import json_io
 from eve_static_data.helpers.yaml_io import safe_load_path
 from eve_static_data.models.dataset_filenames import SdeDatasets
 
+# TODO is this the place to offer these functions? If so they need more documentation, and
+# more options to support iterating over records, as that wound up being the common interface for file and database access.
+
 
 def _load_jsonl_as_dict(jsonl_path: Path) -> dict[str | int, Any]:
     dataset_dict: dict[str | int, Any] = {}

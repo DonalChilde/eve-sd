@@ -1,6 +1,5 @@
 """Common type definitions for the EVE static data models."""
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar, Literal, TypedDict
@@ -64,37 +63,6 @@ class LocalizableRecord:
                 and the `lang` localized string as the value.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
-
-    # def narrow_localizable_record(self, langs: set[Lang]) -> Self:
-    #     """Narrow a LocalizableRecord to a specific language.
-
-    #     For Records with localized fields in sub_records, ovverride this method to narrow
-    #     those sub_records as well.
-
-    #     Modifies the record in place and also returns it for chaining.
-
-    #     If selected lang is missing from a field, the value will be set to TRANSLATION_MISSING.
-
-    #     fields that are None will be left as None.
-
-    #     Args:
-    #         langs: The set of languages to narrow to.
-
-    #     Returns:
-    #         A new LocalizableRecord containing only the translation for the target language.
-    #     """
-    #     if not langs:
-    #         raise ValueError("At least one language must be specified.")
-    #     localized_fields = set(self.localized_fields(lang=None).keys())
-    #     for lang in langs:
-    #         lang_check(lang)
-    #     for field_name in localized_fields:
-    #         field = getattr(self, field_name)
-    #         if field is None:
-    #             continue
-    #         new_field = {lang: field.get(lang, TRANSLATION_MISSING) for lang in langs}
-    #         setattr(self, field_name, new_field)
-    #     return self
 
 
 ACTIVITIES: set[str] = {

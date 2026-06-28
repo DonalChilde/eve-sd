@@ -27,10 +27,9 @@ LATEST_INFO_URL: str = (
     "https://developers.eveonline.com/static-data/tranquility/latest.jsonl"
 )
 DATA_FILENAME_TEMPLATE: str = "eve-online-static-data-${build_number}-${variant}.zip"
-from eve_static_data.access.yaml_file_datasets_dc import SdeYamlDatasetLoaderDC
 from eve_static_data.sde_tools import SDETools
 
+# TODO decide on the objects to make available as part of the public api.
 __all__ = [
-    "SdeYamlDatasetLoaderDC",
     "SDETools",
 ]

@@ -6,11 +6,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+from eve_static_data.db.query import DatasetDbQuery
 from eve_static_data.helpers.load_raw_datasets import load_dataset_from_file
 from eve_static_data.helpers.sde_metadata import (
     SdeMetadata,
     load_sde_metadata,
-    load_sde_metadata_from_sqlite,
 )
 from eve_static_data.models.common import DatasetRecordBase
 from eve_static_data.models.dataset_filenames import SdeDatasets
@@ -105,13 +105,14 @@ class JsonlDBLoader(LoaderProtocol):
     def __init__(self, connection: sqlite3.Connection):
         """Initialize the loader with a SQLite database connection."""
         self._connection = connection
-        self._sde_metadata: SdeMetadata | None = None
+        self._dataset_query = DatasetDbQuery(connection)
 
     def sde_metadata(self) -> SdeMetadata:
-        """Get the SDE metadata, loading it from the database if necessary."""
-        if self._sde_metadata is None:
-            self._sde_metadata = load_sde_metadata_from_sqlite(self._connection)
-        return self._sde_metadata
+        """Get the SDE metadata, loading it from the SDE path if necessary."""
+        sde_metadata = self._dataset_query.sde_metadata
+        if sde_metadata is None:
+            raise ValueError("SDE metadata not found in the database.")
+        return sde_metadata
 
     def load_records[T: DatasetRecordBase](
         self,

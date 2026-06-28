@@ -1,5 +1,7 @@
 """Implementation of the EsdTools."""
 
+# TODO This could be refactored to be just functions in a package instead of a class, since it doesn't really need to maintain state.
+
 from pathlib import Path
 from string import Template
 
