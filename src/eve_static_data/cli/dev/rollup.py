@@ -4,9 +4,11 @@ import json
 from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
+from time import perf_counter
 from typing import Annotated, cast
 
 import typer
+from rich.console import Console
 
 from eve_static_data.cli.helpers import get_esd_settings_from_context
 from eve_static_data.helpers import json_io
@@ -72,10 +74,17 @@ def files(
     ] = False,
 ) -> None:
     """Generate schema report, validation report, and changelog files in one run."""
+    start = perf_counter()
+    console = Console()
     sde_metadata = load_sde_metadata(sde_path)
+    console.print(
+        f"Found {sde_metadata.source_format.value} datasets for build {sde_metadata.buildNumber} "
+        f"with source media {sde_metadata.source_media.value} in {sde_path}. "
+        f"Writing rollup output to {output_dir}."
+    )
     build_suffix = str(sde_metadata.buildNumber)
     dataset_format = sde_metadata.source_format.value
-
+    start_schema_report = perf_counter()
     if sde_metadata.source_media is SourceMedia.YAML:
         schema_report = get_yaml_schema_report(sde_path)
     elif sde_metadata.source_media is SourceMedia.JSONL:
@@ -100,7 +109,10 @@ def files(
         file_name=f"schema_report_{dataset_format}_{build_suffix}.md",
         overwrite=overwrite,
     )
-
+    console.print(
+        f"Schema report generated in {perf_counter() - start_schema_report:.2f} seconds."
+    )
+    start_validation = perf_counter()
     if sde_metadata.source_format is SourceFormat.JSONL_MODEL:
         raise typer.BadParameter(
             "Validation rollup currently supports YAML-model datasets only. "
@@ -121,7 +133,10 @@ def files(
         file_name=f"yaml_validation_report_{build_suffix}.md",
         overwrite=overwrite,
     )
-
+    console.print(
+        f"Validation report generated in {perf_counter() - start_validation:.2f} seconds."
+    )
+    start_downloads = perf_counter()
     settings = get_esd_settings_from_context(ctx)
     session = config_http_client()
     sde_tools = sde_tools_factory(settings)
@@ -145,6 +160,10 @@ def files(
         file_name=f"data_changes_{build_suffix}.jsonl",
         overwrite=overwrite,
     )
+    console.print(
+        f"Changelog files downloaded in {perf_counter() - start_downloads:.2f} seconds."
+    )
+    console.print(f"Rollup completed in {perf_counter() - start:.2f} seconds.")
 
     typer.echo(
         "Rollup complete. Wrote schema report, validation report, and changelog files "
