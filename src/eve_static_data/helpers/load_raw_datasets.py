@@ -6,7 +6,6 @@ from typing import Any, Literal, cast
 
 from eve_static_data.helpers import json_io
 from eve_static_data.helpers.yaml_io import safe_load_path
-from eve_static_data.models.dataset_filenames import SdeDatasets
 
 # TODO is this the place to offer these functions? If so they need more documentation, and
 # more options to support iterating over records, as that wound up being the common interface for file and database access.
@@ -49,61 +48,61 @@ def _load_yaml_as_dict(yaml_path: Path) -> dict[str | int, Any]:
     return dataset_dict
 
 
-def load_dataset_from_file(
-    dataset: SdeDatasets, *, sde_path: Path
-) -> tuple[dict[str | int, Any], Literal["jsonl-model"] | Literal["yaml-model"]]:
-    """Loads a dataset from a file in the given SDE path.
+# def load_dataset_from_file(
+#     dataset: SdeDatasets, *, sde_path: Path
+# ) -> tuple[dict[str | int, Any], Literal["jsonl-model"] | Literal["yaml-model"]]:
+#     """Loads a dataset from a file in the given SDE path.
 
-    Automatically detects the file format (JSONL, YAML, or JSON) and
-    source model (jsonl-model or yaml-model).
-    """
-    if not sde_path.exists() or not sde_path.is_dir():
-        raise NotADirectoryError(f"Provided SDE path '{sde_path}' is not a directory.")
-    file_candidates = list(sde_path.glob(f"{dataset.value}.*"))
-    if not file_candidates:
-        raise FileNotFoundError(
-            f"No file found for dataset '{dataset.value}' in '{sde_path}'."
-        )
-    if len(file_candidates) > 1:
-        raise FileExistsError(
-            f"Multiple files found for dataset '{dataset.value}' in '{sde_path}': {file_candidates}"
-        )
-    source_format = ""
-    match file_candidates[0].suffix:
-        case ".json":
-            dataset_dict = _load_json_as_dict(file_candidates[0])
-            for _, value in dataset_dict.items():
-                if "_key" in value:
-                    # If "_key" is present, its the jsonl-model format.
-                    source_format = "jsonl-model"
-                    break
-                else:
-                    # If "_key" is not present, its the yaml-model format.
-                    source_format = "yaml-model"
-                    break
+#     Automatically detects the file format (JSONL, YAML, or JSON) and
+#     source model (jsonl-model or yaml-model).
+#     """
+#     if not sde_path.exists() or not sde_path.is_dir():
+#         raise NotADirectoryError(f"Provided SDE path '{sde_path}' is not a directory.")
+#     file_candidates = list(sde_path.glob(f"{dataset.value}.*"))
+#     if not file_candidates:
+#         raise FileNotFoundError(
+#             f"No file found for dataset '{dataset.value}' in '{sde_path}'."
+#         )
+#     if len(file_candidates) > 1:
+#         raise FileExistsError(
+#             f"Multiple files found for dataset '{dataset.value}' in '{sde_path}': {file_candidates}"
+#         )
+#     source_format = ""
+#     match file_candidates[0].suffix:
+#         case ".json":
+#             dataset_dict = _load_json_as_dict(file_candidates[0])
+#             for _, value in dataset_dict.items():
+#                 if "_key" in value:
+#                     # If "_key" is present, its the jsonl-model format.
+#                     source_format = "jsonl-model"
+#                     break
+#                 else:
+#                     # If "_key" is not present, its the yaml-model format.
+#                     source_format = "yaml-model"
+#                     break
 
-        case ".yaml" | ".yml":
-            dataset_dict = _load_yaml_as_dict(file_candidates[0])
-            source_format = "yaml-model"
-        case ".jsonl":
-            source_format = "jsonl-model"
-            dataset_dict = _load_jsonl_as_dict(file_candidates[0])
-        case _:
-            raise ValueError(
-                f"Unsupported file format '{file_candidates[0].suffix}' for dataset '{dataset.value}'."
-            )
-    if source_format == "jsonl-model":
-        # No further processing needed.
-        return dataset_dict, source_format
-    elif source_format == "yaml-model":
-        # # Add the "_record_key" field to each record in the dataset, using the key from the YAML mapping.
-        # for key, value in dataset_dict.items():
-        #     value["_record_key"] = key
-        return dataset_dict, source_format
-    else:
-        raise ValueError(
-            f"Could not determine source format for dataset '{dataset.value}' from file '{file_candidates[0]}'."
-        )
+#         case ".yaml" | ".yml":
+#             dataset_dict = _load_yaml_as_dict(file_candidates[0])
+#             source_format = "yaml-model"
+#         case ".jsonl":
+#             source_format = "jsonl-model"
+#             dataset_dict = _load_jsonl_as_dict(file_candidates[0])
+#         case _:
+#             raise ValueError(
+#                 f"Unsupported file format '{file_candidates[0].suffix}' for dataset '{dataset.value}'."
+#             )
+#     if source_format == "jsonl-model":
+#         # No further processing needed.
+#         return dataset_dict, source_format
+#     elif source_format == "yaml-model":
+#         # # Add the "_record_key" field to each record in the dataset, using the key from the YAML mapping.
+#         # for key, value in dataset_dict.items():
+#         #     value["_record_key"] = key
+#         return dataset_dict, source_format
+#     else:
+#         raise ValueError(
+#             f"Could not determine source format for dataset '{dataset.value}' from file '{file_candidates[0]}'."
+#         )
 
 
 def load_jsonl_as_dataset_dict(jsonl_path: Path) -> dict[str | int, Any]:

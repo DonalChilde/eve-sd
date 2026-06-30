@@ -1,11 +1,8 @@
 """Rollup development command for schema report, validation, and changelog fetches."""
 
-import json
-from dataclasses import asdict
-from enum import Enum
 from pathlib import Path
 from time import perf_counter
-from typing import Annotated, cast
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -23,25 +20,15 @@ from eve_static_data.helpers.schema_report.report_from_files import (
     get_yaml_schema_report,
 )
 from eve_static_data.helpers.sde_metadata import (
-    SourceFormat,
     SourceMedia,
     load_sde_metadata,
 )
 from eve_static_data.helpers.settings_factory import sde_tools_factory
-from eve_static_data.validation.markdown_report import generate_markdown_report
-from eve_static_data.validation.validation_from_files import validate_yaml_datasets_file
+
+# from eve_static_data.validation.markdown_report import generate_markdown_report
+# from eve_static_data.validation.validation_from_files import validate_yaml_datasets_file
 
 app = typer.Typer(no_args_is_help=True)
-
-
-def _json_default(value: object) -> object:
-    """Convert non-JSON-native validation summary values to serializable forms."""
-    if isinstance(value, set):
-        typed_value = cast(set[object], value)
-        return sorted(str(item) for item in typed_value)
-    if isinstance(value, Enum):
-        return value.value
-    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
 @app.command(name="files")
@@ -112,30 +99,30 @@ def files(
     console.print(
         f"Schema report generated in {perf_counter() - start_schema_report:.2f} seconds."
     )
-    start_validation = perf_counter()
-    if sde_metadata.source_format is SourceFormat.JSONL_MODEL:
-        raise typer.BadParameter(
-            "Validation rollup currently supports YAML-model datasets only. "
-            "Use an SDE path whose metadata reports source_format as yaml-model."
-        )
+    # start_validation = perf_counter()
+    # if sde_metadata.source_format is SourceFormat.JSONL_MODEL:
+    #     raise typer.BadParameter(
+    #         "Validation rollup currently supports YAML-model datasets only. "
+    #         "Use an SDE path whose metadata reports source_format as yaml-model."
+    #     )
 
-    validation_summary = validate_yaml_datasets_file(sde_path)
-    validation_markdown = generate_markdown_report(validation_summary)
-    save_text_file(
-        text=json.dumps(asdict(validation_summary), indent=2, default=_json_default),
-        output_dir=output_dir,
-        file_name=f"yaml_validation_result_{build_suffix}.json",
-        overwrite=overwrite,
-    )
-    save_text_file(
-        text=validation_markdown,
-        output_dir=output_dir,
-        file_name=f"yaml_validation_report_{build_suffix}.md",
-        overwrite=overwrite,
-    )
-    console.print(
-        f"Validation report generated in {perf_counter() - start_validation:.2f} seconds."
-    )
+    # validation_summary = validate_yaml_datasets_file(sde_path)
+    # validation_markdown = generate_markdown_report(validation_summary)
+    # save_text_file(
+    #     text=json.dumps(asdict(validation_summary), indent=2, default=_json_default),
+    #     output_dir=output_dir,
+    #     file_name=f"yaml_validation_result_{build_suffix}.json",
+    #     overwrite=overwrite,
+    # )
+    # save_text_file(
+    #     text=validation_markdown,
+    #     output_dir=output_dir,
+    #     file_name=f"yaml_validation_report_{build_suffix}.md",
+    #     overwrite=overwrite,
+    # )
+    # console.print(
+    #     f"Validation report generated in {perf_counter() - start_validation:.2f} seconds."
+    # )
     start_downloads = perf_counter()
     settings = get_esd_settings_from_context(ctx)
     session = config_http_client()
