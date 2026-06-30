@@ -24,28 +24,30 @@ def import_yaml_sde_to_db(
     connection: sqlite3.Connection,
     serialization_format: db_models.SerializationFormat = db_models.SerializationFormat.PICKLE,
 ) -> None:
-    """Load the SDE datasets from the given input path to the sqlite database using the provided connection.
+    """Load YAML SDE datasets into sqlite and serialize each record as bytes.
 
-    This function reads the SDE datasets from the given input path, which should contain
-    YAML files for each dataset. It then parses the YAML files and inserts the records
-    into the sqlite database at db_path. The function also reads the SDE metadata from
-    a `_sde.yaml` file in the input path and inserts it into the database.
+    This loader reads the dataset YAML files and the `_sde.yaml` metadata file from
+    ``sde_path``, then stores the parsed records in the provided sqlite connection.
+    The chosen ``serialization_format`` only affects how each record payload is stored
+    in the database after parsing.
 
-    Uses the CSafeLoader for YAML parsing if available, otherwise falls back to the SafeLoader.
+    Format tradeoffs:
+    - ``YAML`` keeps the stored payload human-readable and can preserve the original
+        mapping shape more naturally, but it is slower to serialize and deserialize.
+    - ``JSON`` is widely interoperable and compact, but YAML datasets with integer
+        mapping keys will be normalized to strings when they are serialized as JSON.
+    - ``PICKLE`` is usually the fastest option and round-trips Python objects most
+        faithfully, but it is Python-specific, not human-readable, and should only be
+        used with trusted data.
 
-    The serialization format decides how the records are stored in the database. This
-    can affect performance, and whether the records can be read back out of the database
-    exactly as input. YAML datasets can have int keys for dicts, which is allowed in python,
-    but not in json. Records stored as json will have the int keys cast to str.
-
-    Deserializing YAML is slow. If speed is an issue, and the database will be used in
-    python, use the PICKLE serialization format, which is faster, but not human readable.
-    The YAML serialization format is slower, but human readable, and can be used outside of python.
+    The loader expects the input directory to contain YAML files for each dataset and
+    a ``_sde.yaml`` metadata file. YAML parsing uses ``CSafeLoader`` when available,
+    otherwise it falls back to ``SafeLoader``.
 
     Args:
-        sde_path: The path to the directory containing the SDE datasets in YAML format.
-        connection: The sqlite database connection where the SDE data should be inserted.
-        serialization_format: The format to use for serializing the records, either 'yaml', 'json', or 'pickle'.
+            sde_path: Directory containing the YAML datasets to import.
+            connection: Open sqlite connection that receives the imported rows.
+            serialization_format: Byte format used to store each record in the database.
     """
     # Load the SDE metadata from the _sde.yaml file
     sde_metadata = load_sde_metadata(sde_path)

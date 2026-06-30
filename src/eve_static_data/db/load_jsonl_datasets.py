@@ -26,17 +26,29 @@ def import_jsonl_sde_to_db(
     connection: sqlite3.Connection,
     serialization_format: db_models.SerializationFormat = db_models.SerializationFormat.JSON,
 ) -> None:
-    """Load the SDE datasets from the given input path to the sqlite database using the provided connection.
+    """Load JSONL SDE datasets into sqlite and serialize each record as bytes.
 
-    This function reads the SDE datasets from the given input path, which should contain
-    JSONL files for each dataset. It then parses the JSONL files and inserts the records
-    into the sqlite database at db_path. The function also reads the SDE metadata from
-    a `_sde.jsonl` file in the input path and inserts it into the database.
+    This loader reads the dataset JSONL files and the `_sde.jsonl` metadata file from
+    ``sde_path``, then stores the parsed records in the provided sqlite connection.
+    The chosen ``serialization_format`` only affects how each record payload is stored
+    in the database after parsing.
+
+    Format tradeoffs:
+    - ``YAML`` keeps the stored payload human-readable and can preserve the original
+        mapping shape more naturally, but it is slower to serialize and deserialize.
+    - ``JSON`` is widely interoperable and compact, but YAML datasets with integer
+        mapping keys will be normalized to strings when they are serialized as JSON.
+    - ``PICKLE`` is usually the fastest option and round-trips Python objects most
+        faithfully, but it is Python-specific, not human-readable, and should only be
+        used with trusted data.
+
+    The loader expects the input directory to contain JSONL files for each dataset and
+    a ``_sde.jsonl`` metadata file.
 
     Args:
-        sde_path: The path to the directory containing the SDE datasets in JSONL format.
-        connection: The sqlite database connection where the SDE data should be inserted.
-        serialization_format: The format to use for serializing the records, either 'json', 'yaml', or 'pickle'.
+            sde_path: Directory containing the JSONL datasets to import.
+            connection: Open sqlite connection that receives the imported rows.
+            serialization_format: Byte format used to store each record in the database.
     """
     # Load the SDE metadata from the _sde.jsonl file
     sde_metadata = load_sde_metadata(sde_path)
