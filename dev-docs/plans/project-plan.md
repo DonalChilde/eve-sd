@@ -13,6 +13,13 @@ eve static data is a cli/api forcused app for interacting with the EVE Online SD
 - Can download the latest schema and dataset changes.
 - Can export yaml and jsonl datasets to json.
 - Can export some commonly used data subsets.
+- Database records can be round tripped to file records. record order not guaranteed, but actual data is.
+  - use pickle
+- Schema report can be used to generate TypedDict schema for most records
+  - Exception for datasets where the field name is an int. This is not valid for a python typeddict.
+    - how to handle? re. masteries.yaml
+- can page through dataset records via cli.
+- db stores schema report, changes, and validation report - based on db records, not files.
 
 ### CLI
 
