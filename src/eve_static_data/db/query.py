@@ -54,7 +54,7 @@ class DatasetDbQuery:
 
     def get_int_records(
         self, dataset_name: str, record_keys: set[int] | None = None
-    ) -> Iterable[tuple[int, dict[str, Any]]]:
+    ) -> Iterable[tuple[int, dict[str | int, Any]]]:
         """Get records for a dataset with integer keys from the database.
 
         Args:
@@ -63,7 +63,7 @@ class DatasetDbQuery:
                 records. If None, all records for the dataset will be returned.
 
         Yields:
-            tuple[int, dict[str, Any]]: A tuple containing the record key and the
+            tuple[int, dict[str | int, Any]]: A tuple containing the record key and the
                 deserialized record as a dictionary.
         """
         if dataset_name not in self.dataset_key_types:
@@ -86,7 +86,7 @@ class DatasetDbQuery:
 
     def get_str_records(
         self, dataset_name: str, record_keys: set[str] | None = None
-    ) -> Iterable[tuple[str, dict[str, Any]]]:
+    ) -> Iterable[tuple[str, dict[str | int, Any]]]:
         """Get records for a dataset with string keys from the database.
 
         Args:
@@ -95,7 +95,7 @@ class DatasetDbQuery:
                 records. If None, all records for the dataset will be returned.
 
         Yields:
-            tuple[str, dict[str, Any]]: A tuple containing the record key and the
+            tuple[str, dict[str | int, Any]]: A tuple containing the record key and the
                 deserialized record as a dictionary.
         """
         if dataset_name not in self.dataset_key_types:

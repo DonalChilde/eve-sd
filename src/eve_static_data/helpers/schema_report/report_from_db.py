@@ -35,4 +35,5 @@ def get_schema_report_from_db(connection: sqlite3.Connection) -> SchemaReport:
     return build_schema_report(
         datasets=dataset_input_generator(),
         sde_metadata=sde_metadata,
+        dataset_source=str(connection),
     )

@@ -377,14 +377,14 @@ def build_schema_report(
     datasets: Iterable[DatasetInput],
     sde_metadata: SdeMetadata,
     *,
-    source_path: str = "<in-memory>",
+    dataset_source: str,
 ) -> SchemaReport:
     """Build a schema report from multiple normalized datasets.
 
     Args:
         datasets: Iterable of DatasetInput dicts containing dataset name, data mapping, and metadata.
         sde_metadata: SDE metadata to include in the report summary.
-        source_path: Display label for the aggregate source in the report.
+        dataset_source: Display label for the aggregate source in the report.
 
     Returns:
         Combined schema report covering all datasets.
@@ -393,7 +393,7 @@ def build_schema_report(
 
     for inspection_args in datasets:
         inspected_datasets.append(
-            _inspect_dataset_data(**inspection_args, dataset_source=source_path)
+            _inspect_dataset_data(**inspection_args, dataset_source=dataset_source)
         )
 
-    return _build_schema_report(source_path, inspected_datasets, sde_metadata)
+    return _build_schema_report(dataset_source, inspected_datasets, sde_metadata)
