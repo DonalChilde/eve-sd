@@ -159,18 +159,40 @@ def write_key_type(
         )
 
 
-# TODO rethink the naming for this table, to suit its expanded purpose. Maybe Dataset_Metadata
-# or DatasetInfo. It now stores both key type and serialization format.
-def query_key_types(connection: sqlite3.Connection) -> dict[str, tuple[str, str]]:
+def write_serialization_format(
+    connection: sqlite3.Connection,
+    *,
+    serialization_format: db_models.SerializationFormat,
+) -> None:
+    """Write the serialization format to the DatabaseSettings table."""
+    with transaction(connection):
+        connection.execute(
+            """
+                INSERT INTO DatabaseSettings (row_id, serialization_format)
+                VALUES (1, ?)
+                ON CONFLICT(row_id) DO UPDATE SET serialization_format=excluded.serialization_format
+                """,
+            (serialization_format.value,),
+        )
+
+
+def query_key_types(connection: sqlite3.Connection) -> dict[str, str]:
     """Read all dataset key types from the database."""
     with transaction(connection):
+        cursor = connection.execute("SELECT dataset_name, key_type FROM DatasetKeyType")
+        return {row["dataset_name"]: row["key_type"] for row in cursor}
+
+
+def query_database_settings(connection: sqlite3.Connection) -> dict[str, Any]:
+    """Read the database settings from the DatabaseSettings table."""
+    with transaction(connection):
         cursor = connection.execute(
-            "SELECT dataset_name, key_type, serialization_format FROM DatasetKeyType"
+            "SELECT serialization_format FROM DatabaseSettings WHERE row_id = 1"
         )
-        return {
-            row["dataset_name"]: (row["key_type"], row["serialization_format"])
-            for row in cursor
-        }
+        row = cursor.fetchone()
+        if row is None:
+            return {}
+        return {"serialization_format": row["serialization_format"]}
 
 
 def query_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:

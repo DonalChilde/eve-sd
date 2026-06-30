@@ -36,8 +36,7 @@ def import_jsonl_sde_to_db(
     Format tradeoffs:
     - ``YAML`` keeps the stored payload human-readable and can preserve the original
         mapping shape more naturally, but it is slower to serialize and deserialize.
-    - ``JSON`` is widely interoperable and compact, but YAML datasets with integer
-        mapping keys will be normalized to strings when they are serialized as JSON.
+    - ``JSON`` is widely interoperable and compact.
     - ``PICKLE`` is usually the fastest option and round-trips Python objects most
         faithfully, but it is Python-specific, not human-readable, and should only be
         used with trusted data.

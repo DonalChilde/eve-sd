@@ -8,7 +8,8 @@ from typing import Annotated
 import typer
 
 from eve_static_data.db.helpers import create_read_write_connection
-from eve_static_data.db.load_jsonl_datasets import import_yaml_sde_to_db
+from eve_static_data.db.load_yaml_datasets import import_yaml_sde_to_db
+from eve_static_data.db.models_2 import SerializationFormat
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,16 @@ def from_yaml(
             show_default=True,
         ),
     ] = None,
+    serialization_format: Annotated[
+        SerializationFormat,
+        typer.Option(
+            "-f",
+            "--serialization-format",
+            help="The serialization format to use for storing records in the database.",
+            case_sensitive=False,
+            show_default=True,
+        ),
+    ] = SerializationFormat.PICKLE,
     overwrite: Annotated[
         bool,
         typer.Option(
@@ -75,7 +86,9 @@ def from_yaml(
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = create_read_write_connection(str(db_path.resolve()))
     start_time_ns = perf_counter_ns()
-    import_yaml_sde_to_db(sde_yaml_path, connection=connection)
+    import_yaml_sde_to_db(
+        sde_yaml_path, connection=connection, serialization_format=serialization_format
+    )
     end_time_ns = perf_counter_ns()
     elapsed_time_s = (end_time_ns - start_time_ns) / 1_000_000_000
     # Log the time taken to import the data in seconds with 3 decimal places.
