@@ -5,7 +5,7 @@ from time import perf_counter_ns
 from eve_static_data.db.helpers import (
     create_read_write_connection,
 )
-from eve_static_data.db.load_datasets import import_jsonl_sde_to_db
+from eve_static_data.db.load_jsonl_datasets import import_jsonl_sde_to_db
 
 basicConfig(level="INFO")
 logger = getLogger(__name__)

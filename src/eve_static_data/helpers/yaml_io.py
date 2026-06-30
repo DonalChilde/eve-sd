@@ -59,6 +59,25 @@ def safe_dump_IO(data: Any, file_io: Any, **kwargs: Any) -> None:
     yaml.dump(data, file_io, Dumper=SafeDumper, **kwargs)
 
 
+def safe_dump(data: Any, **kwargs: Any) -> str:
+    """Safely dump a Python object to a YAML string.
+
+    If the CSafeDumper is available, it will be used for improved performance.
+    Otherwise, the SafeDumper will be used.
+
+    Args:
+        data: The Python object to dump to YAML.
+        **kwargs: Additional keyword arguments to pass to yaml.dump.
+
+    Returns:
+        A string containing the YAML representation of the Python object.
+
+    Raises:
+        yaml.YAMLError: If there is an error dumping the YAML content.
+    """
+    return yaml.dump(data=data, stream=None, Dumper=SafeDumper, **kwargs)  # type: ignore
+
+
 def safe_load_path(file_path: Path) -> Any:
     """Safely load a YAML file and return the resulting Python object.
 
@@ -96,4 +115,23 @@ def safe_load_IO(file_io: Any) -> Any:
         yaml.YAMLError: If there is an error parsing the YAML content.
     """
     loaded_object = yaml.load(file_io, Loader=SafeLoader)
+    return loaded_object
+
+
+def safe_load(text: str | bytes) -> Any:
+    """Safely load YAML content from a string or bytes and return the resulting Python object.
+
+    If the CSafeLoader is available, it will be used for improved performance.
+    Otherwise, the SafeLoader will be used.
+
+    Args:
+        text: A string or bytes containing YAML content to load.
+
+    Returns:
+        The Python object resulting from parsing the YAML content.
+
+    Raises:
+        yaml.YAMLError: If there is an error parsing the YAML content.
+    """
+    loaded_object = yaml.load(text, Loader=SafeLoader)
     return loaded_object

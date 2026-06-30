@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS DatasetRecordsInt (
     row_id        INTEGER PRIMARY KEY,
     dataset_name  TEXT    NOT NULL, -- The name of the dataset this record belongs to.
     record_key    INTEGER NOT NULL, -- This is the dict key from the imported record.
-    record_json   BLOB    NOT NULL, -- The entire record as JSON bytes.
+    record_bytes   BLOB    NOT NULL, -- The entire record as bytes.
     UNIQUE(record_key, dataset_name)
 ) STRICT;
 
@@ -14,14 +14,15 @@ CREATE TABLE IF NOT EXISTS DatasetRecordsStr (
     row_id        INTEGER PRIMARY KEY,
     dataset_name  TEXT    NOT NULL, -- The name of the dataset this record belongs to.
     record_key    TEXT    NOT NULL, -- This is the dict key from the imported record.
-    record_json   BLOB    NOT NULL, -- The entire record as JSON bytes.
+    record_bytes   BLOB    NOT NULL, -- The entire record as bytes.
     UNIQUE(record_key, dataset_name)
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS DatasetKeyType (
-    row_id        INTEGER PRIMARY KEY,
-    dataset_name  TEXT    NOT NULL UNIQUE, -- The name of the dataset.
-    key_type      TEXT    NOT NULL -- The type of the record key, either 'int' or 'str'.
+    row_id               INTEGER PRIMARY KEY,
+    dataset_name         TEXT    NOT NULL UNIQUE, -- The name of the dataset.
+    key_type             TEXT    NOT NULL, -- The type of the record key, either 'int' or 'str'.
+    serialization_format TEXT    NOT NULL -- The serialization format of the record, either 'yaml', 'json', or 'pickle'.
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS SdeMetadata (

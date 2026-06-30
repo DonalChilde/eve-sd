@@ -23,7 +23,7 @@ class DatasetDbQuery:
     def dataset_key_types(self) -> dict[str, str]:
         """Get the key types for all datasets from the database."""
         if self._dataset_key_types is None:
-            self._dataset_key_types = query_key_types(conn=self.connection)
+            self._dataset_key_types = query_key_types(connection=self.connection)
         return self._dataset_key_types
 
     @property
@@ -46,7 +46,9 @@ class DatasetDbQuery:
                 deserialized record as a dictionary.
         """
         for record in query_int_records(
-            conn=self.connection, dataset_name=dataset_name, record_keys=record_keys
+            connection=self.connection,
+            dataset_name=dataset_name,
+            record_keys=record_keys,
         ):
             yield record.record_key, json_io.json_loads(record.record_json)
 
@@ -65,6 +67,8 @@ class DatasetDbQuery:
                 deserialized record as a dictionary.
         """
         for record in query_str_records(
-            conn=self.connection, dataset_name=dataset_name, record_keys=record_keys
+            connection=self.connection,
+            dataset_name=dataset_name,
+            record_keys=record_keys,
         ):
             yield record.record_key, json_io.json_loads(record.record_json)

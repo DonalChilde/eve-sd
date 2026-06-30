@@ -8,7 +8,7 @@ from importlib.resources import files as resource_files
 from typing import Any
 from uuid import uuid4
 
-from eve_static_data.db.models import DatasetDbRecordInt, DatasetDbRecordStr
+from eve_static_data.db import models_2 as db_models
 from eve_static_data.helpers.sde_metadata import SdeMetadata
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def transaction(conn: sqlite3.Connection):
 
 
 def deserialize_int_records(
-    records: Iterable[DatasetDbRecordInt],
+    records: Iterable[db_models.DatasetRecordIntBase],
 ) -> dict[str, dict[int, Any]]:
     """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
     result: dict[str, dict[int, Any]] = {}
@@ -51,7 +51,7 @@ def deserialize_int_records(
 
 
 def deserialize_str_records(
-    records: Iterable[DatasetDbRecordStr],
+    records: Iterable[db_models.DatasetRecordStrBase],
 ) -> dict[str, dict[str, Any]]:
     """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
     result: dict[str, dict[str, Any]] = {}
@@ -98,65 +98,79 @@ def create_read_write_connection(db_path: str) -> sqlite3.Connection:
 
 
 def write_int_records(
-    records: Iterable[DatasetDbRecordInt],
-    *,
     connection: sqlite3.Connection,
+    *,
+    records: Iterable[db_models.DatasetRecordIntBase],
 ) -> None:
     """Write an interable of DatasetRecordInt instances to the database."""
     with transaction(connection):
         connection.executemany(
             """
-                INSERT INTO DatasetRecordsInt (record_key, dataset_name, record_json)
+                INSERT INTO DatasetRecordsInt (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
-                ON CONFLICT(record_key, dataset_name) DO UPDATE SET record_json=excluded.record_json
+                ON CONFLICT(record_key, dataset_name) DO UPDATE SET record_bytes=excluded.record_bytes
                 """,
             (
-                (record.record_key, record.dataset_name, record.record_json)
+                (record.record_key, record.dataset_name, record.record)
                 for record in records
             ),
         )
 
 
 def write_str_records(
-    records: Iterable[DatasetDbRecordStr],
-    *,
     connection: sqlite3.Connection,
+    *,
+    records: Iterable[db_models.DatasetRecordStrBase],
 ) -> None:
     """Write an interable of DatasetRecordStr instances to the database."""
     with transaction(connection):
         connection.executemany(
             """
-                INSERT INTO DatasetRecordsStr (record_key, dataset_name, record_json)
+                INSERT INTO DatasetRecordsStr (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
-                ON CONFLICT(record_key, dataset_name) DO UPDATE SET record_json=excluded.record_json
+                ON CONFLICT(record_key, dataset_name) DO UPDATE SET record_bytes=excluded.record_bytes
                 """,
             (
-                (record.record_key, record.dataset_name, record.record_json)
+                (record.record_key, record.dataset_name, record.record)
                 for record in records
             ),
         )
 
 
-def write_key_type(conn: sqlite3.Connection, dataset_name: str, key_type: str) -> None:
+# TODO Standardize function sigs like this one.
+def write_key_type(
+    connection: sqlite3.Connection,
+    *,
+    dataset_name: str,
+    key_type: str,
+    serialization_format: db_models.SerializationFormat,
+) -> None:
     """Write the key type for a dataset to the database."""
     if key_type not in ("int", "str"):
         raise ValueError("key_type must be either 'int' or 'str'.")
-    with transaction(conn):
-        conn.execute(
+    with transaction(connection):
+        connection.execute(
             """
-                INSERT INTO DatasetKeyType (dataset_name, key_type)
-                VALUES (?, ?)
-                ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type
+                INSERT INTO DatasetKeyType (dataset_name, key_type, serialization_format)
+                VALUES (?, ?, ?)
+                ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type, serialization_format=excluded.serialization_format
                 """,
-            (dataset_name, key_type),
+            (dataset_name, key_type, serialization_format.value),
         )
 
 
-def query_key_types(conn: sqlite3.Connection) -> dict[str, str]:
+# TODO rethink the naming for this table, to suit its expanded purpose. Maybe Dataset_Metadata
+# or DatasetInfo. It now stores both key type and serialization format.
+def query_key_types(connection: sqlite3.Connection) -> dict[str, tuple[str, str]]:
     """Read all dataset key types from the database."""
-    with transaction(conn):
-        cursor = conn.execute("SELECT dataset_name, key_type FROM DatasetKeyType")
-        return {row["dataset_name"]: row["key_type"] for row in cursor}
+    with transaction(connection):
+        cursor = connection.execute(
+            "SELECT dataset_name, key_type, serialization_format FROM DatasetKeyType"
+        )
+        return {
+            row["dataset_name"]: (row["key_type"], row["serialization_format"])
+            for row in cursor
+        }
 
 
 def query_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
@@ -188,8 +202,12 @@ def query_str_keys(conn: sqlite3.Connection, dataset_name: str) -> set[str]:
 
 
 def query_int_records(
-    conn: sqlite3.Connection, dataset_name: str, record_keys: set[int] | None = None
-) -> Iterable[DatasetDbRecordInt]:
+    connection: sqlite3.Connection,
+    *,
+    dataset_name: str,
+    serialization_format: db_models.SerializationFormat,
+    record_keys: set[int] | None = None,
+) -> Iterable[db_models.DatasetRecordIntBase]:
     """Read all records for a dataset with integer keys from the database.
 
     If record_keys is provided, only return records with keys in the set.
@@ -197,27 +215,38 @@ def query_int_records(
     If record_keys is provided and has fewer than 500 keys, use a simple IN query.
     If record_keys is provided and has 500 or more keys, create a temporary table and join against it.
     """
+    match serialization_format:
+        case db_models.SerializationFormat.YAML:
+            record_class = db_models.DatasetRecordIntYaml
+        case db_models.SerializationFormat.JSON:
+            record_class = db_models.DatasetRecordIntJson
+        case db_models.SerializationFormat.PICKLE:
+            record_class = db_models.DatasetRecordIntPickle
+        case _:
+            raise ValueError(
+                f"Unsupported serialization format: {serialization_format}. Must be one of 'yaml', 'json', or 'pickle'."
+            )
     if record_keys is None:
-        with transaction(conn):
-            cursor = conn.execute(
+        with transaction(connection):
+            cursor = connection.execute(
                 """
-                    SELECT record_key, dataset_name, record_json
+                    SELECT record_key, dataset_name, record_bytes
                     FROM DatasetRecordsInt
                     WHERE dataset_name = ?
                     """,
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetDbRecordInt(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
     elif len(record_keys) < 500:
-        with transaction(conn):
-            cursor = conn.execute(
+        with transaction(connection):
+            cursor = connection.execute(
                 f"""
-                    SELECT record_key, dataset_name, record_json
+                    SELECT record_key, dataset_name, record_bytes
                     FROM DatasetRecordsInt
                     WHERE dataset_name = ?
                     AND record_key IN ({",".join("?" for _ in record_keys)})
@@ -225,30 +254,30 @@ def query_int_records(
                 (dataset_name, *record_keys),
             )
             for row in cursor:
-                yield DatasetDbRecordInt(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
     else:
         table_name = f"temp_keys_{uuid4().hex}"
-        with transaction(conn) as conn:
-            conn.execute(
+        with transaction(connection) as connection:
+            connection.execute(
                 f"""
                     CREATE TEMPORARY TABLE {table_name} (
                         record_key INTEGER PRIMARY KEY
                     )
                     """,
             )
-            conn.executemany(
+            connection.executemany(
                 f"""
                     INSERT INTO {table_name} (record_key) VALUES (?)
                     """,
                 ((key,) for key in record_keys),
             )
-            cursor = conn.execute(
+            cursor = connection.execute(
                 f"""
-                    SELECT r.record_key, r.dataset_name, r.record_json
+                    SELECT r.record_key, r.dataset_name, r.record_bytes
                     FROM DatasetRecordsInt r
                     JOIN {table_name} k ON r.record_key = k.record_key
                     WHERE r.dataset_name = ?
@@ -256,17 +285,21 @@ def query_int_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetDbRecordInt(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
-            conn.execute(f"DROP TABLE {table_name}")
+            connection.execute(f"DROP TABLE {table_name}")
 
 
 def query_str_records(
-    conn: sqlite3.Connection, dataset_name: str, record_keys: set[str] | None = None
-) -> Iterable[DatasetDbRecordStr]:
+    connection: sqlite3.Connection,
+    *,
+    dataset_name: str,
+    serialization_format: db_models.SerializationFormat,
+    record_keys: set[str] | None = None,
+) -> Iterable[db_models.DatasetRecordStrBase]:
     """Read all records for a dataset with string keys from the database.
 
     If record_keys is provided, only return records with keys in the set.
@@ -274,27 +307,38 @@ def query_str_records(
     If record_keys is provided and has fewer than 500 keys, use a simple IN query.
     If record_keys is provided and has 500 or more keys, create a temporary table and join against it.
     """
+    match serialization_format:
+        case db_models.SerializationFormat.YAML:
+            record_class = db_models.DatasetRecordStrYaml
+        case db_models.SerializationFormat.JSON:
+            record_class = db_models.DatasetRecordStrJson
+        case db_models.SerializationFormat.PICKLE:
+            record_class = db_models.DatasetRecordStrPickle
+        case _:
+            raise ValueError(
+                f"Unsupported serialization format: {serialization_format}. Must be one of 'yaml', 'json', or 'pickle'."
+            )
     if record_keys is None:
-        with transaction(conn):
-            cursor = conn.execute(
+        with transaction(connection):
+            cursor = connection.execute(
                 """
-                    SELECT record_key, dataset_name, record_json
+                    SELECT record_key, dataset_name, record_bytes
                     FROM DatasetRecordsStr
                     WHERE dataset_name = ?
                     """,
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetDbRecordStr(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
     elif len(record_keys) < 500:
-        with transaction(conn):
-            cursor = conn.execute(
+        with transaction(connection):
+            cursor = connection.execute(
                 f"""
-                    SELECT record_key, dataset_name, record_json
+                    SELECT record_key, dataset_name, record_bytes
                     FROM DatasetRecordsStr
                     WHERE dataset_name = ?
                     AND record_key IN ({",".join("?" for _ in record_keys)})
@@ -302,30 +346,30 @@ def query_str_records(
                 (dataset_name, *record_keys),
             )
             for row in cursor:
-                yield DatasetDbRecordStr(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
     else:
         table_name = f"temp_keys_{uuid4().hex}"
-        with transaction(conn) as conn:
-            conn.execute(
+        with transaction(connection) as connection:
+            connection.execute(
                 f"""
                     CREATE TEMPORARY TABLE {table_name} (
                         record_key TEXT PRIMARY KEY
                     )
                     """,
             )
-            conn.executemany(
+            connection.executemany(
                 f"""
                     INSERT INTO {table_name} (record_key) VALUES (?)
                     """,
                 ((key,) for key in record_keys),
             )
-            cursor = conn.execute(
+            cursor = connection.execute(
                 f"""
-                    SELECT r.record_key, r.dataset_name, r.record_json
+                    SELECT r.record_key, r.dataset_name, r.record_bytes
                     FROM DatasetRecordsStr r
                     JOIN {table_name} k ON r.record_key = k.record_key
                     WHERE r.dataset_name = ?
@@ -333,12 +377,12 @@ def query_str_records(
                 (dataset_name,),
             )
             for row in cursor:
-                yield DatasetDbRecordStr(
+                yield record_class(
                     record_key=row["record_key"],
                     dataset_name=row["dataset_name"],
-                    record_json=row["record_json"],
+                    record=row["record_bytes"],
                 )
-            conn.execute(f"DROP TABLE {table_name}")
+            connection.execute(f"DROP TABLE {table_name}")
 
 
 def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> None:
