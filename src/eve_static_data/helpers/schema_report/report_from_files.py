@@ -56,6 +56,7 @@ def get_yaml_schema_report(sde_directory: Path) -> SchemaReport:
     return build_schema_report(
         datasets=dataset_input_generator(),
         sde_metadata=sde_metadata,
+        dataset_source=str(sde_directory),
     )
 
 
@@ -81,6 +82,7 @@ def get_json_schema_report(sde_directory: Path) -> SchemaReport:
     return build_schema_report(
         datasets=dataset_input_generator(),
         sde_metadata=sde_metadata,
+        dataset_source=str(sde_directory),
     )
 
 
