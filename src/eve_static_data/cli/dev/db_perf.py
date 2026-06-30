@@ -1,0 +1,61 @@
+from pathlib import Path
+from time import perf_counter
+
+import typer
+from rich.console import Console
+
+from eve_static_data.db.helpers import create_read_write_connection
+from eve_static_data.db.query import DatasetDbQuery
+
+app = typer.Typer(no_args_is_help=True, help="Database performance testing commands.")
+
+
+@app.command()
+def db_perf(
+    db_path: str = typer.Argument(
+        Path,
+        help="Path to the SQLite database file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+) -> None:
+    """Test database performance by querying all datasets and measuring the time taken."""
+    job_start = perf_counter()
+    with create_read_write_connection(db_path) as connection:
+        console = Console()
+        console.print(
+            f"[bold green]Testing database performance for {db_path}[/bold green]"
+        )
+        console.print("Querying all datasets and measuring time taken...")
+        db_query = DatasetDbQuery(connection)
+        dataset_key_types = db_query.dataset_key_types
+        serialization_format = db_query.serialization_format
+        console.print(
+            f"Serialization format used in the database: {serialization_format}"
+        )
+        for dataset_name, key_type in dataset_key_types.items():
+            console.print(
+                f"Querying dataset '{dataset_name}' with key type '{key_type}'..."
+            )
+            if key_type == "int":
+                start = perf_counter()
+                records = list(db_query.get_int_records(dataset_name))
+                end = perf_counter()
+
+            elif key_type == "str":
+                start = perf_counter()
+                records = list(db_query.get_str_records(dataset_name))
+                end = perf_counter()
+            else:
+                raise ValueError(
+                    f"Unexpected key type '{key_type}' for dataset '{dataset_name}'."
+                )
+            console.print(
+                f"Retrieved {len(records)} records from dataset '{dataset_name}' in {end - start:.4f} seconds."
+            )
+    job_end = perf_counter()
+    console.print(
+        f"[bold green]Database performance test completed in {job_end - job_start:.4f} seconds.[/bold green]"
+    )

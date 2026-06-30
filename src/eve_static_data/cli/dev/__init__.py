@@ -2,6 +2,7 @@
 
 import typer
 
+from eve_static_data.cli.dev.db_perf import app as db_perf_app
 from eve_static_data.cli.dev.generate_test_data import app as generate_test_data_app
 from eve_static_data.cli.dev.rollup import app as rollup_app
 from eve_static_data.cli.dev.schema_changes import app as schema_changes_app
@@ -41,4 +42,7 @@ app.add_typer(
     rollup_app,
     name="rollup",
     help="Run report, validation, and changelog collection as one workflow.",
+)
+app.add_typer(
+    db_perf_app,
 )

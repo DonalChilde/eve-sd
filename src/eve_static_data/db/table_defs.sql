@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS DatasetRecordsStr (
 CREATE TABLE IF NOT EXISTS DatasetKeyType (
     row_id               INTEGER PRIMARY KEY,
     dataset_name         TEXT    NOT NULL UNIQUE, -- The name of the dataset.
-    key_type             TEXT    NOT NULL, -- The type of the record key, either 'int' or 'str'.
+    key_type             TEXT    NOT NULL -- The type of the record key, either 'int' or 'str'.
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS SdeMetadata (
@@ -34,6 +34,6 @@ CREATE TABLE IF NOT EXISTS SdeMetadata (
 
 CREATE TABLE IF NOT EXISTS DatabaseSettings (
     row_id               INTEGER PRIMARY KEY DEFAULT 1,
-    serialization_format TEXT -- The serialization format used for storing records in the database, either 'yaml', 'json', or 'pickle'.
+    serialization_format TEXT, -- The serialization format used for storing records in the database, either 'yaml', 'json', or 'pickle'.
     CONSTRAINT singleton_row CHECK (row_id = 1)
 ) STRICT;

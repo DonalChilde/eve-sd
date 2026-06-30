@@ -143,7 +143,6 @@ def write_key_type(
     *,
     dataset_name: str,
     key_type: str,
-    serialization_format: db_models.SerializationFormat,
 ) -> None:
     """Write the key type for a dataset to the database."""
     if key_type not in ("int", "str"):
@@ -151,11 +150,11 @@ def write_key_type(
     with transaction(connection):
         connection.execute(
             """
-                INSERT INTO DatasetKeyType (dataset_name, key_type, serialization_format)
-                VALUES (?, ?, ?)
-                ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type, serialization_format=excluded.serialization_format
+                INSERT INTO DatasetKeyType (dataset_name, key_type)
+                VALUES (?, ?)
+                ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type
                 """,
-            (dataset_name, key_type, serialization_format.value),
+            (dataset_name, key_type),
         )
 
 

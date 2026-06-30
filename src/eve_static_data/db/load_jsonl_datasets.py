@@ -13,6 +13,7 @@ from eve_static_data.db.helpers import (
     write_int_records,
     write_key_type,
     write_sde_metadata,
+    write_serialization_format,
     write_str_records,
 )
 from eve_static_data.helpers.sde_metadata import load_sde_metadata
@@ -57,6 +58,7 @@ def import_jsonl_sde_to_db(
         )
     # And insert the SDE metadata into the database
     write_sde_metadata(connection, sde_metadata)
+    write_serialization_format(connection, serialization_format=serialization_format)
 
     # Iterate over the JSONL files in the input path and insert the records into the database
     # JSONL format datasets are lists of records, where each record is a dict with a
@@ -82,7 +84,6 @@ def import_jsonl_sde_to_db(
                 connection,
                 dataset_name=dataset_name,
                 key_type=key_type,
-                serialization_format=serialization_format,
             )
             match key_type:
                 case "int":
