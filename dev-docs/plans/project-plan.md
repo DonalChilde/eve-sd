@@ -8,20 +8,64 @@ eve static data is a cli/api forcused app for interacting with the EVE Online SD
 
 - Provides a cli to download, unpack, and inspect the SDE.
 - Can import the SDE to a SQLite database, allowing per record access based on record key.
-- Can access datasets as raw data, or via validated dataclasses
+- record serialization schema in database can be selected. json, yaml, pickle. Various tradeoffs for each combination of source and scheme
+- json serialization uses pydantic
+- yaml serialization will use CSafeLoader/CSafeDumper if available
 - Can check the latest available version number of the SDE
 - Can download the latest schema and dataset changes.
 - Can export yaml and jsonl datasets to json.
 - Can export some commonly used data subsets.
 - Database records can be round tripped to file records. record order not guaranteed, but actual data is.
-  - use pickle
-- Schema report can be used to generate TypedDict schema for most records
-  - Exception for datasets where the field name is an int. This is not valid for a python typeddict.
-    - how to handle? re. masteries.yaml
-- can page through dataset records via cli.
-- db stores schema report, changes, and validation report - based on db records, not files.
+  - serialization scheme dependent.
+
+- can browse through database dataset records via cli.
+  - arg records per page
+  - output json or yaml
+  - arg keys
+- db stores schema report based on db records, not files.
 
 ### CLI
+
+#### CLI Shape
+
+Common args:
+- --json - output formatted as json
+- --yaml - output formatted as yaml
+- -q, --quiet - silent output, used for scripts
+- --from - arg to accept file or dir path '-' for stdin as appropriate
+- --to - arg to accept file or dir path '-' for stdout as appropriate
+
+Make progress bar
+
+- Entry Point - eve-sd
+  - Args
+    - verbosity?
+  - Command - version - Show the version of eve-sd
+  - Command - fetch - Fetch network resources
+    - Command - latest-info - fetch latest sde version info
+    - Command - schema-changes - fetch the schema changes for a schema build number
+      - Arg - -b, --build-number - The build number to fetch, if not provided, fetch latest.
+    - Command - data-changes - fetch the data changes for a schema build number
+      - Arg - -b, --build-number - The build number to fetch, if not provided, fetch latest.
+    - Command - sde - download the sde zip file.
+      - Arg - -b, --build-number
+      - Arg - --format yaml|jsonl defaults to yaml
+  - Command - unpack - unzips an SDE zip file - extract to folder with optional default naming
+  - Command - schema - commands for generating schema reports
+    - Command - files - Generate a schema report froma set of SDE files.
+    - Command - db - Generate a report from a db. option to update report on db. option to force update report on db.
+  - Command - dev - commands mostly only useful for dev work
+    - Command - test-data - generate test data from a set of files, or db.
+    - Command - perf - generate perf report from files or db. json and markdown report.
+    - Command - compare - Prove files data matches db data. json and markdown report.
+  - Command - db - Commands for working with sde db
+    - Command - create - create a sde db from a set of sde files.
+    - Command - browse - browse db datasets
+    - Command - report - commands to report on various parts of the db
+      - Command - schema - commands to display or export db schema-report
+      - Command - datasets - report on the dataset-names, record-key types, and record counts
+      - Command - stats? - report on the serialization scheme, size?
+
 
 - [x] Download the SDE zip file to disk
   - [x] Can select build number. Defaults to latest.
