@@ -9,7 +9,7 @@ from typing import Any
 from uuid import uuid4
 
 from eve_static_data.db import models_2 as db_models
-from eve_static_data.helpers.sde_metadata import SdeMetadata, SourceFormat, SourceMedia
+from eve_static_data.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
 
 logger = logging.getLogger(__name__)
 
@@ -418,7 +418,7 @@ def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> N
             (
                 sde_metadata.buildNumber,
                 sde_metadata.releaseDate,
-                sde_metadata.source_format,
+                sde_metadata.variant,
                 ".db",
             ),
         )
@@ -441,6 +441,6 @@ def query_sde_metadata(conn: sqlite3.Connection) -> SdeMetadata | None:
         return SdeMetadata(
             buildNumber=int(row["buildNumber"]),
             releaseDate=row["releaseDate"],
-            source_format=SourceFormat(row["source_format"]),
+            variant=SdeVariant(row["source_format"]),
             source_media=SourceMedia(row["source_media"]),
         )

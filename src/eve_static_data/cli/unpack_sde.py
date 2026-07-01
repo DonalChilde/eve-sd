@@ -15,47 +15,63 @@ app = typer.Typer(no_args_is_help=True)
 @app.command()
 def unpack(
     ctx: typer.Context,
-    sde_zip: Annotated[
+    from_file: Annotated[
         Path,
-        typer.Argument(
+        typer.Option(
+            "--from",
             help="The path to the SDE data zip file.",
             exists=True,
             file_okay=True,
             dir_okay=False,
         ),
     ],
-    output_path: Annotated[
+    to_directory: Annotated[
         Path,
-        typer.Argument(
+        typer.Option(
+            "--to",
             help="The directory to save the extracted SDE data to.",
             file_okay=False,
             dir_okay=True,
         ),
     ],
-    use_build_number: Annotated[
+    build_number: Annotated[
         bool,
         typer.Option(
-            "-b",
-            "--use-build-number",
             help="Whether to use the build number in the output directory structure. "
             "If True, the extracted data will be saved to `<output_path>/<build_number>/`. "
             "If False, the extracted data will be saved directly to `<output_path>/`.",
             show_default=True,
         ),
     ] = True,
+    quiet: Annotated[
+        bool,
+        typer.Option(
+            "--quiet",
+            help="Suppress output messages.",
+            show_default=True,
+        ),
+    ] = False,
 ):
     """Extract the SDE data from a zip file."""
-    console = Console()
-    console.print("[bold green]Extracting SDE Data[/bold green]")
+    if quiet:
+        messenger = Console(stderr=True, quiet=True)
+    else:
+        messenger = Console(stderr=True)
+    messenger.print("[bold green]Extracting SDE Data[/bold green]")
     settings = get_esd_settings_from_context(ctx)
     sde_tools = sde_tools_factory(settings)
+    # TODO refactor this to unhide the workings.
+    # functions in an unpack helper module that can be tested and used in other contexts.
+    # get sde metadata from zip.
+    # manipulate the output path as desired.
+    # unpack the zip to the output path.
     try:
         sde_path, sde_info = sde_tools.unpack(
-            sde_zip, output_path, use_build_number=use_build_number
+            from_file, to_directory, use_build_number=build_number
         )
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] Failed to extract SDE data: {e}")
+        messenger.print(f"[bold red]Error:[/bold red] Failed to extract SDE data: {e}")
         raise typer.Exit(code=1) from e
-    console.print(
+    messenger.print(
         f"Extracted SDE {sde_info.buildNumber} - {sde_info.releaseDate} to {sde_path}"
     )

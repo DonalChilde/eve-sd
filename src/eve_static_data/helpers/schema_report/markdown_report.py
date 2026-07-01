@@ -13,7 +13,7 @@ def generate_markdown_report(report: SchemaReport) -> str:
         Markdown text with a summary and per-dataset sections.
     """
     report_metadata = report["sde_metadata"]
-    report_source_format = report_metadata.source_format or "unknown"
+    report_source_format = report_metadata.variant or "unknown"
 
     lines: list[str] = [
         "# Schema Report",
@@ -36,7 +36,7 @@ def generate_markdown_report(report: SchemaReport) -> str:
     for dataset_name in sorted(report["datasets"]):
         dataset = report["datasets"][dataset_name]
         dataset_metadata = dataset["sde_metadata"]
-        dataset_source_format = dataset_metadata.source_format or "unknown"
+        dataset_source_format = dataset_metadata.variant or "unknown"
         key_type_summary = ", ".join(
             f"{type_name}:{count}"
             for type_name, count in dataset["top_level_key_type_counts"].items()

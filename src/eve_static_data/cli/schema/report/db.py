@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from rich.console import Console
 
+from eve_static_data.cli.helpers import ReportChoice
 from eve_static_data.db.helpers import create_read_write_connection
 from eve_static_data.helpers import json_io
 from eve_static_data.helpers.save_text_file import save_text_file
@@ -20,28 +22,43 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command(name="db")
 def report_db(
-    db_path: Annotated[
+    from_file: Annotated[
         Path,
-        typer.Argument(
-            help="Path to the SQLite database file.",
+        typer.Option(
+            "--from",
+            help="The path to the SQLite database file.",
             exists=True,
             file_okay=True,
             dir_okay=False,
             readable=True,
         ),
     ],
-    report_path: Annotated[
+    to_directory: Annotated[
         Path | None,
         typer.Option(
-            "--report-path",
-            help=(
-                "Directory to save the schema report JSON and markdown files. "
-                "When omitted, the markdown report is printed to the terminal."
-            ),
+            "--to",
+            help="The directory to save the SDE schema report to.",
             file_okay=False,
             dir_okay=True,
         ),
     ] = None,
+    update_db: Annotated[
+        bool,
+        typer.Option(
+            "--update-db",
+            help="Whether to update the database with the latest schema information.",
+            show_default=True,
+        ),
+    ] = False,
+    stdout_format: Annotated[
+        ReportChoice,
+        typer.Option(
+            "--stdout-format",
+            help="The format of the schema report to print to stdout.",
+            case_sensitive=False,
+            show_default=True,
+        ),
+    ] = ReportChoice.MARKDOWN,
     overwrite: Annotated[
         bool,
         typer.Option(
@@ -49,33 +66,58 @@ def report_db(
             help="Overwrite existing report files when writing output.",
         ),
     ] = False,
+    quiet: Annotated[
+        bool,
+        typer.Option(
+            "--quiet",
+            help="Suppress output messages.",
+        ),
+    ] = False,
 ) -> None:
     """Generate a schema report from a SQLite database."""
-    connection = create_read_write_connection(str(db_path))
+    if quiet:
+        messenger = Console(stderr=True, quiet=True)
+    else:
+        messenger = Console(stderr=True)
+    stdout = Console()
+    connection = create_read_write_connection(str(from_file))
     try:
+        # TODO Refactor to allow progress bar.
         schema_report = get_schema_report_from_db(connection)
     finally:
         connection.close()
 
     markdown_report = generate_markdown_report(schema_report)
-    if report_path is None:
-        typer.echo(markdown_report)
+    if update_db:
+        raise NotImplementedError(
+            "Updating the database with schema information is not yet implemented."
+        )
+    match stdout_format:
+        case ReportChoice.JSON:
+            stdout.print(json_io.json_dumps(schema_report, indent=2))
+        case ReportChoice.MARKDOWN:
+            stdout.print(markdown_report)
+        case ReportChoice.NONE:
+            pass
+    if to_directory is None:
         return
 
-    build_suffix = schema_report["sde_metadata"].buildNumber
-    format_name = schema_report["sde_metadata"].source_format
-    json_file_name = f"schema_report_{format_name}_{build_suffix}.json"
-    markdown_file_name = f"schema_report_{format_name}_{build_suffix}.md"
+    build_number = schema_report["sde_metadata"].buildNumber
+    format_name = schema_report["sde_metadata"].variant
+    json_file_name = f"schema_report_{format_name}_{build_number}.json"
+    markdown_file_name = f"schema_report_{format_name}_{build_number}.md"
     save_text_file(
         text=json_io.json_dumps(schema_report, indent=2),
-        output_dir=report_path,
+        output_dir=to_directory,
         file_name=json_file_name,
         overwrite=overwrite,
     )
     save_text_file(
         text=markdown_report,
-        output_dir=report_path,
+        output_dir=to_directory,
         file_name=markdown_file_name,
         overwrite=overwrite,
     )
-    typer.echo(f"Saved schema report files to {report_path}")
+    messenger.print(
+        f"[bold green]Schema report saved to {to_directory} as {json_file_name} and {markdown_file_name}[/bold green]"
+    )

@@ -1,5 +1,6 @@
 """Helper functions and classes for ESD CLI commands."""
 
+from enum import StrEnum
 from typing import cast
 
 import typer
@@ -12,3 +13,11 @@ def get_esd_settings_from_context(ctx: typer.Context) -> EveStaticDataSettings:
     if ctx.obj is None or "esd-settings" not in ctx.obj:
         raise ValueError("ESD settings not found in context.")
     return cast(EveStaticDataSettings, ctx.obj["esd-settings"])
+
+
+class ReportChoice(StrEnum):
+    """Enumeration of report types for schema reporting output."""
+
+    JSON = "json"
+    MARKDOWN = "markdown"
+    NONE = "none"

@@ -52,9 +52,9 @@ def import_yaml_sde_to_db(
     """
     # Load the SDE metadata from the _sde.yaml file
     sde_metadata = load_sde_metadata(sde_path)
-    if sde_metadata.source_format != "yaml-model":
+    if sde_metadata.variant != "yaml-model":
         raise ValueError(
-            f"Expected source format 'yaml-model' in SDE metadata, but got '{sde_metadata.source_format}'."
+            f"Expected source format 'yaml-model' in SDE metadata, but got '{sde_metadata.variant}'."
         )
     # And insert the SDE metadata into the database
     write_sde_metadata(connection, sde_metadata)

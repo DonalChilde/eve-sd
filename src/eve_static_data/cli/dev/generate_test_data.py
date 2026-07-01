@@ -8,13 +8,15 @@ import typer
 
 from eve_static_data.helpers import json_io
 from eve_static_data.helpers.sde_metadata import (
-    SourceFormat,
+    SdeVariant,
     SourceMedia,
     load_sde_metadata,
 )
 from eve_static_data.helpers.yaml_io import safe_dump_path, safe_load_path
 
 app = typer.Typer(no_args_is_help=True)
+
+# FIXME the record loading behavior is not correct.
 
 
 def _first_items(data: dict[Any, Any], count: int) -> dict[Any, Any]:
@@ -140,20 +142,23 @@ def _generate_jsonl_test_data(
 
 @app.command(name="files")
 def generate_files(
-    sde_path: Annotated[
+    ctx: typer.Context,
+    from_directory: Annotated[
         Path,
-        typer.Argument(
-            help="Path to a directory containing SDE dataset files.",
+        typer.Option(
+            "--from",
+            help="The path to the directory containing the SDE dataset files.",
             exists=True,
             file_okay=False,
             dir_okay=True,
             readable=True,
         ),
     ],
-    output_path: Annotated[
+    to_directory: Annotated[
         Path,
-        typer.Argument(
-            help="Directory where fixture files will be written.",
+        typer.Option(
+            "--to",
+            help="The directory to save the generated fixture files to.",
             file_okay=False,
             dir_okay=True,
         ),
@@ -180,7 +185,7 @@ def generate_files(
     limited number of records per file for testing purposes.
     """
     try:
-        sde_metadata = load_sde_metadata(sde_path)
+        sde_metadata = load_sde_metadata(from_directory)
     except (FileNotFoundError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -190,18 +195,18 @@ def generate_files(
             "Use a path containing _sde.yaml or _sde.jsonl metadata."
         )
 
-    if sde_metadata.source_format is SourceFormat.YAML_MODEL:
+    if sde_metadata.variant is SdeVariant.YAML:
         generated_files = _generate_yaml_test_data(
-            sde_path=sde_path,
-            output_path=output_path,
+            sde_path=from_directory,
+            output_path=to_directory,
             records_per_file=records_per_file,
             overwrite=overwrite,
             source_media=sde_metadata.source_media,
         )
     else:
         generated_files = _generate_jsonl_test_data(
-            sde_path=sde_path,
-            output_path=output_path,
+            sde_path=from_directory,
+            output_path=to_directory,
             records_per_file=records_per_file,
             overwrite=overwrite,
             source_media=sde_metadata.source_media,
@@ -209,6 +214,6 @@ def generate_files(
 
     typer.echo(
         "Generated "
-        f"{generated_files} fixture files from {sde_metadata.source_format.value} "
-        f"datasets ({sde_metadata.source_media.value}) in {output_path}."
+        f"{generated_files} fixture files from {sde_metadata.variant.value} "
+        f"datasets ({sde_metadata.source_media.value}) in {to_directory}."
     )

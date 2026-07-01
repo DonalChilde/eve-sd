@@ -9,7 +9,7 @@ from rich.console import Console
 from eve_static_data.db.helpers import create_read_write_connection
 from eve_static_data.db.query import DatasetDbQuery
 from eve_static_data.helpers import json_io, yaml_io
-from eve_static_data.helpers.sde_metadata import load_sde_metadata
+from eve_static_data.helpers.sde_metadata import SdeVariant, load_sde_metadata
 
 app = typer.Typer(
     no_args_is_help=True, help="Compare SDE records between file and database."
@@ -18,13 +18,32 @@ app = typer.Typer(
 
 @app.command()
 def compare(
-    sde_path: Annotated[
-        Path, typer.Argument(help="Path to the SDE directory containing JSONL files.")
+    ctx: typer.Context,
+    from_directory: Annotated[
+        Path,
+        typer.Option(
+            "--from",
+            help="The path to the directory containing the SDE dataset files.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+        ),
     ],
-    db_path: Annotated[Path, typer.Argument(help="Path to the database file.")],
+    with_file: Annotated[
+        Path,
+        typer.Option(
+            "--to",
+            help="The path to the SQLite database file.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
 ) -> None:
-    file_sde_metadata = load_sde_metadata(sde_path)
-    with create_read_write_connection(str(db_path)) as connection:
+    """Compare the records from the file version to the database version of the SDE."""
+    file_sde_metadata = load_sde_metadata(from_directory)
+    with create_read_write_connection(str(with_file)) as connection:
         db_query = DatasetDbQuery(connection)
         db_sde_metadata = db_query.sde_metadata
         if db_sde_metadata is None:
@@ -34,7 +53,7 @@ def compare(
         if (
             not file_sde_metadata.buildNumber == db_sde_metadata.buildNumber
             and file_sde_metadata.releaseDate == db_sde_metadata.releaseDate
-            and file_sde_metadata.source_format == db_sde_metadata.source_format
+            and file_sde_metadata.variant == db_sde_metadata.variant
         ):
             raise ValueError(
                 "SDE metadata mismatch between file and database. "
@@ -44,10 +63,10 @@ def compare(
         console.print(
             "[bold green]SDE metadata matches between file and database.[/bold green]"
         )
-        if file_sde_metadata.source_format == "jsonl-model":
-            files = list(sde_path.glob("*.jsonl"))
+        if file_sde_metadata.variant == SdeVariant.JSONL:
+            files = list(from_directory.glob("*.jsonl"))
         else:
-            files = list(sde_path.glob("*.yaml"))
+            files = list(from_directory.glob("*.yaml"))
         files.sort(key=lambda f: f.stem)
         file_dataset_names = {file.stem for file in files}
         db_dataset_names = set(db_query.dataset_key_types.keys())
@@ -58,13 +77,15 @@ def compare(
             )
         for dataset_name in file_dataset_names:
             console.print(f"[bold blue]Comparing dataset: {dataset_name}[/bold blue]")
-            if file_sde_metadata.source_format == "jsonl-model":
+            if file_sde_metadata.variant == SdeVariant.JSONL:
                 file_records = json_io.jsonl_load_path(
-                    sde_path / f"{dataset_name}.jsonl"
+                    from_directory / f"{dataset_name}.jsonl"
                 )
                 file_records = {record["_key"]: record for record in file_records}
             else:
-                file_records = yaml_io.safe_load_path(sde_path / f"{dataset_name}.yaml")
+                file_records = yaml_io.safe_load_path(
+                    from_directory / f"{dataset_name}.yaml"
+                )
             cast(dict[str | int, dict[str | int, Any]], file_records)
             match db_query.dataset_key_types[dataset_name]:
                 case "int":

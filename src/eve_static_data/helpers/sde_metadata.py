@@ -12,12 +12,21 @@ from pydantic import RootModel
 
 from eve_static_data.helpers.yaml_io import safe_load_IO, safe_load_path
 
+# TODO use variant for source format. change field names to variant
 
-class SourceFormat(StrEnum):
+
+# class SdeVariant(StrEnum):
+#     """Enum for SDE data variants."""
+
+#     YAML = "yaml"
+#     JSONL = "jsonl"
+
+
+class SdeVariant(StrEnum):
     """Enum for the source format of the SDE data."""
 
-    YAML_MODEL = "yaml-model"
-    JSONL_MODEL = "jsonl-model"
+    YAML = "yaml"
+    JSONL = "jsonl"
 
 
 class SourceMedia(StrEnum):
@@ -39,7 +48,7 @@ class SdeMetadata:
 
     buildNumber: int
     releaseDate: str
-    source_format: SourceFormat
+    variant: SdeVariant
     source_media: SourceMedia
 
 
@@ -110,7 +119,7 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
             values: dict[str, Any] = {
                 "buildNumber": sde_info["buildNumber"],
                 "releaseDate": sde_info["releaseDate"],
-                "source_format": SourceFormat.JSONL_MODEL,
+                "variant": SdeVariant.JSONL,
                 "source_media": SourceMedia.JSONL,
             }
             return SdeMetadataRoot.model_validate(values).root
@@ -119,7 +128,7 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
         values: dict[str, Any] = {
             "buildNumber": sde_info["sde"]["buildNumber"],
             "releaseDate": sde_info["sde"]["releaseDate"],
-            "source_format": SourceFormat.YAML_MODEL,
+            "variant": SdeVariant.YAML,
             "source_media": SourceMedia.YAML,
         }
         return SdeMetadataRoot.model_validate(values).root
@@ -131,14 +140,14 @@ def load_sde_metadata(input_path: Path) -> SdeMetadata:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": SourceFormat.JSONL_MODEL,
+                    "variant": SdeVariant.JSONL,
                     "source_media": SourceMedia.JSON,
                 }
             else:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["sde"]["buildNumber"],
                     "releaseDate": sde_info["sde"]["releaseDate"],
-                    "source_format": SourceFormat.YAML_MODEL,
+                    "variant": SdeVariant.YAML,
                     "source_media": SourceMedia.JSON,
                 }
             return SdeMetadataRoot.model_validate(values).root
@@ -183,7 +192,7 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": SourceFormat.JSONL_MODEL,
+                    "variant": SdeVariant.JSONL,
                     "source_media": SourceMedia.JSONL,
                 }
                 return SdeMetadataRoot.model_validate(values).root
@@ -194,7 +203,7 @@ def load_sde_metadata_from_zipfile(sde_zip_file: Path) -> SdeMetadata:
                 values: dict[str, Any] = {
                     "buildNumber": sde_info["buildNumber"],
                     "releaseDate": sde_info["releaseDate"],
-                    "source_format": SourceFormat.YAML_MODEL,
+                    "variant": SdeVariant.YAML,
                     "source_media": SourceMedia.YAML,
                 }
             return SdeMetadataRoot.model_validate(values).root

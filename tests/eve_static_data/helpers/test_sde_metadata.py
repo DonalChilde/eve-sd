@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from eve_static_data.helpers.sde_metadata import (
-    SourceFormat,
+    SdeVariant,
     SourceMedia,
     load_sde_metadata,
 )
@@ -28,7 +28,7 @@ def test_load_sde_metadata_from_json_yaml_model(tmp_path: Path) -> None:
     metadata = load_sde_metadata(tmp_path)
 
     assert metadata.buildNumber == 123456
-    assert metadata.source_format is SourceFormat.YAML_MODEL
+    assert metadata.variant is SdeVariant.YAML
     assert metadata.source_media is SourceMedia.JSON
 
 
@@ -47,7 +47,7 @@ def test_load_sde_metadata_from_json_jsonl_model(tmp_path: Path) -> None:
     metadata = load_sde_metadata(tmp_path)
 
     assert metadata.buildNumber == 654321
-    assert metadata.source_format is SourceFormat.JSONL_MODEL
+    assert metadata.variant is SdeVariant.JSONL
     assert metadata.source_media is SourceMedia.JSON
 
 

@@ -1,5 +1,6 @@
 from pathlib import Path
 from time import perf_counter
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -12,21 +13,25 @@ app = typer.Typer(no_args_is_help=True, help="Database performance testing comma
 
 @app.command()
 def db_perf(
-    db_path: str = typer.Argument(
+    ctx: typer.Context,
+    from_file: Annotated[
         Path,
-        help="Path to the SQLite database file.",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
+        typer.Option(
+            "--from",
+            help="The path to the SQLite database file.",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
 ) -> None:
     """Test database performance by querying all datasets and measuring the time taken."""
     job_start = perf_counter()
-    with create_read_write_connection(db_path) as connection:
+    with create_read_write_connection(str(from_file)) as connection:
         console = Console()
         console.print(
-            f"[bold green]Testing database performance for {db_path}[/bold green]"
+            f"[bold green]Testing database performance for {from_file}[/bold green]"
         )
         console.print("Querying all datasets and measuring time taken...")
         db_query = DatasetDbQuery(connection)
