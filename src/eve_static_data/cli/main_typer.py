@@ -6,40 +6,49 @@ from pathlib import Path
 import typer
 
 from eve_static_data import __app_name__, __version__
-from eve_static_data.cli.config_info import app as config_info_app
 from eve_static_data.cli.db import app as sde_import_app
 from eve_static_data.cli.dev import app as dev_app
 from eve_static_data.cli.export import app as sde_export_app
-from eve_static_data.cli.sde_metadata.latest import app as sde_latest_app
-from eve_static_data.cli.sde_zip import app as sde_zip_app
+from eve_static_data.cli.fetch import app as fetch_app
+from eve_static_data.cli.schema import app as schema_app
+from eve_static_data.cli.unpack_sde import app as unpack_app
+from eve_static_data.cli.version import app as version_app
+from eve_static_data.cli.view_settings import app as view_settings_app
 from eve_static_data.logging_config import setup_logging
 from eve_static_data.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(no_args_is_help=True)
+
+app.add_typer(
+    fetch_app, name="fetch", help="Commands for fetching SDE changelog content."
+)
+app.add_typer(unpack_app)
 app.add_typer(
     sde_import_app, name="db", help="Commands for working with the SDE database."
 )
-app.add_typer(
-    sde_latest_app,
-)
-app.add_typer(sde_zip_app, name="zip", help="Commands for working with SDE zip files.")
 app.add_typer(sde_export_app, name="export", help="Commands for exporting SDE data.")
-app.add_typer(dev_app, name="dev", help="Commands for development workflows.")
 # app.add_typer(sde_import_app, name="import", help="Commands for importing SDE data.")
+
 app.add_typer(
-    config_info_app,
-    name="self",
-    help="Commands for displaying configuration information about the current environment.",
+    schema_app,
+    name="schema",
+    help="Commands for working with schema data, including export and report generation.",
 )
+app.add_typer(dev_app, name="dev", help="Commands for development workflows.")
+
+app.add_typer(
+    version_app,
+)
+app.add_typer(view_settings_app)
 
 
 @app.callback(invoke_without_command=True)
 def default_options(
     ctx: typer.Context,
 ):
-    """Esi Link Command Line Interface.
+    """EVE Static Data Command Line Interface.
 
     This CLI provides various commands for working with eve-static-data, including
     network operations, development tools, and import/export functionality.

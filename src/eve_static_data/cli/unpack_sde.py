@@ -13,7 +13,7 @@ app = typer.Typer(no_args_is_help=True)
 
 
 @app.command()
-def extract(
+def unpack(
     ctx: typer.Context,
     sde_zip: Annotated[
         Path,

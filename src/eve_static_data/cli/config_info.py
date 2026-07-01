@@ -9,6 +9,8 @@ from eve_static_data.cli.helpers import get_esd_settings_from_context
 
 app = typer.Typer(no_args_is_help=True)
 
+# TODO can useragent be a useful version string?
+
 
 @app.command()
 def version(ctx: typer.Context):
