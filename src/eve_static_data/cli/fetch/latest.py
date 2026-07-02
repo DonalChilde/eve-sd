@@ -69,7 +69,7 @@ def latest(
         file_name = Path("latest_sde_info.json")
     path_out = save_text_file(
         text=str(info),
-        output_dir=to_file,
+        output_directory=to_file,
         file_name=str(file_name),
         overwrite=overwrite,
     )

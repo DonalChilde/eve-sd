@@ -6,7 +6,7 @@ from typing import Annotated, Any, cast
 
 import typer
 
-from eve_static_data.helpers import json_io
+from eve_static_data.helpers import json_io, yaml_io
 from eve_static_data.helpers.sde_metadata import (
     SdeVariant,
     SourceMedia,
@@ -184,6 +184,7 @@ def generate_files(
     This should replicate the structure of the original SDE datasets, but with a
     limited number of records per file for testing purposes.
     """
+    raise NotImplementedError("This command is not yet implemented.")
     try:
         sde_metadata = load_sde_metadata(from_directory)
     except (FileNotFoundError, ValueError) as exc:

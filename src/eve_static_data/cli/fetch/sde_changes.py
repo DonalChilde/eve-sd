@@ -106,7 +106,7 @@ def data_changes(
 
     path_out = save_text_file(
         text=changelog,
-        output_dir=to_directory,
+        output_directory=to_directory,
         file_name=str(file_name),
         overwrite=overwrite,
     )

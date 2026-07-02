@@ -114,13 +114,13 @@ def report_files(
     markdown_file_name = f"schema_report_{format_name}_{build_number}.md"
     save_text_file(
         text=json_io.json_dumps(schema_report, indent=2),
-        output_dir=to_directory,
+        output_directory=to_directory,
         file_name=json_file_name,
         overwrite=overwrite,
     )
     save_text_file(
         text=markdown_report,
-        output_dir=to_directory,
+        output_directory=to_directory,
         file_name=markdown_file_name,
         overwrite=overwrite,
     )
