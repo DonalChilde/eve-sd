@@ -18,6 +18,7 @@ def yaml_to_json(
     from_directory: Annotated[
         Path,
         typer.Option(
+            "--from",
             help="The path to the SDE data directory containing the YAML files.",
             exists=True,
             dir_okay=True,
@@ -26,6 +27,7 @@ def yaml_to_json(
     to_directory: Annotated[
         Path,
         typer.Option(
+            "--to",
             help="The path to the output JSON directory.",
             file_okay=False,
             dir_okay=True,

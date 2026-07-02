@@ -153,19 +153,19 @@ eve-sd schema report files --from ./sde/3419624 --to ./reports --overwrite
 Convert YAML datasets to JSON:
 
 ```bash
-eve-sd export yaml-to-json --from-directory ./sde/3419624 --to-directory ./json
+eve-sd export yaml-to-json --from ./sde/3419624 --to ./json
 ```
 
 Convert JSONL datasets to JSON (dictionary output by `_key`):
 
 ```bash
-eve-sd export jsonl-to-json --from-directory ./sde/3419624 --to-directory ./json
+eve-sd export jsonl-to-json --from ./sde/3419624 --to ./json
 ```
 
 Use list output when needed:
 
 ```bash
-eve-sd export jsonl-to-json --from-directory ./sde/3419624 --to-directory ./json --container list
+eve-sd export jsonl-to-json --from ./sde/3419624 --to ./json --container list
 ```
 
 ## Programmatic API Usage
