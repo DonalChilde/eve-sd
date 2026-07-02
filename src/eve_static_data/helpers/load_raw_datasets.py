@@ -1,4 +1,4 @@
-"""Helper functions for loading raw datasets from files."""
+"""Load raw SDE datasets from JSONL, JSON, and YAML sources."""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -10,16 +10,23 @@ from eve_static_data.helpers.yaml_io import safe_load_path
 
 
 def load_jsonl_as_dataset(jsonl_path: Path) -> Dataset:
-    """Loads a JSONL file as a dataset dictionary.
+    """Load a JSONL file into a dataset mapping.
 
     Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
-    The "_key" field will be used as the key in the returned dataset dictionary.
+    The ``_key`` value is used as the dictionary key in the returned dataset.
 
     Args:
         jsonl_path: Path to the JSONL file.
 
     Returns:
-        Dataset: A dictionary mapping record keys to record dictionaries.
+        Mapping of record keys to record dictionaries.
+
+    Raises:
+        ValueError: If any JSONL line is not a JSON object.
+        KeyError: If any JSON object does not include ``_key``.
+
+    Notes:
+        When duplicate keys are present, the last record encountered wins.
     """
     dataset_dict: dict[str | int, Record] = {}
     for json_obj in json_io.jsonl_load_path(jsonl_path):
@@ -38,7 +45,17 @@ def load_jsonl_as_dataset(jsonl_path: Path) -> Dataset:
 
 
 def load_json_as_dataset(json_path: Path) -> Dataset:
-    """Loads a JSON file as a dataset dictionary."""
+    """Load a JSON file into a dataset mapping.
+
+    Args:
+        json_path: Path to a JSON file containing a top-level mapping.
+
+    Returns:
+        Dataset mapping loaded from the JSON file.
+
+    Raises:
+        ValueError: If the JSON top-level value is not an object/mapping.
+    """
     dataset_dict = json_io.json_load_path(json_path)
     if not isinstance(dataset_dict, dict):
         raise ValueError(
@@ -49,7 +66,17 @@ def load_json_as_dataset(json_path: Path) -> Dataset:
 
 
 def load_yaml_as_dataset(yaml_path: Path) -> Dataset:
-    """Loads a YAML file as a dataset dictionary."""
+    """Load a YAML file into a dataset mapping.
+
+    Args:
+        yaml_path: Path to a YAML file containing a top-level mapping.
+
+    Returns:
+        Dataset mapping loaded from the YAML file.
+
+    Raises:
+        ValueError: If the YAML top-level value is not a mapping.
+    """
     dataset_dict = safe_load_path(yaml_path)
     if not isinstance(dataset_dict, dict):
         raise ValueError(
@@ -62,16 +89,20 @@ def load_yaml_as_dataset(yaml_path: Path) -> Dataset:
 def load_jsonl_as_records(
     jsonl_path: Path,
 ) -> Iterable[KeyedRecord]:
-    """Load a JSONL file as an iterable of records.
+    """Yield keyed records from a JSONL file.
 
     Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
-    The "_key" field will be used as the key in the returned iterable of records.
+    The ``_key`` value is emitted as the first element of each yielded tuple.
 
     Args:
         jsonl_path: Path to the JSONL file.
 
-    Returns:
-        Iterable[KeyedRecord]: An iterable of tuples, each containing a record key and the corresponding record dictionary.
+    Yields:
+        ``(record_key, record)`` tuples for each JSONL line.
+
+    Raises:
+        ValueError: If any JSONL line is not a JSON object.
+        KeyError: If any JSON object does not include ``_key``.
     """
     for json_obj in json_io.jsonl_load_path(jsonl_path):
         if not isinstance(json_obj, dict):

@@ -1,12 +1,7 @@
-"""Logging setup.
+"""Central logging configuration for eve-static-data.
 
-Edit the config dict as needed, mostly the handlers and loggers sections.
-
-https://gist.github.com/FhyTan/bef73b8f464589cd8c740608f1e1435c
-
-https://stackoverflow.com/questions/7507825/where-is-a-complete-example-of-logging-config-dictconfig
-
-https://earthly.dev/blog/logging-in-python/
+The ``setup_logging`` function installs a ``dictConfig`` with rotating file
+handlers for info/warning output and a console handler for critical messages.
 """
 
 import logging
@@ -19,7 +14,17 @@ logger.addHandler(logging.NullHandler())
 
 
 def setup_logging(log_dir: Path) -> None:
-    """Set up logging configuration."""
+    """Create log directories and configure application-wide logging.
+
+    Args:
+        log_dir: Directory where log files are written.
+
+    Notes:
+        The resulting configuration sets:
+        - root logger level to ``DEBUG``
+        - rotating file logs for INFO and WARNING+
+        - console output at ``CRITICAL`` level
+    """
     log_dir.mkdir(parents=True, exist_ok=True)
 
     log_config: dict[str, Any] = {

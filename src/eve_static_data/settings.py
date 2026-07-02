@@ -1,4 +1,10 @@
-"""Settings module for Eve Argus."""
+"""Application settings for eve-static-data.
+
+This module defines two settings models:
+- ``EveStaticDataSettingsPydantic`` for loading values from environment variables
+    and optional ``.env`` files.
+- ``EveStaticDataSettings`` as the runtime dataclass used by the app.
+"""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,7 +26,7 @@ _app_env_prefix = "PFMSOFT_EVE_STATIC_DATA_"
 
 @dataclass(slots=True)
 class EveStaticDataSettings:
-    """Settings for Eve Static Data application."""
+    """Runtime settings consumed by eve-static-data components."""
 
     application_directory: Path
     logging_directory: Path
@@ -35,9 +41,12 @@ class EveStaticDataSettings:
 class EveStaticDataSettingsPydantic(BaseSettings):
     """Settings for Eve Static Data application.
 
-    This class is used to load settings from environment variables and .env files using
-    Pydantic. The get_settings function is then used to convert these settings to the
-    EveStaticDataSettings dataclass for use in the application.
+    This model is the source of truth for configuration loading. Values are
+    read from environment variables prefixed with ``PFMSOFT_EVE_STATIC_DATA_``
+    and from ``.eve-static-data.env`` when present.
+
+    ``get_settings()`` converts this model into the runtime
+    ``EveStaticDataSettings`` dataclass.
     """
 
     model_config = SettingsConfigDict(
@@ -79,7 +88,18 @@ class EveStaticDataSettingsPydantic(BaseSettings):
 def get_settings(
     pydantic_settings: EveStaticDataSettingsPydantic | None = None,
 ) -> EveStaticDataSettings:
-    """Get the Eve Static Data settings."""
+    """Build runtime settings from a Pydantic settings model.
+
+    Args:
+        pydantic_settings: Optional prebuilt Pydantic settings model. When
+            omitted, a new instance is created using configured env sources.
+
+    Returns:
+        Runtime settings dataclass used by the application.
+
+    Notes:
+        This function ensures the application and logging directories exist.
+    """
     if pydantic_settings is None:
         pydantic_settings = EveStaticDataSettingsPydantic()
     settings = EveStaticDataSettings(

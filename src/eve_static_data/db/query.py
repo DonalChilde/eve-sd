@@ -1,4 +1,8 @@
-"""Public database access API for SDE datasets."""
+"""Public query API for reading SDE datasets from SQLite.
+
+This module provides a thin, typed wrapper around lower-level SQL helper
+functions and returns deserialized record payloads.
+"""
 
 import sqlite3
 from collections.abc import Iterable
@@ -18,10 +22,18 @@ from eve_static_data.helpers.sde_metadata import SdeMetadata
 
 
 class DatasetDbQuery:
-    """A class to query datasets from the database."""
+    """High-level read/query interface for an SDE SQLite database.
+
+    The class caches dataset key types, serialization format, and dataset record
+    counts after first access.
+    """
 
     def __init__(self, connection: sqlite3.Connection):
-        """Initialize the DatasetDbQuery with a database connection."""
+        """Initialize a query wrapper for an existing SQLite connection.
+
+        Args:
+            connection: Open SQLite connection for SDE tables.
+        """
         self.connection = connection
         self._dataset_key_types: dict[str, str] | None = None
         self._serialization_format: db_models.SerializationFormat | None = None
@@ -29,14 +41,25 @@ class DatasetDbQuery:
 
     @property
     def dataset_key_types(self) -> dict[str, str]:
-        """Get the key types for all datasets from the database."""
+        """Return key-type metadata for all datasets.
+
+        Returns:
+            Mapping of dataset name to key type (``"int"`` or ``"str"``).
+        """
         if self._dataset_key_types is None:
             self._dataset_key_types = query_key_types(connection=self.connection)
         return self._dataset_key_types
 
     @property
     def serialization_format(self) -> db_models.SerializationFormat:
-        """Get the serialization format used for storing records in the database."""
+        """Return the database serialization format for stored record bytes.
+
+        Returns:
+            Serialization format declared in ``DatabaseSettings``.
+
+        Raises:
+            ValueError: If no serialization format is configured.
+        """
         if self._serialization_format is None:
             cursor = self.connection.execute(
                 "SELECT serialization_format FROM DatabaseSettings WHERE row_id = 1"
@@ -54,13 +77,29 @@ class DatasetDbQuery:
         return self._serialization_format
 
     @property
-    def sde_metadata(self) -> SdeMetadata | None:
-        """Get the SDE metadata from the database."""
-        return query_sde_metadata(connection=self.connection)
+    def sde_metadata(self) -> SdeMetadata:
+        """Return the latest stored SDE metadata row.
+
+        Returns:
+            SdeMetadata instance with build number, release date, and variant.
+
+        Raises:
+            ValueError: If the SDE metadata is not found in the database.
+        """
+        sde_metadata = query_sde_metadata(connection=self.connection)
+        if sde_metadata is None:
+            raise ValueError(
+                "SDE metadata not found in the database. Ensure that the database has been initialized with SDE metadata."
+            )
+        return sde_metadata
 
     @property
     def dataset_record_counts(self) -> dict[str, int]:
-        """Get the record counts for all datasets from the database."""
+        """Return record counts for all datasets.
+
+        Returns:
+            Mapping of dataset name to record count.
+        """
         if self._dataset_record_counts is None:
             self._dataset_record_counts = {
                 dataset_name: self._get_dataset_record_count(dataset_name)
@@ -69,7 +108,17 @@ class DatasetDbQuery:
         return self._dataset_record_counts
 
     def _get_dataset_record_count(self, dataset_name: str) -> int:
-        """Get the number of records for a dataset from the database."""
+        """Return record count for a single dataset.
+
+        Args:
+            dataset_name: Dataset name to count.
+
+        Returns:
+            Number of stored records for the dataset.
+
+        Raises:
+            ValueError: If the dataset is not present in key-type metadata.
+        """
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
                 f"Dataset '{dataset_name}' not found in the database. "
@@ -82,7 +131,17 @@ class DatasetDbQuery:
         )
 
     def dataset_record_count(self, dataset_name: str) -> int:
-        """Get the number of records for a dataset from the database."""
+        """Return cached record count for one dataset.
+
+        Args:
+            dataset_name: Dataset name to count.
+
+        Returns:
+            Number of stored records for the dataset.
+
+        Raises:
+            ValueError: If the dataset is unknown.
+        """
         if dataset_name not in self.dataset_record_counts:
             raise ValueError(
                 f"Dataset '{dataset_name}' not found in the database. "
@@ -93,16 +152,18 @@ class DatasetDbQuery:
     def get_int_records(
         self, dataset_name: str, record_keys: set[int] | None = None
     ) -> Iterable[IntKeyedRecord]:
-        """Get records for a dataset with integer keys from the database.
+        """Yield deserialized records for an integer-keyed dataset.
 
         Args:
-            dataset_name (str): The name of the dataset to query.
-            record_keys (set[int] | None): An optional set of integer keys to filter the
-                records. If None, all records for the dataset will be returned.
+            dataset_name: Dataset name to query.
+            record_keys: Optional integer-key filter. When ``None``, all records
+                for the dataset are yielded.
 
         Yields:
-            tuple[int, dict[str | int, Any]]: A tuple containing the record key and the
-                deserialized record as a dictionary.
+            ``(record_key, record)`` tuples for matching records.
+
+        Raises:
+            ValueError: If dataset is unknown or not integer-keyed.
         """
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
@@ -125,16 +186,18 @@ class DatasetDbQuery:
     def get_str_records(
         self, dataset_name: str, record_keys: set[str] | None = None
     ) -> Iterable[StrKeyedRecord]:
-        """Get records for a dataset with string keys from the database.
+        """Yield deserialized records for a string-keyed dataset.
 
         Args:
-            dataset_name (str): The name of the dataset to query.
-            record_keys (set[str] | None): An optional set of string keys to filter the
-                records. If None, all records for the dataset will be returned.
+            dataset_name: Dataset name to query.
+            record_keys: Optional string-key filter. When ``None``, all records
+                for the dataset are yielded.
 
         Yields:
-            tuple[str, dict[str | int, Any]]: A tuple containing the record key and the
-                deserialized record as a dictionary.
+            ``(record_key, record)`` tuples for matching records.
+
+        Raises:
+            ValueError: If dataset is unknown or not string-keyed.
         """
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
@@ -157,7 +220,19 @@ class DatasetDbQuery:
     def get_int_records_page(
         self, dataset_name: str, *, limit: int, offset: int
     ) -> Iterable[IntKeyedRecord]:
-        """Get a page of records for a dataset with integer keys from the database."""
+        """Yield a page of records for an integer-keyed dataset.
+
+        Args:
+            dataset_name: Dataset name to query.
+            limit: Maximum number of records to return.
+            offset: Starting offset for pagination.
+
+        Yields:
+            ``(record_key, record)`` tuples for the requested page.
+
+        Raises:
+            ValueError: If dataset is unknown or not integer-keyed.
+        """
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
                 f"Dataset '{dataset_name}' not found in the database. "
@@ -180,7 +255,19 @@ class DatasetDbQuery:
     def get_str_records_page(
         self, dataset_name: str, *, limit: int, offset: int
     ) -> Iterable[StrKeyedRecord]:
-        """Get a page of records for a dataset with string keys from the database."""
+        """Yield a page of records for a string-keyed dataset.
+
+        Args:
+            dataset_name: Dataset name to query.
+            limit: Maximum number of records to return.
+            offset: Starting offset for pagination.
+
+        Yields:
+            ``(record_key, record)`` tuples for the requested page.
+
+        Raises:
+            ValueError: If dataset is unknown or not string-keyed.
+        """
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
                 f"Dataset '{dataset_name}' not found in the database. "
@@ -202,5 +289,12 @@ class DatasetDbQuery:
 
     @staticmethod
     def as_dict(keyed_records: Iterable[KeyedRecord]) -> Dataset:
-        """Convert an iterable of keyed records to a dataset dictionary."""
+        """Convert an iterable of keyed records into a dataset mapping.
+
+        Args:
+            keyed_records: Iterable of ``(record_key, record)`` tuples.
+
+        Returns:
+            Dictionary keyed by record key.
+        """
         return {record_key: record for record_key, record in keyed_records}

@@ -1,6 +1,7 @@
-"""Implementation of the EsdTools."""
+"""Network and archive helpers for EVE Static Data workflows."""
 
-# TODO This could be refactored to be just functions in a package instead of a class, since it doesn't really need to maintain state.
+# Refactor note: this class may be simplified into function-based helpers in a
+# future cleanup if stateful behavior remains unnecessary.
 
 from pathlib import Path
 from string import Template
@@ -24,7 +25,7 @@ from eve_static_data.helpers.sde_unpack import unpack as unpack_sde
 
 
 class SDETools:
-    """Class for handling SDE tools static data."""
+    """Facade for downloading and unpacking EVE Static Data resources."""
 
     def __init__(
         self,
@@ -35,7 +36,16 @@ class SDETools:
         data_filename_template: str = DATA_FILENAME_TEMPLATE,
         user_agent: str = USER_AGENT,
     ):
-        """The SDETools class for handling EVE Static Data."""
+        """Initialize endpoint templates and request defaults for SDE workflows.
+
+        Args:
+            latest_info_url: Endpoint template for latest SDE metadata.
+            download_url_template: Endpoint template for downloadable SDE archives.
+            data_changes_url_template: Endpoint template for data-change JSONL.
+            schema_changelog_url: Endpoint template for schema changelog YAML.
+            data_filename_template: Template for downloaded archive file names.
+            user_agent: User-Agent header value sent with requests.
+        """
         self.latest_info_url = latest_info_url
         self.download_url_template = download_url_template
         self.data_changes_url_template = data_changes_url_template
@@ -52,7 +62,18 @@ class SDETools:
         variant: str = "yaml",
         overwrite: bool = False,
     ) -> Path:
-        """Download the SDE tools static data."""
+        """Download an SDE archive to a local directory.
+
+        Args:
+            build_number: SDE build number to download.
+            output_directory: Directory where the archive file will be written.
+            session: Reusable HTTP client session.
+            variant: Archive variant, usually ``yaml`` or ``jsonl``.
+            overwrite: Whether to replace an existing target file.
+
+        Returns:
+            Path to the downloaded archive file.
+        """
         headers = {"User-Agent": self.user_agent}
         url = Template(self.download_url_template).substitute(
             build_number=build_number, variant=variant
@@ -73,23 +94,42 @@ class SDETools:
     def unpack(
         self, input_path: Path, output_path: Path, use_build_number: bool = False
     ) -> tuple[Path, SdeMetadata]:
-        """Unpack the downloaded static data."""
+        """Unpack a downloaded SDE archive and return its metadata.
+
+        Args:
+            input_path: Path to the SDE zip archive.
+            output_path: Base output directory for unpacked files.
+            use_build_number: Whether to place extracted files in a build-number
+                subdirectory.
+
+        Returns:
+            Tuple of ``(unpack_directory, sde_metadata)``.
+        """
         file_path, info = unpack_sde(
             input_path, output_path, use_build_number=use_build_number
         )
         return file_path, info
 
     def validate(self, sde_path: Path, report_directory: Path) -> None:
-        """Validate the SDE tools static data."""
+        """Validate local SDE data and emit a report.
+
+        Note:
+            This method is currently not implemented.
+        """
         raise NotImplementedError("SDE validation is not yet implemented.")
 
     def fetch_data_changes(self, build_number: int, *, session: Client) -> str:
-        """Download the sde data changes for the given build number.
+        """Fetch SDE data changes JSONL text for a build number.
 
-        The SDE data changes is a JSONL file that contains a list of changes for a build.
-        The record with key _meta contains lastBuildNumber, referring to the previous SDE.
+        The response is returned as raw JSONL text. Each non-empty line can be
+        parsed with ``json.loads``.
 
-        Each line can be parsed with json.loads to convert the JSONL text into a Python dictionary.
+        Args:
+            build_number: SDE build number to fetch changes for.
+            session: Reusable HTTP client session.
+
+        Returns:
+            Raw JSONL changelog text.
         """
         headers = {"User-Agent": self.user_agent}
         url = Template(self.data_changes_url_template).substitute(
@@ -99,11 +139,14 @@ class SDETools:
         return text
 
     def fetch_schema_changelog(self, build_number: int, *, session: Client) -> str:
-        """Download the sde schema changelog for the given build number.
+        """Fetch schema changelog YAML text for a build number.
 
-        The SDE schema changelog is a YAML file that contains a list of schema changes for a build.
-        This function returns the raw YAML text of the changelog. use safe_load from the
-        yaml library to parse the YAML text into a Python dictionary.
+        Args:
+            build_number: SDE build number to fetch schema changes for.
+            session: Reusable HTTP client session.
+
+        Returns:
+            Raw YAML changelog text.
         """
         headers = {"User-Agent": self.user_agent}
         url = Template(self.schema_changelog_url).substitute(build_number=build_number)
@@ -111,14 +154,15 @@ class SDETools:
         return text
 
     def fetch_latest_sde_info(self, *, session: Client) -> str:
-        """Download the latest sde info.
+        """Fetch raw latest-SDE metadata JSONL text.
 
-        The latest sde info is a JSONL file that contains information about the latest
-        SDE build, including the latest build number and release date.
+        The latest-info endpoint returns JSONL with one record.
 
-        Because the latest sde info is a JSONL file with a single record, this function
-        returns the raw JSONL text of the latest sde info. use json.loads to parse the
-        JSONL text into a Python dictionary.
+        Args:
+            session: Reusable HTTP client session.
+
+        Returns:
+            Raw JSONL text containing latest build metadata.
         """
         headers = {"User-Agent": self.user_agent}
         url = Template(self.latest_info_url).substitute()

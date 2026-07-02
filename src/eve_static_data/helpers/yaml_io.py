@@ -1,12 +1,12 @@
-"""Helper functions for loading and dumping YAML files.
+"""YAML load/dump helpers with safe loader/dumper defaults.
 
-Will use the C-based SafeLoader and SafeDumper if available for improved performance,
-otherwise will fall back to the pure Python implementations.
+The module prefers ``yaml.CSafeLoader``/``yaml.CSafeDumper`` when available and
+falls back to pure-Python safe implementations otherwise.
 """
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import IO, Any, TextIO
 
 import yaml
 
@@ -25,113 +25,103 @@ except ImportError:
 
 
 def safe_dump_path(data: Any, file_path: Path, **kwargs: Any) -> None:
-    """Safely dump a Python object to a YAML file.
-
-    If the CSafeDumper is available, it will be used for improved performance.
-    Otherwise, the SafeDumper will be used.
+    """Serialize a Python object to a YAML file.
 
     Args:
         data: The Python object to dump to YAML.
-        file_path: The path to the YAML file to write.
-        **kwargs: Additional keyword arguments to pass to yaml.dump.
+        file_path: Destination YAML file path.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Raises:
-        yaml.YAMLError: If there is an error dumping the YAML file.
+        yaml.YAMLError: If YAML serialization fails.
     """
     with file_path.open("w") as f:
         yaml.dump(data, f, Dumper=SafeDumper, **kwargs)
 
 
-def safe_dump_IO(data: Any, file_io: Any, **kwargs: Any) -> None:
-    """Safely dump a Python object to a file-like object in YAML format.
-
-    If the CSafeDumper is available, it will be used for improved performance.
-    Otherwise, the SafeDumper will be used.
+def safe_dump_IO(data: Any, file_io: TextIO, **kwargs: Any) -> None:
+    """Serialize a Python object to an existing file-like object.
 
     Args:
         data: The Python object to dump to YAML.
-        file_io: A file-like object to write the YAML content to.
-        **kwargs: Additional keyword arguments to pass to yaml.dump.
+        file_io: Writable file-like object.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Raises:
-        yaml.YAMLError: If there is an error dumping the YAML content.
+        yaml.YAMLError: If YAML serialization fails.
+
+    Notes:
+        Stream lifecycle is managed by the caller; this function does not close
+        the file object.
     """
     yaml.dump(data, file_io, Dumper=SafeDumper, **kwargs)
 
 
 def safe_dump(data: Any, **kwargs: Any) -> str:
-    """Safely dump a Python object to a YAML string.
-
-    If the CSafeDumper is available, it will be used for improved performance.
-    Otherwise, the SafeDumper will be used.
+    """Serialize a Python object to a YAML string.
 
     Args:
         data: The Python object to dump to YAML.
-        **kwargs: Additional keyword arguments to pass to yaml.dump.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Returns:
-        A string containing the YAML representation of the Python object.
+        YAML text representation of ``data``.
 
     Raises:
-        yaml.YAMLError: If there is an error dumping the YAML content.
+        yaml.YAMLError: If YAML serialization fails.
     """
     return yaml.dump(data=data, stream=None, Dumper=SafeDumper, **kwargs)  # type: ignore
 
 
 def safe_load_path(file_path: Path) -> Any:
-    """Safely load a YAML file and return the resulting Python object.
-
-    If the CSafeLoader is available, it will be used for improved performance.
-    Otherwise, the SafeLoader will be used.
+    """Parse a YAML file into Python objects.
 
     Args:
-        file_path: The path to the YAML file to load.
+        file_path: Source YAML file path.
 
     Returns:
-        The Python object resulting from parsing the YAML file.
+        Python object parsed from YAML content.
 
     Raises:
-        yaml.YAMLError: If there is an error parsing the YAML file.
-        FileNotFoundError: If the specified file does not exist.
+        yaml.YAMLError: If YAML parsing fails.
+        FileNotFoundError: If ``file_path`` does not exist.
     """
     with file_path.open() as f:
         loaded_object = yaml.load(f, Loader=SafeLoader)
     return loaded_object
 
 
-def safe_load_IO(file_io: Any) -> Any:
-    """Safely load YAML content from a file-like object and return the resulting Python object.
-
-    If the CSafeLoader is available, it will be used for improved performance.
-    Otherwise, the SafeLoader will be used.
+def safe_load_IO(file_io: IO[str] | IO[bytes]) -> Any:
+    """Parse YAML content from an existing file-like object.
 
     Args:
-        file_io: A file-like object containing YAML content to load.
+        file_io: Readable file-like object containing YAML text.
 
     Returns:
-        The Python object resulting from parsing the YAML content.
+        Python object parsed from YAML content.
 
     Raises:
-        yaml.YAMLError: If there is an error parsing the YAML content.
+        yaml.YAMLError: If YAML parsing fails.
+
+    Notes:
+        Stream lifecycle is managed by the caller; this function does not close
+        the file object.
     """
     loaded_object = yaml.load(file_io, Loader=SafeLoader)
     return loaded_object
 
 
 def safe_load(text: str | bytes) -> Any:
-    """Safely load YAML content from a string or bytes and return the resulting Python object.
-
-    If the CSafeLoader is available, it will be used for improved performance.
-    Otherwise, the SafeLoader will be used.
+    """Parse YAML content from a string or bytes object.
 
     Args:
-        text: A string or bytes containing YAML content to load.
+        text: YAML text or bytes payload.
 
     Returns:
-        The Python object resulting from parsing the YAML content.
+        Python object parsed from YAML content.
 
     Raises:
-        yaml.YAMLError: If there is an error parsing the YAML content.
+        yaml.YAMLError: If YAML parsing fails.
     """
     loaded_object = yaml.load(text, Loader=SafeLoader)
     return loaded_object

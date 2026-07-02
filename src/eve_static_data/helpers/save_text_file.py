@@ -1,4 +1,4 @@
-"""Helper function to save text to a file, with optional overwrite behavior."""
+"""Write UTF-8 text files with explicit overwrite semantics."""
 
 from pathlib import Path
 
@@ -6,19 +6,23 @@ from pathlib import Path
 def save_text_file(
     *, text: str, output_directory: Path, file_name: str, overwrite: bool = False
 ) -> Path:
-    """Save text to a file, optionally overwriting if it exists.
+    """Write text to ``output_directory / file_name``.
 
     Args:
-        text: The text to save to the file.
-        output_directory: The directory to save the file in.
-        file_name: The name of the file to save.
-        overwrite: Whether to overwrite the file if it already exists. Defaults to False.
+        text: Text content to write.
+        output_directory: Directory to write the file into.
+        file_name: Output file name.
+        overwrite: If true, replace existing file contents. If false, fail when
+            the file already exists.
 
     Returns:
-        The path to the saved file.
+        Path to the written file.
 
     Raises:
-        FileExistsError: If the file already exists and overwrite is False.
+        FileExistsError: If the target file exists and ``overwrite`` is false.
+
+    Notes:
+        Parent directories are created automatically when missing.
     """
     output_file = output_directory / file_name
     if overwrite:

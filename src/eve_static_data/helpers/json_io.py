@@ -1,4 +1,4 @@
-"""Helper functions for loading and dumping JSON data using the pydantic json library."""
+"""JSON/JSONL serialization helpers backed by ``pydantic_core``."""
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -8,22 +8,22 @@ from pydantic_core import from_json, to_json
 
 
 def json_load_path(filepath: Path) -> Any:
-    """Load a JSON string into a Python object."""
+    """Load a JSON file into a Python object."""
     return from_json(filepath.read_text(encoding="utf-8"))
 
 
 def json_loads(json_string: str | bytes) -> Any:
-    """Load a JSON string into a Python object."""
+    """Parse a JSON string/bytes payload into a Python object."""
     return from_json(json_string)
 
 
 def json_dumps(obj: Any, indent: int | None = None, **kwargs: Any) -> str:
-    """Dump a Python object to a JSON string."""
+    """Serialize a Python object to a JSON string."""
     return to_json(obj, indent=indent, **kwargs).decode("utf-8")
 
 
 def json_dump_bytes(obj: Any, indent: int | None = None, **kwargs: Any) -> bytes:
-    """Dump a Python object to a JSON bytes."""
+    """Serialize a Python object to JSON bytes."""
     return to_json(obj, indent=indent, **kwargs)
 
 
@@ -68,35 +68,35 @@ def json_dump_path(
 
 
 def jsonl_loads(jsonl_string: str) -> Iterator[Any]:
-    """Load a JSONL string into a list of Python objects."""
+    """Yield Python objects parsed from JSONL text lines."""
     for line in jsonl_string.splitlines():
         if line.strip():
             yield from_json(line)
 
 
 def jsonl_loads_indexed(jsonl_string: str) -> Iterator[tuple[int, Any]]:
-    """Load a JSONL string into a list of Python objects, yielding (line_number, object) tuples."""
+    """Yield ``(line_number, object)`` tuples parsed from JSONL text lines."""
     for line_number, line in enumerate(jsonl_string.splitlines(), start=1):
         if line.strip():
             yield line_number, from_json(line)
 
 
 def jsonl_load_bytes(jsonl_bytes: bytes) -> Iterator[Any]:
-    """Load a JSONL bytes into a list of Python objects."""
+    """Yield Python objects parsed from JSONL byte lines."""
     for line in jsonl_bytes.splitlines():
         if line.strip():
             yield from_json(line)
 
 
 def jsonl_load_bytes_indexed(jsonl_bytes: bytes) -> Iterator[tuple[int, Any]]:
-    """Load a JSONL bytes into a list of Python objects, yielding (line_number, object) tuples."""
+    """Yield ``(line_number, object)`` tuples parsed from JSONL byte lines."""
     for line_number, line in enumerate(jsonl_bytes.splitlines(), start=1):
         if line.strip():
             yield line_number, from_json(line)
 
 
 def jsonl_load_path(filepath: Path) -> Iterator[Any]:
-    """Load a JSONL file into a list of Python objects."""
+    """Yield Python objects parsed from non-empty lines in a JSONL file."""
     with filepath.open("r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
@@ -104,7 +104,7 @@ def jsonl_load_path(filepath: Path) -> Iterator[Any]:
 
 
 def jsonl_load_path_indexed(filepath: Path) -> Iterator[tuple[int, Any]]:
-    """Load a JSONL file into a list of Python objects, yielding (line_number, object) tuples."""
+    """Yield ``(line_number, object)`` tuples parsed from a JSONL file."""
     with filepath.open("r", encoding="utf-8") as f:
         for line_number, line in enumerate(f, start=1):
             if line.strip():
@@ -119,7 +119,7 @@ def jsonl_dump_path(
     append: bool = False,
     **kwargs: Any,
 ) -> int:
-    """Dump a list of Python objects to a JSONL file.
+    """Write JSONL output from an iterator of Python objects.
 
     Uses Pydantic's `to_json` function to serialize the objects.
     Writes one JSON object per line in the file, does not load the entire file into memory at once.
@@ -127,14 +127,14 @@ def jsonl_dump_path(
     overwrite and append are mutually exclusive. If both are True, raises a ValueError.
 
     Args:
-        objs: An iterator of Python objects to dump.
+        objs: Iterator of Python objects to serialize as JSONL.
         filepath: The path to the JSONL file.
         overwrite: Whether to overwrite the file if it exists.
         append: Whether to append to the file if it exists.
         **kwargs: Additional keyword arguments passed to `json_dumps`.
 
     Returns:
-        The number of characters written to the file.
+        Number of bytes written to the file.
 
     Raises:
         FileExistsError: If the file already exists and `overwrite` is False.
@@ -165,14 +165,14 @@ def jsonl_dump_path(
 
 
 def jsonl_dumps(objs: Iterator[Any], **kwargs: Any) -> str:
-    """Dump a list of Python objects to a JSONL string."""
+    """Serialize an iterator of objects to a JSONL string."""
     if "indent" in kwargs:
         raise ValueError("indent is not supported for JSONL files.")
     return "\n".join(json_dumps(obj, **kwargs) for obj in objs)
 
 
 def jsonl_dump_bytes(objs: Iterator[Any], **kwargs: Any) -> bytes:
-    """Dump a list of Python objects to a JSONL bytes."""
+    """Serialize an iterator of objects to JSONL bytes."""
     if "indent" in kwargs:
         raise ValueError("indent is not supported for JSONL files.")
     jsonl_bytes = b"\n".join(json_dump_bytes(obj, **kwargs) for obj in objs)
