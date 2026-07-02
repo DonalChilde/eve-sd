@@ -8,6 +8,7 @@ import typer
 from eve_static_data import __app_name__, __version__
 from eve_static_data.cli.db import app as sde_import_app
 from eve_static_data.cli.dev import app as dev_app
+from eve_static_data.cli.docs import app as docs_app
 from eve_static_data.cli.export import app as sde_export_app
 from eve_static_data.cli.fetch import app as fetch_app
 from eve_static_data.cli.schema import app as schema_app
@@ -42,6 +43,7 @@ app.add_typer(
     version_app,
 )
 app.add_typer(view_settings_app)
+app.add_typer(docs_app)
 
 
 @app.callback(invoke_without_command=True)
