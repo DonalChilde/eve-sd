@@ -101,18 +101,15 @@ def write_int_records(
     connection: sqlite3.Connection,
     *,
     records: Iterable[db_models.DatasetRecordIntBase],
-) -> int:
+) -> None:
     """Write an interable of DatasetRecordInt instances to the database.
 
     Args:
         connection: A SQLite database connection.
         records: An iterable of DatasetRecordIntBase instances to write to the database.
-
-    Returns:
-        The number of records written to the database.
     """
     with transaction(connection):
-        cursor = connection.executemany(
+        connection.executemany(
             """
                 INSERT INTO DatasetRecordsInt (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
@@ -123,25 +120,21 @@ def write_int_records(
                 for record in records
             ),
         )
-    return cursor.rowcount
 
 
 def write_str_records(
     connection: sqlite3.Connection,
     *,
     records: Iterable[db_models.DatasetRecordStrBase],
-) -> int:
+) -> None:
     """Write an interable of DatasetRecordStr instances to the database.
 
     Args:
         connection: A SQLite database connection.
         records: An iterable of DatasetRecordStrBase instances to write to the database.
-
-    Returns:
-        The number of records written to the database.
     """
     with transaction(connection):
-        cursor = connection.executemany(
+        connection.executemany(
             """
                 INSERT INTO DatasetRecordsStr (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
@@ -152,7 +145,6 @@ def write_str_records(
                 for record in records
             ),
         )
-    return cursor.rowcount
 
 
 # TODO Standardize function sigs like this one.
