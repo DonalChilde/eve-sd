@@ -17,6 +17,7 @@ app = typer.Typer(
 
 # TODO: use raw loader helpers, record types
 # TODO: define a report format, and use messenger/stdout framework
+# - report can note load times for files vs database
 # TODO: add args to support.
 
 
@@ -50,10 +51,6 @@ def compare(
     with create_read_write_connection(str(with_file)) as connection:
         db_query = DatasetDbQuery(connection)
         db_sde_metadata = db_query.sde_metadata
-        if db_sde_metadata is None:
-            raise ValueError(
-                "SDE metadata not found in the database. Ensure that the database has been initialized with SDE metadata."
-            )
         if (
             not file_sde_metadata.buildNumber == db_sde_metadata.buildNumber
             and file_sde_metadata.releaseDate == db_sde_metadata.releaseDate
