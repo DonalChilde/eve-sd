@@ -1,5 +1,7 @@
 """Render markdown output for schema inspection reports."""
 
+from mdformat import text as mdformat_text  # type: ignore
+
 from eve_static_data.helpers.schema_report.schema_report import SchemaReport
 
 
@@ -41,32 +43,28 @@ def generate_markdown_report(report: SchemaReport) -> str:
             f"{type_name}:{count}"
             for type_name, count in dataset["top_level_key_type_counts"].items()
         )
-        lines.extend(
-            [
-                f"## {dataset['dataset_name']}",
-                f"- dataset_source: {dataset['dataset_source']}",
-                (
-                    "- sde_metadata: "
-                    f"build number: {dataset_metadata.buildNumber}, "
-                    f"release date: {dataset_metadata.releaseDate}, "
-                    f"source format: {dataset_source_format}"
-                ),
-                f"- Records: {dataset['total_records']}",
-                f"- Top-level key types: {key_type_summary or 'unknown'}",
-                f"- Valid dict records: {dataset['valid_record_count']}",
-                f"- Skipped top-level items: {dataset['skipped_record_count']}",
-                f"- Paths discovered: {dataset['path_count']}",
-                "",
-            ]
-        )
+        lines.extend([
+            f"## {dataset['dataset_name']}",
+            f"- dataset_source: {dataset['dataset_source']}",
+            (
+                "- sde_metadata: "
+                f"build number: {dataset_metadata.buildNumber}, "
+                f"release date: {dataset_metadata.releaseDate}, "
+                f"source format: {dataset_source_format}"
+            ),
+            f"- Records: {dataset['total_records']}",
+            f"- Top-level key types: {key_type_summary or 'unknown'}",
+            f"- Valid dict records: {dataset['valid_record_count']}",
+            f"- Skipped top-level items: {dataset['skipped_record_count']}",
+            f"- Paths discovered: {dataset['path_count']}",
+            "",
+        ])
 
         if dataset["paths"]:
-            lines.extend(
-                [
-                    "| Path | Presence | Required | Types |",
-                    "|------|----------|----------|-------|",
-                ]
-            )
+            lines.extend([
+                "| Path | Presence | Required | Types |",
+                "|------|----------|----------|-------|",
+            ])
             for path in sorted(dataset["paths"]):
                 row = dataset["paths"][path]
                 type_summary = ", ".join(
@@ -89,4 +87,5 @@ def generate_markdown_report(report: SchemaReport) -> str:
             lines.append("- None")
         lines.append("")
 
-    return "\n".join(lines).rstrip() + "\n"
+    result = "\n".join(lines).rstrip() + "\n"
+    return mdformat_text(result, extensions=["tables"])
