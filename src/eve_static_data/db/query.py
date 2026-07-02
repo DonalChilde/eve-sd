@@ -50,7 +50,7 @@ class DatasetDbQuery:
     @property
     def sde_metadata(self) -> SdeMetadata | None:
         """Get the SDE metadata from the database."""
-        return query_sde_metadata(conn=self.connection)
+        return query_sde_metadata(connection=self.connection)
 
     def get_int_records(
         self, dataset_name: str, record_keys: set[int] | None = None

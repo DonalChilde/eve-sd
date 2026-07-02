@@ -1,6 +1,7 @@
 """Helper functions for loading raw datasets from files or databases."""
 
 import sqlite3
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -120,6 +121,29 @@ def load_jsonl_as_dataset_dict(jsonl_path: Path) -> dict[str | int, Any]:
     return _load_jsonl_as_dict(jsonl_path)
 
 
-def load_dataset_from_db(
-    dataset: SdeDatasets, *, connection: sqlite3.Connection
-) -> dict[str | int, Any]: ...
+def load_jsonl_as_records(
+    jsonl_path: Path,
+) -> Iterable[tuple[str | int, dict[str | int, Any]]]:
+    """Load a JSONL file as an iterable of records.
+
+    Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
+    The "_key" field will be used as the key in the returned iterable of records.
+
+    Args:
+        jsonl_path: Path to the JSONL file.
+
+    Returns:
+        Iterable[tuple[str | int, dict[str|int, Any]]]: An iterable of tuples, each containing a record key and the corresponding record dictionary.
+    """
+    for json_obj in json_io.jsonl_load_path(jsonl_path):
+        if not isinstance(json_obj, dict):
+            raise ValueError(
+                f"Expected each line in JSONL file '{jsonl_path}' to be a JSON object (dict), but got {type(json_obj).__name__}."
+            )
+        if "_key" not in json_obj:
+            raise KeyError(
+                f"Expected each JSON object in JSONL file '{jsonl_path}' to contain a '_key' field, but one was missing."
+            )
+        # The "_key" field can be either a string or an integer, depending on the dataset.
+        key = cast(str | int, json_obj["_key"])
+        yield key, json_obj

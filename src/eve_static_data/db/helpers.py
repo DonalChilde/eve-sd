@@ -18,7 +18,7 @@ _table_def_sql = "table_defs.sql"
 
 
 @contextmanager
-def transaction(conn: sqlite3.Connection):
+def transaction(connection: sqlite3.Connection):
     """Wrap a block in an explicit transaction.
 
     Commits on clean exit, rolls back on any exception.
@@ -29,20 +29,20 @@ def transaction(conn: sqlite3.Connection):
     keeps intent clear regardless of the default.
     """
     try:
-        conn.execute("BEGIN")
-        yield conn
-        conn.execute("COMMIT")
+        connection.execute("BEGIN")
+        yield connection
+        connection.execute("COMMIT")
     except Exception as e:
         logger.error("Transaction failed. %s", e, exc_info=e)
-        conn.execute("ROLLBACK")
+        connection.execute("ROLLBACK")
         raise
 
 
 def deserialize_int_records(
     records: Iterable[db_models.DatasetRecordIntBase],
-) -> dict[str, dict[int, Any]]:
+) -> dict[str, dict[str | int, Any]]:
     """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
-    result: dict[str, dict[int, Any]] = {}
+    result: dict[str, dict[str | int, Any]] = {}
     for record in records:
         if record.dataset_name not in result:
             result[record.dataset_name] = {}
@@ -52,9 +52,9 @@ def deserialize_int_records(
 
 def deserialize_str_records(
     records: Iterable[db_models.DatasetRecordStrBase],
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, dict[str | int, Any]]:
     """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
-    result: dict[str, dict[str, Any]] = {}
+    result: dict[str, dict[str | int, Any]] = {}
     for record in records:
         if record.dataset_name not in result:
             result[record.dataset_name] = {}
@@ -101,10 +101,18 @@ def write_int_records(
     connection: sqlite3.Connection,
     *,
     records: Iterable[db_models.DatasetRecordIntBase],
-) -> None:
-    """Write an interable of DatasetRecordInt instances to the database."""
+) -> int:
+    """Write an interable of DatasetRecordInt instances to the database.
+
+    Args:
+        connection: A SQLite database connection.
+        records: An iterable of DatasetRecordIntBase instances to write to the database.
+
+    Returns:
+        The number of records written to the database.
+    """
     with transaction(connection):
-        connection.executemany(
+        cursor = connection.executemany(
             """
                 INSERT INTO DatasetRecordsInt (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
@@ -115,16 +123,25 @@ def write_int_records(
                 for record in records
             ),
         )
+    return cursor.rowcount
 
 
 def write_str_records(
     connection: sqlite3.Connection,
     *,
     records: Iterable[db_models.DatasetRecordStrBase],
-) -> None:
-    """Write an interable of DatasetRecordStr instances to the database."""
+) -> int:
+    """Write an interable of DatasetRecordStr instances to the database.
+
+    Args:
+        connection: A SQLite database connection.
+        records: An iterable of DatasetRecordStrBase instances to write to the database.
+
+    Returns:
+        The number of records written to the database.
+    """
     with transaction(connection):
-        connection.executemany(
+        cursor = connection.executemany(
             """
                 INSERT INTO DatasetRecordsStr (record_key, dataset_name, record_bytes)
                 VALUES (?, ?, ?)
@@ -135,6 +152,7 @@ def write_str_records(
                 for record in records
             ),
         )
+    return cursor.rowcount
 
 
 # TODO Standardize function sigs like this one.
@@ -155,6 +173,26 @@ def write_key_type(
                 ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type
                 """,
             (dataset_name, key_type),
+        )
+
+
+def write_key_types(
+    connection: sqlite3.Connection,
+    *,
+    dataset_key_types: dict[str, str],
+) -> None:
+    """Write multiple dataset key types to the database."""
+    with transaction(connection):
+        connection.executemany(
+            """
+                INSERT INTO DatasetKeyType (dataset_name, key_type)
+                VALUES (?, ?)
+                ON CONFLICT(dataset_name) DO UPDATE SET key_type=excluded.key_type
+                """,
+            (
+                (dataset_name, key_type)
+                for dataset_name, key_type in dataset_key_types.items()
+            ),
         )
 
 
@@ -194,10 +232,10 @@ def query_database_settings(connection: sqlite3.Connection) -> dict[str, Any]:
         return {"serialization_format": row["serialization_format"]}
 
 
-def query_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
+def query_int_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[int]:
     """Read all integer keys for a dataset from the database."""
-    with transaction(conn):
-        cursor = conn.execute(
+    with transaction(connection):
+        cursor = connection.execute(
             """
                 SELECT record_key
                 FROM DatasetRecordsInt
@@ -208,10 +246,10 @@ def query_int_keys(conn: sqlite3.Connection, dataset_name: str) -> set[int]:
         return {row["record_key"] for row in cursor}
 
 
-def query_str_keys(conn: sqlite3.Connection, dataset_name: str) -> set[str]:
+def query_str_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[str]:
     """Read all string keys for a dataset from the database."""
-    with transaction(conn):
-        cursor = conn.execute(
+    with transaction(connection):
+        cursor = connection.execute(
             """
                 SELECT record_key
                 FROM DatasetRecordsStr
@@ -406,10 +444,12 @@ def query_str_records(
             connection.execute(f"DROP TABLE {table_name}")
 
 
-def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> None:
+def write_sde_metadata(
+    connection: sqlite3.Connection, *, sde_metadata: SdeMetadata
+) -> None:
     """Write the SDE metadata to the database."""
-    with transaction(conn):
-        conn.execute(
+    with transaction(connection):
+        connection.execute(
             """
                 INSERT INTO SdeMetadata (buildNumber, releaseDate, source_format, source_media)
                 VALUES (?, ?, ?, ?)
@@ -424,10 +464,10 @@ def write_sde_metadata(conn: sqlite3.Connection, sde_metadata: SdeMetadata) -> N
         )
 
 
-def query_sde_metadata(conn: sqlite3.Connection) -> SdeMetadata | None:
+def query_sde_metadata(connection: sqlite3.Connection) -> SdeMetadata | None:
     """Query the SDE metadata from the database."""
-    with transaction(conn):
-        cursor = conn.execute(
+    with transaction(connection):
+        cursor = connection.execute(
             """
                 SELECT buildNumber, releaseDate, source_format, source_media
                 FROM SdeMetadata
