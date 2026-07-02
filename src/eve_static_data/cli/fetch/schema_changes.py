@@ -1,4 +1,4 @@
-"""Command to fetch and show the schema changes for an SDE build number."""
+"""Fetch SDE schema changelog content for a specific build."""
 
 import json
 from pathlib import Path
@@ -50,7 +50,7 @@ def schema_changes(
         bool,
         typer.Option(
             "--overwrite",
-            help="Overwrite existing changes file when writing output.",
+            help="Overwrite an existing output file when writing to disk.",
         ),
     ] = False,
     quiet: Annotated[
@@ -61,7 +61,7 @@ def schema_changes(
         ),
     ] = False,
 ):
-    """Fetch and show the changelog for the SDE schema."""
+    """Fetch and show the schema changelog for an SDE build."""
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:

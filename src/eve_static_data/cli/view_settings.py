@@ -1,4 +1,4 @@
-"""Command to display app settings."""
+"""Display effective eve-static-data runtime settings."""
 
 import typer
 from rich.console import Console
@@ -12,7 +12,7 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def settings(ctx: typer.Context):
-    """Show the eve-static-data app settings."""
+    """Print effective settings and the current User-Agent string."""
     console = Console()
     console.rule(Text("Eve Static Data CLI Settings", style="bold cyan"))
     settings = get_esd_settings_from_context(ctx)

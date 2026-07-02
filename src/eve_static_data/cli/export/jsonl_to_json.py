@@ -1,4 +1,4 @@
-"""CLI command to convert SDE data from JSONL format to JSON format."""
+"""Convert local SDE JSONL datasets into JSON files."""
 
 from enum import StrEnum
 from pathlib import Path
@@ -15,7 +15,7 @@ app = typer.Typer(no_args_is_help=True)
 
 
 class ContainerChoice(StrEnum):
-    """Enum for container choices."""
+    """Supported JSON output container shapes."""
 
     LIST = "list"
     DICT = "dict"
@@ -62,7 +62,11 @@ def jsonl_to_json(
         ),
     ] = False,
 ):
-    """Convert SDE data from JSONL format to JSON format."""
+    """Convert SDE datasets from JSONL format to JSON format.
+
+    Output can be written either as a list of records or as a dictionary keyed
+    by each record's ``_key`` field.
+    """
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:

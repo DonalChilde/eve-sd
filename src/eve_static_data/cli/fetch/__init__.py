@@ -7,7 +7,10 @@ from eve_static_data.cli.fetch.latest import app as latest_sde_app
 from eve_static_data.cli.fetch.schema_changes import app as schema_changes_app
 from eve_static_data.cli.fetch.sde_changes import app as data_changes_app
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True,
+    help="Fetch SDE metadata, changelogs, and downloadable archives from Fenris Creations.",
+)
 
 app.add_typer(download_sde_app)
 app.add_typer(latest_sde_app)

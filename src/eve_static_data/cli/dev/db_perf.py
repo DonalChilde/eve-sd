@@ -1,3 +1,5 @@
+"""Run ad-hoc performance checks against a local SDE SQLite database."""
+
 from pathlib import Path
 from time import perf_counter
 from typing import Annotated
@@ -28,7 +30,7 @@ def db_perf(
         ),
     ],
 ) -> None:
-    """Test database performance by querying all datasets and measuring the time taken."""
+    """Measure query performance by loading all records from each dataset."""
     job_start = perf_counter()
     with create_read_write_connection(str(from_file)) as connection:
         console = Console()

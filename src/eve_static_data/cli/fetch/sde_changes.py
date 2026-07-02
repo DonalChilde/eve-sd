@@ -1,4 +1,4 @@
-"""Command to fetch and show the data changes for an SDE build number."""
+"""Fetch record-level SDE data changes for a specific build."""
 
 import json
 from pathlib import Path
@@ -51,7 +51,7 @@ def data_changes(
         bool,
         typer.Option(
             "--overwrite",
-            help="Overwrite existing changes file when writing output.",
+            help="Overwrite an existing output file when writing to disk.",
         ),
     ] = False,
     quiet: Annotated[
@@ -62,14 +62,13 @@ def data_changes(
         ),
     ] = False,
 ):
-    """Fetch and show the data changes for an SDE build number.
+    """Fetch and show record-level data changes for an SDE build.
 
-    Note the changes for the SDE data is different from the changes for the SDE schema.
-    The SDE data changelog tracks changes in the actual data, while the SDE schema changelog
-    tracks changes in the structure of the data.
+    Data changes are different from schema changes. The data changelog tracks
+    changes in record values, while the schema changelog tracks structural
+    changes to dataset shapes.
 
-    The data changes are in JSONL format, where each line is a JSON object representing
-    a change in the SDE data.
+    The data changelog is JSONL, with one JSON object per line.
     """
     if quiet:
         messenger = Console(stderr=True, quiet=True)

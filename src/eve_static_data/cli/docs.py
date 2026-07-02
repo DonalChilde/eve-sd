@@ -1,4 +1,4 @@
-"""Command to display app documentation."""
+"""Display bundled project documentation in the terminal or save it to disk."""
 
 from pathlib import Path
 from typing import Annotated
@@ -10,7 +10,8 @@ from eve_static_data.docs import get_docs_text
 from eve_static_data.helpers.save_text_file import save_text_file
 
 app = typer.Typer(
-    no_args_is_help=True, help="Display documentation for the eve_static_data package."
+    no_args_is_help=True,
+    help="Display bundled documentation for eve-static-data.",
 )
 _doc_parent = "eve_static_data.docs"
 _doc_file = "eve_static_data_docs.md"
@@ -34,7 +35,7 @@ def docs(
         bool,
         typer.Option(
             "--overwrite",
-            help="Overwrite existing changes file when writing output.",
+            help="Overwrite an existing documentation file when writing output.",
         ),
     ] = False,
     quiet: Annotated[
@@ -45,7 +46,7 @@ def docs(
         ),
     ] = False,
 ):
-    """Display documentation for the eve_static_data package."""
+    """Display bundled documentation for eve-static-data."""
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:

@@ -1,4 +1,4 @@
-"""Command to display app version."""
+"""Display the installed eve-static-data version and project URL."""
 
 import typer
 
@@ -11,6 +11,6 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def version(ctx: typer.Context):
-    """Show the eve-static-data app version."""
+    """Print the current application version and project URL."""
     typer.echo(f"{__app_name__} v{__version__}")
     typer.echo(f"Project URL: {__url__}")

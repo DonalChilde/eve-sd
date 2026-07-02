@@ -1,4 +1,4 @@
-"""Generate schema reports for local SDE datasets."""
+"""Generate schema reports from an existing SDE SQLite database."""
 
 from pathlib import Path
 from typing import Annotated

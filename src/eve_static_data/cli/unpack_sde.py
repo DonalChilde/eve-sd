@@ -1,4 +1,4 @@
-"""Commands to extract SDE data from a zip file."""
+"""Unpack downloaded SDE archives into local directories."""
 
 from pathlib import Path
 from typing import Annotated
@@ -52,7 +52,7 @@ def unpack(
         ),
     ] = False,
 ):
-    """Extract the SDE data from a zip file."""
+    """Unpack downloaded SDE archives into local dataset directories."""
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:

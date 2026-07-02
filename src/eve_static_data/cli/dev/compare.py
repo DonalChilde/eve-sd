@@ -1,4 +1,4 @@
-"""Compare the records from the file version and the database version of the SDE."""
+"""Compare local SDE source files against records stored in an SDE database."""
 
 from pathlib import Path
 from typing import Annotated, Any, cast
@@ -45,7 +45,7 @@ def compare(
         ),
     ],
 ) -> None:
-    """Compare the records from the file version to the database version of the SDE."""
+    """Compare source dataset records to database records for each dataset."""
     file_sde_metadata = load_sde_metadata(from_directory)
     with create_read_write_connection(str(with_file)) as connection:
         db_query = DatasetDbQuery(connection)

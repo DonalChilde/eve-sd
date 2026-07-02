@@ -183,6 +183,9 @@ def generate_files(
 
     This should replicate the structure of the original SDE datasets, but with a
     limited number of records per file for testing purposes.
+
+    Note:
+        This command path is currently disabled and raises ``NotImplementedError``.
     """
     raise NotImplementedError("This command is not yet implemented.")
     try:

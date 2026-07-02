@@ -1,4 +1,4 @@
-"""Commands to download SDE data in various formats."""
+"""Download SDE archives for a selected build and variant."""
 
 import json
 from pathlib import Path
@@ -58,7 +58,7 @@ def download_sde(
         ),
     ] = False,
 ):
-    """Download the latest SDE data in the specified format."""
+    """Download an SDE archive for the requested build and format variant."""
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:

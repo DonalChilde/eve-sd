@@ -1,4 +1,4 @@
-"""Helper functions and classes for ESD CLI commands."""
+"""Shared helpers for eve-static-data CLI commands."""
 
 from enum import StrEnum
 from typing import cast

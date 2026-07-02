@@ -1,4 +1,4 @@
-"""CLI command to convert SDE data from YAML format to JSON format."""
+"""Convert local SDE YAML datasets into JSON files."""
 
 from pathlib import Path
 from time import perf_counter
@@ -45,10 +45,10 @@ def yaml_to_json(
         ),
     ] = False,
 ):
-    """Convert SDE data from YAML format to JSON format.
+    """Convert SDE datasets from YAML format to JSON format.
 
-    Note that this will convert int dict keys to strings, as JSON does not support
-    integer keys in objects.
+    Note that integer mapping keys are serialized as strings because JSON object keys are
+    always strings.
     """
     if quiet:
         messenger = Console(stderr=True, quiet=True)

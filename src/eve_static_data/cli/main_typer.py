@@ -1,4 +1,4 @@
-"""Main CLI Typer app for esi-link."""
+"""Entrypoint for the eve-static-data command-line interface."""
 
 import logging
 from pathlib import Path
@@ -20,28 +20,24 @@ from eve_static_data.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True,
+    help=(
+        "Work with EVE Online static data: fetch releases, unpack datasets, "
+        "build/query databases, export formats, and inspect schemas."
+    ),
+)
 
-app.add_typer(
-    fetch_app, name="fetch", help="Commands for fetching SDE changelog content."
-)
+app.add_typer(fetch_app, name="fetch")
 app.add_typer(unpack_app)
-app.add_typer(
-    sde_import_app, name="db", help="Commands for working with the SDE database."
-)
-app.add_typer(sde_export_app, name="export", help="Commands for exporting SDE data.")
+app.add_typer(sde_import_app, name="db")
+app.add_typer(sde_export_app, name="export")
 # app.add_typer(sde_import_app, name="import", help="Commands for importing SDE data.")
 
-app.add_typer(
-    schema_app,
-    name="schema",
-    help="Commands for working with schema data, including export and report generation.",
-)
-app.add_typer(dev_app, name="dev", help="Commands for development workflows.")
+app.add_typer(schema_app, name="schema")
+app.add_typer(dev_app, name="dev")
 
-app.add_typer(
-    version_app,
-)
+app.add_typer(version_app)
 app.add_typer(view_settings_app)
 app.add_typer(docs_app)
 
@@ -50,10 +46,13 @@ app.add_typer(docs_app)
 def default_options(
     ctx: typer.Context,
 ):
-    """EVE Static Data Command Line Interface.
+    """Initialize shared CLI context before subcommands run.
 
-    This CLI provides various commands for working with eve-static-data, including
-    network operations, development tools, and import/export functionality.
+    This callback configures application logging and stores loaded settings in
+    the Typer context object so subcommands can reuse them.
+
+    Args:
+        ctx: Typer context used to share state between commands.
     """
     settings = get_settings()
     setup_logging(log_dir=Path(settings.logging_directory))

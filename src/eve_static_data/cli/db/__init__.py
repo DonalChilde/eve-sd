@@ -1,10 +1,14 @@
+"""Database-related CLI command group."""
+
 import typer
 
 from eve_static_data.cli.db.browse import app as browse_app
 from eve_static_data.cli.db.create import app as create_app
 
 app = typer.Typer(
-    no_args_is_help=True, name="db", help="Commands for working with the SDE database."
+    no_args_is_help=True,
+    name="db",
+    help="Create and browse local SQLite databases built from SDE datasets.",
 )
 
 app.add_typer(create_app, help="Create a new SDE database.")

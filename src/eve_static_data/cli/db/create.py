@@ -1,4 +1,4 @@
-"""CLI command to import SDE data from JSONL files into the database."""
+"""Create an SDE SQLite database from local JSONL or YAML datasets."""
 
 import logging
 import sqlite3

@@ -1,4 +1,4 @@
-"""Command to fetch and show information about the latest available SDE data."""
+"""Fetch metadata for the latest available SDE release."""
 
 from pathlib import Path
 from typing import Annotated
@@ -40,7 +40,7 @@ def latest(
         bool,
         typer.Option(
             "--overwrite",
-            help="Overwrite existing changes file when writing output.",
+            help="Overwrite an existing output file when writing to disk.",
         ),
     ] = False,
     quiet: Annotated[
@@ -51,7 +51,7 @@ def latest(
         ),
     ] = False,
 ):
-    """Fetch and show information about the latest available SDE data."""
+    """Fetch metadata for the latest available SDE release."""
     if quiet:
         messenger = Console(stderr=True, quiet=True)
     else:
