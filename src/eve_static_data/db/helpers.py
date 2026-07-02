@@ -1,4 +1,9 @@
-"""Helper functions for database operations."""
+"""SQLite helper functions for eve-static-data persistence.
+
+This module centralizes low-level database operations, including connection
+creation, schema bootstrap, record writes, and query helpers for both integer
+and string-keyed datasets.
+"""
 
 import logging
 import sqlite3
@@ -16,6 +21,14 @@ logger = logging.getLogger(__name__)
 _table_def_parent = "eve_static_data.db"
 _table_def_sql = "table_defs.sql"
 
+INLINE_FILTER_LIMIT = 500
+"""Threshold for choosing inline IN filtering vs temporary-table joins.
+
+When a key filter has fewer than this many items, query helpers use an inline
+``IN (...)`` clause. For larger sets, helpers create a temporary key table and
+join against it to avoid very large SQL statements.
+"""
+
 
 @contextmanager
 def transaction(connection: sqlite3.Connection):
@@ -23,10 +36,19 @@ def transaction(connection: sqlite3.Connection):
 
     Commits on clean exit, rolls back on any exception.
 
-    sqlite3.connect() has autocommit behaviour that changed in 3.12 and was
-    further clarified in 3.14 (PEP 249-compliant isolation_level=None gives
-    you a pure manual-commit mode). Using an explicit context manager here
-    keeps intent clear regardless of the default.
+    sqlite3.connect() has autocommit behavior that changed in 3.12 and was
+    further clarified in 3.14. Using an explicit context manager here keeps
+    transaction intent clear regardless of connection defaults.
+
+    Args:
+        connection: Open SQLite connection to manage.
+
+    Yields:
+        The same connection object, scoped to one transaction.
+
+    Raises:
+        Exception: Re-raises any exception from the wrapped block after rolling
+            back.
     """
     try:
         connection.execute("BEGIN")
@@ -63,17 +85,42 @@ def transaction(connection: sqlite3.Connection):
 
 
 def read_only_uri(db_path: str) -> str:
-    """Construct a read-only URI for the given database path."""
+    """Build a read-only SQLite URI for a database path.
+
+    Args:
+        db_path: Filesystem path to the SQLite database.
+
+    Returns:
+        URI string with ``mode=ro``.
+    """
     return f"file:{db_path}?mode=ro"
 
 
 def read_write_uri(db_path: str) -> str:
-    """Construct a read-write URI for the given database path."""
+    """Build a read-write/create SQLite URI for a database path.
+
+    Args:
+        db_path: Filesystem path to the SQLite database.
+
+    Returns:
+        URI string with ``mode=rwc``.
+    """
     return f"file:{db_path}?mode=rwc"
 
 
 def create_read_only_connection(db_path: str) -> sqlite3.Connection:
-    """Create a read-only connection to the database at the given path."""
+    """Create a read-only SQLite connection and ensure table definitions exist.
+
+    Args:
+        db_path: Path to an existing SQLite database file.
+
+    Returns:
+        Open SQLite connection configured with ``sqlite3.Row`` row factory.
+
+    Notes:
+        Read-only connections cannot create temporary tables. Query helpers that
+        rely on temporary tables for large key filters may fail in this mode.
+    """
     uri = read_only_uri(db_path)
     connection = sqlite3.connect(uri, uri=True)
     connection.row_factory = sqlite3.Row
@@ -84,7 +131,14 @@ def create_read_only_connection(db_path: str) -> sqlite3.Connection:
 
 
 def create_read_write_connection(db_path: str) -> sqlite3.Connection:
-    """Create a read-write connection to the database at the given path."""
+    """Create a read-write SQLite connection and bootstrap schema objects.
+
+    Args:
+        db_path: Path to the SQLite database file.
+
+    Returns:
+        Open SQLite connection configured with ``sqlite3.Row`` row factory.
+    """
     uri = read_write_uri(db_path)
     # Use the transaction context manager.
     connection = sqlite3.connect(uri, uri=True, autocommit=True)
@@ -102,11 +156,11 @@ def write_int_records(
     *,
     records: Iterable[db_models.DatasetRecordIntBase],
 ) -> None:
-    """Write an interable of DatasetRecordInt instances to the database.
+    """Write integer-keyed records into ``DatasetRecordsInt``.
 
     Args:
-        connection: A SQLite database connection.
-        records: An iterable of DatasetRecordIntBase instances to write to the database.
+        connection: Open SQLite database connection.
+        records: Iterable of integer-keyed database record models.
     """
     with transaction(connection):
         connection.executemany(
@@ -127,11 +181,11 @@ def write_str_records(
     *,
     records: Iterable[db_models.DatasetRecordStrBase],
 ) -> None:
-    """Write an interable of DatasetRecordStr instances to the database.
+    """Write string-keyed records into ``DatasetRecordsStr``.
 
     Args:
-        connection: A SQLite database connection.
-        records: An iterable of DatasetRecordStrBase instances to write to the database.
+        connection: Open SQLite database connection.
+        records: Iterable of string-keyed database record models.
     """
     with transaction(connection):
         connection.executemany(
@@ -153,7 +207,16 @@ def write_key_type(
     dataset_name: str,
     key_type: str,
 ) -> None:
-    """Write the key type for a dataset to the database."""
+    """Write or update a dataset key type.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset table/logical name.
+        key_type: Key type label, either ``"int"`` or ``"str"``.
+
+    Raises:
+        ValueError: If ``key_type`` is not supported.
+    """
     if key_type not in ("int", "str"):
         raise ValueError("key_type must be either 'int' or 'str'.")
     with transaction(connection):
@@ -172,7 +235,12 @@ def write_key_types(
     *,
     dataset_key_types: dict[str, str],
 ) -> None:
-    """Write multiple dataset key types to the database."""
+    """Write or update key types for multiple datasets.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_key_types: Mapping of dataset name to key type.
+    """
     with transaction(connection):
         connection.executemany(
             """
@@ -192,7 +260,12 @@ def write_serialization_format(
     *,
     serialization_format: db_models.SerializationFormat,
 ) -> None:
-    """Write the serialization format to the DatabaseSettings table."""
+    """Write the active serialization format to ``DatabaseSettings``.
+
+    Args:
+        connection: Open SQLite database connection.
+        serialization_format: Record serialization format used by this database.
+    """
     with transaction(connection):
         connection.execute(
             """
@@ -205,15 +278,30 @@ def write_serialization_format(
 
 
 def query_key_types(connection: sqlite3.Connection) -> dict[str, str]:
-    """Read all dataset key types from the database."""
+    """Read key types for all datasets.
+
+    Args:
+        connection: Open SQLite database connection.
+
+    Returns:
+        Mapping of dataset name to key type.
+    """
     with transaction(connection):
         cursor = connection.execute("SELECT dataset_name, key_type FROM DatasetKeyType")
         return {row["dataset_name"]: row["key_type"] for row in cursor}
 
 
-# TODO make db settings model
+# Note: this currently returns a plain mapping; a typed settings model may be
+# introduced in a future refactor.
 def query_database_settings(connection: sqlite3.Connection) -> dict[str, Any]:
-    """Read the database settings from the DatabaseSettings table."""
+    """Read persisted database settings.
+
+    Args:
+        connection: Open SQLite database connection.
+
+    Returns:
+        Settings mapping, currently containing ``serialization_format`` when set.
+    """
     with transaction(connection):
         cursor = connection.execute(
             "SELECT serialization_format FROM DatabaseSettings WHERE row_id = 1"
@@ -225,7 +313,15 @@ def query_database_settings(connection: sqlite3.Connection) -> dict[str, Any]:
 
 
 def query_int_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[int]:
-    """Read all integer keys for a dataset from the database."""
+    """Read all integer record keys for one dataset.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+
+    Returns:
+        Set of integer keys present for the dataset.
+    """
     with transaction(connection):
         cursor = connection.execute(
             """
@@ -239,7 +335,15 @@ def query_int_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[
 
 
 def query_str_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[str]:
-    """Read all string keys for a dataset from the database."""
+    """Read all string record keys for one dataset.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+
+    Returns:
+        Set of string keys present for the dataset.
+    """
     with transaction(connection):
         cursor = connection.execute(
             """
@@ -255,7 +359,19 @@ def query_str_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[
 def query_dataset_record_count(
     connection: sqlite3.Connection, *, dataset_name: str, key_type: str
 ) -> int:
-    """Read the number of records for a dataset from the database."""
+    """Read record count for a dataset.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to count.
+        key_type: Dataset key type, either ``"int"`` or ``"str"``.
+
+    Returns:
+        Number of records for the dataset.
+
+    Raises:
+        ValueError: If ``key_type`` is not supported.
+    """
     match key_type:
         case "int":
             table_name = "DatasetRecordsInt"
@@ -285,12 +401,24 @@ def query_int_records(
     serialization_format: db_models.SerializationFormat,
     record_keys: set[int] | None = None,
 ) -> Iterable[db_models.DatasetRecordIntBase]:
-    """Read all records for a dataset with integer keys from the database.
+    """Yield integer-keyed records for a dataset.
 
-    If record_keys is provided, only return records with keys in the set.
-    If record_keys is None, return all records for the dataset.
-    If record_keys is provided and has fewer than 500 keys, use a simple IN query.
-    If record_keys is provided and has 500 or more keys, create a temporary table and join against it.
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+        serialization_format: Serialization format of stored record bytes.
+        record_keys: Optional key filter. When provided, only matching keys are
+            returned.
+
+    Yields:
+        Integer-keyed record model instances.
+
+    Notes:
+        For small key filters, this uses an inline ``IN`` clause. For larger
+        filters, it creates a temporary table and performs a join.
+
+    Raises:
+        ValueError: If ``serialization_format`` is not supported.
     """
     match serialization_format:
         case db_models.SerializationFormat.YAML:
@@ -319,7 +447,7 @@ def query_int_records(
                     dataset_name=row["dataset_name"],
                     record=row["record_bytes"],
                 )
-    elif len(record_keys) < 500:
+    elif len(record_keys) < INLINE_FILTER_LIMIT:
         with transaction(connection):
             cursor = connection.execute(
                 f"""
@@ -378,7 +506,21 @@ def query_int_records_page(
     limit: int,
     offset: int,
 ) -> Iterable[db_models.DatasetRecordIntBase]:
-    """Read a page of records for a dataset with integer keys from the database."""
+    """Yield one page of integer-keyed records for a dataset.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+        serialization_format: Serialization format of stored record bytes.
+        limit: Maximum number of records to return.
+        offset: Starting offset for pagination.
+
+    Yields:
+        Integer-keyed record model instances.
+
+    Raises:
+        ValueError: If ``serialization_format`` is not supported.
+    """
     match serialization_format:
         case db_models.SerializationFormat.YAML:
             record_class = db_models.DatasetRecordIntYaml
@@ -417,12 +559,24 @@ def query_str_records(
     serialization_format: db_models.SerializationFormat,
     record_keys: set[str] | None = None,
 ) -> Iterable[db_models.DatasetRecordStrBase]:
-    """Read all records for a dataset with string keys from the database.
+    """Yield string-keyed records for a dataset.
 
-    If record_keys is provided, only return records with keys in the set.
-    If record_keys is None, return all records for the dataset.
-    If record_keys is provided and has fewer than 500 keys, use a simple IN query.
-    If record_keys is provided and has 500 or more keys, create a temporary table and join against it.
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+        serialization_format: Serialization format of stored record bytes.
+        record_keys: Optional key filter. When provided, only matching keys are
+            returned.
+
+    Yields:
+        String-keyed record model instances.
+
+    Notes:
+        For small key filters, this uses an inline ``IN`` clause. For larger
+        filters, it creates a temporary table and performs a join.
+
+    Raises:
+        ValueError: If ``serialization_format`` is not supported.
     """
     match serialization_format:
         case db_models.SerializationFormat.YAML:
@@ -451,7 +605,7 @@ def query_str_records(
                     dataset_name=row["dataset_name"],
                     record=row["record_bytes"],
                 )
-    elif len(record_keys) < 500:
+    elif len(record_keys) < INLINE_FILTER_LIMIT:
         with transaction(connection):
             cursor = connection.execute(
                 f"""
@@ -510,7 +664,21 @@ def query_str_records_page(
     limit: int,
     offset: int,
 ) -> Iterable[db_models.DatasetRecordStrBase]:
-    """Read a page of records for a dataset with string keys from the database."""
+    """Yield one page of string-keyed records for a dataset.
+
+    Args:
+        connection: Open SQLite database connection.
+        dataset_name: Dataset name to query.
+        serialization_format: Serialization format of stored record bytes.
+        limit: Maximum number of records to return.
+        offset: Starting offset for pagination.
+
+    Yields:
+        String-keyed record model instances.
+
+    Raises:
+        ValueError: If ``serialization_format`` is not supported.
+    """
     match serialization_format:
         case db_models.SerializationFormat.YAML:
             record_class = db_models.DatasetRecordStrYaml
@@ -545,7 +713,12 @@ def query_str_records_page(
 def write_sde_metadata(
     connection: sqlite3.Connection, *, sde_metadata: SdeMetadata
 ) -> None:
-    """Write the SDE metadata to the database."""
+    """Write or update SDE metadata for the current dataset snapshot.
+
+    Args:
+        connection: Open SQLite database connection.
+        sde_metadata: Parsed SDE metadata model.
+    """
     with transaction(connection):
         connection.execute(
             """
@@ -563,7 +736,14 @@ def write_sde_metadata(
 
 
 def query_sde_metadata(connection: sqlite3.Connection) -> SdeMetadata | None:
-    """Query the SDE metadata from the database."""
+    """Read the most recently stored SDE metadata row.
+
+    Args:
+        connection: Open SQLite database connection.
+
+    Returns:
+        Latest SDE metadata, or ``None`` when metadata has not been written.
+    """
     with transaction(connection):
         cursor = connection.execute(
             """
