@@ -3,10 +3,11 @@
 import logging
 import sqlite3
 from collections.abc import Iterable
-from typing import Any, Literal, cast
+from typing import Literal, cast
 
 from more_itertools import peekable
 
+from eve_static_data import IntKeyedRecord, KeyedRecord, StrKeyedRecord
 from eve_static_data.db import models_2 as db_models
 from eve_static_data.db.helpers import (
     write_int_records,
@@ -32,8 +33,8 @@ def write_db_metadata(
 
 
 def get_key_type_from_records(
-    *, records: Iterable[tuple[str | int, dict[str | int, Any]]], dataset_name: str
-) -> tuple[Literal["int", "str"], Iterable[tuple[str | int, dict[str | int, Any]]]]:
+    *, records: Iterable[KeyedRecord], dataset_name: str
+) -> tuple[Literal["int", "str"], Iterable[KeyedRecord]]:
     """Determine the key type of a dataset based on the first record."""
     peekable_records = peekable(records)
     first_record_key, _ = next(peekable_records)
@@ -48,7 +49,7 @@ def get_key_type_from_records(
 def write_sde_records_to_db(
     connection: sqlite3.Connection,
     *,
-    records: Iterable[tuple[str | int, dict[str | int, Any]]],
+    records: Iterable[KeyedRecord],
     key_type: Literal["int", "str"],
     dataset_name: str,
     serialization_format: db_models.SerializationFormat,
@@ -58,7 +59,7 @@ def write_sde_records_to_db(
     count: int = 0
     match key_type:
         case "int":
-            records = cast(Iterable[tuple[int, dict[str | int, Any]]], records)
+            records = cast(Iterable[IntKeyedRecord], records)
             match serialization_format:
                 case db_models.SerializationFormat.JSON:
                     record_class = db_models.DatasetRecordIntJson
@@ -78,12 +79,12 @@ def write_sde_records_to_db(
                 for record_key, record in records:
                     count += 1
                     yield record_class.from_record(
-                        dataset_name, record_key=record_key, record=record
+                        dataset_name, keyed_record=(record_key, record)
                     )
 
             write_int_records(connection, records=_marshal_int_records(record_class))
         case "str":
-            records = cast(Iterable[tuple[str, dict[str | int, Any]]], records)
+            records = cast(Iterable[StrKeyedRecord], records)
             match serialization_format:
                 case db_models.SerializationFormat.JSON:
                     record_class = db_models.DatasetRecordStrJson
@@ -103,7 +104,7 @@ def write_sde_records_to_db(
                 for record_key, record in records:
                     count += 1
                     yield record_class.from_record(
-                        dataset_name, record_key=record_key, record=record
+                        dataset_name, keyed_record=(record_key, record)
                     )
 
             write_str_records(connection, records=_marshal_str_records(record_class))
@@ -112,20 +113,3 @@ def write_sde_records_to_db(
                 f"Unexpected key type {key_type} for dataset {dataset_name}."
             )
     return count
-
-
-# def _jsonl_key_type(
-#     jsonl_record: dict[str, Any], dataset_name: str
-# ) -> Literal["int", "str"]:
-#     """Helper function to determine the key type of a dataset."""
-#     record_key = jsonl_record.get("_key")
-#     if isinstance(record_key, int):
-#         key_type = "int"
-#         return key_type
-#     elif isinstance(record_key, str):  # pyright: ignore[reportUnnecessaryIsInstance]
-#         key_type = "str"
-#         return key_type
-#     else:
-#         raise ValueError(
-#             f"Expected record key in dataset {dataset_name} to be either int or str, but got {type(record_key)} for key {record_key}"
-#         )

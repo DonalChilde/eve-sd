@@ -15,6 +15,10 @@ app = typer.Typer(
     no_args_is_help=True, help="Compare SDE records between file and database."
 )
 
+# TODO: use raw loader helpers, record types
+# TODO: define a report format, and use messenger/stdout framework
+# TODO: add args to support.
+
 
 @app.command()
 def compare(

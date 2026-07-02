@@ -1,19 +1,27 @@
-"""Helper functions for loading raw datasets from files or databases."""
+"""Helper functions for loading raw datasets from files."""
 
-import sqlite3
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import cast
 
+from eve_static_data import Dataset, KeyedRecord, Record
 from eve_static_data.helpers import json_io
 from eve_static_data.helpers.yaml_io import safe_load_path
 
-# TODO is this the place to offer these functions? If so they need more documentation, and
-# more options to support iterating over records, as that wound up being the common interface for file and database access.
 
+def load_jsonl_as_dataset(jsonl_path: Path) -> Dataset:
+    """Loads a JSONL file as a dataset dictionary.
 
-def _load_jsonl_as_dict(jsonl_path: Path) -> dict[str | int, Any]:
-    dataset_dict: dict[str | int, Any] = {}
+    Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
+    The "_key" field will be used as the key in the returned dataset dictionary.
+
+    Args:
+        jsonl_path: Path to the JSONL file.
+
+    Returns:
+        Dataset: A dictionary mapping record keys to record dictionaries.
+    """
+    dataset_dict: dict[str | int, Record] = {}
     for json_obj in json_io.jsonl_load_path(jsonl_path):
         if not isinstance(json_obj, dict):
             raise ValueError(
@@ -29,101 +37,31 @@ def _load_jsonl_as_dict(jsonl_path: Path) -> dict[str | int, Any]:
     return dataset_dict
 
 
-def _load_json_as_dict(json_path: Path) -> dict[str | int, Any]:
+def load_json_as_dataset(json_path: Path) -> Dataset:
+    """Loads a JSON file as a dataset dictionary."""
     dataset_dict = json_io.json_load_path(json_path)
     if not isinstance(dataset_dict, dict):
         raise ValueError(
             f"Expected a JSON object (dict) in file '{json_path}', but got {type(dataset_dict).__name__}."
         )
-    dataset_dict = cast(dict[str | int, Any], dataset_dict)
+    dataset_dict = cast(dict[str | int, Record], dataset_dict)
     return dataset_dict
 
 
-def _load_yaml_as_dict(yaml_path: Path) -> dict[str | int, Any]:
+def load_yaml_as_dataset(yaml_path: Path) -> Dataset:
+    """Loads a YAML file as a dataset dictionary."""
     dataset_dict = safe_load_path(yaml_path)
     if not isinstance(dataset_dict, dict):
         raise ValueError(
             f"Expected a YAML mapping (dict) in file '{yaml_path}', but got {type(dataset_dict).__name__}."
         )
-    dataset_dict = cast(dict[str | int, Any], dataset_dict)
+    dataset_dict = cast(Dataset, dataset_dict)
     return dataset_dict
-
-
-# def load_dataset_from_file(
-#     dataset: SdeDatasets, *, sde_path: Path
-# ) -> tuple[dict[str | int, Any], Literal["jsonl-model"] | Literal["yaml-model"]]:
-#     """Loads a dataset from a file in the given SDE path.
-
-#     Automatically detects the file format (JSONL, YAML, or JSON) and
-#     source model (jsonl-model or yaml-model).
-#     """
-#     if not sde_path.exists() or not sde_path.is_dir():
-#         raise NotADirectoryError(f"Provided SDE path '{sde_path}' is not a directory.")
-#     file_candidates = list(sde_path.glob(f"{dataset.value}.*"))
-#     if not file_candidates:
-#         raise FileNotFoundError(
-#             f"No file found for dataset '{dataset.value}' in '{sde_path}'."
-#         )
-#     if len(file_candidates) > 1:
-#         raise FileExistsError(
-#             f"Multiple files found for dataset '{dataset.value}' in '{sde_path}': {file_candidates}"
-#         )
-#     source_format = ""
-#     match file_candidates[0].suffix:
-#         case ".json":
-#             dataset_dict = _load_json_as_dict(file_candidates[0])
-#             for _, value in dataset_dict.items():
-#                 if "_key" in value:
-#                     # If "_key" is present, its the jsonl-model format.
-#                     source_format = "jsonl-model"
-#                     break
-#                 else:
-#                     # If "_key" is not present, its the yaml-model format.
-#                     source_format = "yaml-model"
-#                     break
-
-#         case ".yaml" | ".yml":
-#             dataset_dict = _load_yaml_as_dict(file_candidates[0])
-#             source_format = "yaml-model"
-#         case ".jsonl":
-#             source_format = "jsonl-model"
-#             dataset_dict = _load_jsonl_as_dict(file_candidates[0])
-#         case _:
-#             raise ValueError(
-#                 f"Unsupported file format '{file_candidates[0].suffix}' for dataset '{dataset.value}'."
-#             )
-#     if source_format == "jsonl-model":
-#         # No further processing needed.
-#         return dataset_dict, source_format
-#     elif source_format == "yaml-model":
-#         # # Add the "_record_key" field to each record in the dataset, using the key from the YAML mapping.
-#         # for key, value in dataset_dict.items():
-#         #     value["_record_key"] = key
-#         return dataset_dict, source_format
-#     else:
-#         raise ValueError(
-#             f"Could not determine source format for dataset '{dataset.value}' from file '{file_candidates[0]}'."
-#         )
-
-
-def load_jsonl_as_dataset_dict(jsonl_path: Path) -> dict[str | int, Any]:
-    """Load a JSONL file as a dataset dictionary.
-
-    Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
-    The "_key" field will be used as the key in the returned dataset dictionary.
-
-    Args:
-        jsonl_path: Path to the JSONL file.
-
-    Returns:
-        dict[str | int, Any]: A dictionary mapping record keys to record dictionaries.
-    """
-    return _load_jsonl_as_dict(jsonl_path)
 
 
 def load_jsonl_as_records(
     jsonl_path: Path,
-) -> Iterable[tuple[str | int, dict[str | int, Any]]]:
+) -> Iterable[KeyedRecord]:
     """Load a JSONL file as an iterable of records.
 
     Each line in the JSONL file should be a JSON object (dict) with a "_key" field.
@@ -133,7 +71,7 @@ def load_jsonl_as_records(
         jsonl_path: Path to the JSONL file.
 
     Returns:
-        Iterable[tuple[str | int, dict[str|int, Any]]]: An iterable of tuples, each containing a record key and the corresponding record dictionary.
+        Iterable[KeyedRecord]: An iterable of tuples, each containing a record key and the corresponding record dictionary.
     """
     for json_obj in json_io.jsonl_load_path(jsonl_path):
         if not isinstance(json_obj, dict):
@@ -145,5 +83,6 @@ def load_jsonl_as_records(
                 f"Expected each JSON object in JSONL file '{jsonl_path}' to contain a '_key' field, but one was missing."
             )
         # The "_key" field can be either a string or an integer, depending on the dataset.
-        key = cast(str | int, json_obj["_key"])
-        yield key, json_obj
+        json_obj = cast(Record, json_obj)
+        key = json_obj["_key"]
+        yield (key, json_obj)

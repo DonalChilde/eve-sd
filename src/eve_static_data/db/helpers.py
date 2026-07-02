@@ -38,28 +38,28 @@ def transaction(connection: sqlite3.Connection):
         raise
 
 
-def deserialize_int_records(
-    records: Iterable[db_models.DatasetRecordIntBase],
-) -> dict[str, dict[str | int, Any]]:
-    """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
-    result: dict[str, dict[str | int, Any]] = {}
-    for record in records:
-        if record.dataset_name not in result:
-            result[record.dataset_name] = {}
-        result[record.dataset_name][record.record_key] = record.deserialize_record()
-    return result
+# def deserialize_int_records(
+#     records: Iterable[db_models.DatasetRecordIntBase],
+# ) -> dict[str, dict[str | int, Record]]:
+#     """Deserialize an iterable of DatasetRecordInt instances into a nested dictionary."""
+#     result: dict[str, dict[str | int, Record]] = {}
+#     for record in records:
+#         if record.dataset_name not in result:
+#             result[record.dataset_name] = {}
+#         result[record.dataset_name][record.record_key] = record.deserialize_record()
+#     return result
 
 
-def deserialize_str_records(
-    records: Iterable[db_models.DatasetRecordStrBase],
-) -> dict[str, dict[str | int, Any]]:
-    """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
-    result: dict[str, dict[str | int, Any]] = {}
-    for record in records:
-        if record.dataset_name not in result:
-            result[record.dataset_name] = {}
-        result[record.dataset_name][record.record_key] = record.deserialize_record()
-    return result
+# def deserialize_str_records(
+#     records: Iterable[db_models.DatasetRecordStrBase],
+# ) -> dict[str, dict[str | int, Record]]:
+#     """Deserialize an iterable of DatasetRecordStr instances into a nested dictionary."""
+#     result: dict[str, dict[str | int, Any]] = {}
+#     for record in records:
+#         if record.dataset_name not in result:
+#             result[record.dataset_name] = {}
+#         result[record.dataset_name][record.record_key] = record.deserialize_record()
+#     return result
 
 
 def read_only_uri(db_path: str) -> str:
@@ -211,6 +211,7 @@ def query_key_types(connection: sqlite3.Connection) -> dict[str, str]:
         return {row["dataset_name"]: row["key_type"] for row in cursor}
 
 
+# TODO make db settings model
 def query_database_settings(connection: sqlite3.Connection) -> dict[str, Any]:
     """Read the database settings from the DatabaseSettings table."""
     with transaction(connection):

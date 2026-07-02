@@ -11,6 +11,8 @@ from eve_static_data.db.query import DatasetDbQuery
 app = typer.Typer(no_args_is_help=True, help="Database performance testing commands.")
 
 
+# TODO: define a report format, and use messenger/stdout framework
+# TODO: add args to support.
 @app.command()
 def db_perf(
     ctx: typer.Context,

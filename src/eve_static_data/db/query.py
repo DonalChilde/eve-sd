@@ -2,8 +2,8 @@
 
 import sqlite3
 from collections.abc import Iterable
-from typing import Any
 
+from eve_static_data import Dataset, IntKeyedRecord, KeyedRecord, StrKeyedRecord
 from eve_static_data.db import models_2 as db_models
 from eve_static_data.db.helpers import (
     query_dataset_record_count,
@@ -92,7 +92,7 @@ class DatasetDbQuery:
 
     def get_int_records(
         self, dataset_name: str, record_keys: set[int] | None = None
-    ) -> Iterable[tuple[int, dict[str | int, Any]]]:
+    ) -> Iterable[IntKeyedRecord]:
         """Get records for a dataset with integer keys from the database.
 
         Args:
@@ -124,7 +124,7 @@ class DatasetDbQuery:
 
     def get_str_records(
         self, dataset_name: str, record_keys: set[str] | None = None
-    ) -> Iterable[tuple[str, dict[str | int, Any]]]:
+    ) -> Iterable[StrKeyedRecord]:
         """Get records for a dataset with string keys from the database.
 
         Args:
@@ -156,7 +156,7 @@ class DatasetDbQuery:
 
     def get_int_records_page(
         self, dataset_name: str, *, limit: int, offset: int
-    ) -> Iterable[tuple[int, dict[str | int, Any]]]:
+    ) -> Iterable[IntKeyedRecord]:
         """Get a page of records for a dataset with integer keys from the database."""
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
@@ -179,7 +179,7 @@ class DatasetDbQuery:
 
     def get_str_records_page(
         self, dataset_name: str, *, limit: int, offset: int
-    ) -> Iterable[tuple[str, dict[str | int, Any]]]:
+    ) -> Iterable[StrKeyedRecord]:
         """Get a page of records for a dataset with string keys from the database."""
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
@@ -199,3 +199,8 @@ class DatasetDbQuery:
             offset=offset,
         ):
             yield record.record_key, record.deserialize_record()
+
+    @staticmethod
+    def as_dict(keyed_records: Iterable[KeyedRecord]) -> Dataset:
+        """Convert an iterable of keyed records to a dataset dictionary."""
+        return {record_key: record for record_key, record in keyed_records}

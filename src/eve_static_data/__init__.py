@@ -1,6 +1,7 @@
 """Eve Static Data Package."""
 
 from pathlib import Path
+from typing import Any
 
 from typer import get_app_dir
 
@@ -16,8 +17,7 @@ NAMESPACE = "pfmsoft"
 APPLICATION_NAME = "esi-static-data"
 DEFAULT_APP_DIR = Path(get_app_dir(f"{NAMESPACE}-{APPLICATION_NAME}"))
 USER_AGENT = f"{__app_name__}/{__version__} (+{__url__})"
-AFTER_BUILD_NUMBER: int = 3321490
-RELEASE_DATE: str = "2026-04-28T11:43:10Z"
+
 SDE_URL_TEMPLATE: str = "https://developers.eveonline.com/static-data/tranquility/eve-online-static-data-${build_number}-${variant}.zip"
 DATA_CHANGES_URL_TEMPLATE: str = "https://developers.eveonline.com/static-data/tranquility/changes/${build_number}.jsonl"
 SCHEMA_CHANGELOG_URL: str = (
@@ -28,6 +28,16 @@ LATEST_INFO_URL: str = (
 )
 DATA_FILENAME_TEMPLATE: str = "eve-online-static-data-${build_number}-${variant}.zip"
 
+type Record = dict[str | int, Any]
+"""Type alias for a record from an EVE SDE dataset."""
+type IntKeyedRecord = tuple[int, Record]
+"""Type alias for a record from an EVE SDE dataset with an integer key."""
+type StrKeyedRecord = tuple[str, Record]
+"""Type alias for a record from an EVE SDE dataset with a string key."""
+type KeyedRecord = IntKeyedRecord | StrKeyedRecord
+"""Type alias for a record from an EVE SDE dataset with either an integer or string key."""
+type Dataset = dict[str | int, Record]
+"""Type alias for an EVE SDE dataset, which is a mapping of keys to records."""
 from eve_static_data.sde_tools import SDETools
 
 __all__ = [
@@ -36,14 +46,12 @@ __all__ = [
     "__license__",
     "__url__",
     "__version__",
-    "AFTER_BUILD_NUMBER",
     "APPLICATION_NAME",
     "DATA_CHANGES_URL_TEMPLATE",
     "DATA_FILENAME_TEMPLATE",
     "DEFAULT_APP_DIR",
     "LATEST_INFO_URL",
     "NAMESPACE",
-    "RELEASE_DATE",
     "SCHEMA_CHANGELOG_URL",
     "SDETools",
     "SDE_URL_TEMPLATE",
