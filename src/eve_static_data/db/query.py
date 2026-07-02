@@ -25,6 +25,7 @@ class DatasetDbQuery:
         self.connection = connection
         self._dataset_key_types: dict[str, str] | None = None
         self._serialization_format: db_models.SerializationFormat | None = None
+        self._dataset_record_counts: dict[str, int] | None = None
 
     @property
     def dataset_key_types(self) -> dict[str, str]:
@@ -60,12 +61,14 @@ class DatasetDbQuery:
     @property
     def dataset_record_counts(self) -> dict[str, int]:
         """Get the record counts for all datasets from the database."""
-        return {
-            dataset_name: self.dataset_record_count(dataset_name)
-            for dataset_name in self.dataset_key_types
-        }
+        if self._dataset_record_counts is None:
+            self._dataset_record_counts = {
+                dataset_name: self._get_dataset_record_count(dataset_name)
+                for dataset_name in self.dataset_key_types
+            }
+        return self._dataset_record_counts
 
-    def dataset_record_count(self, dataset_name: str) -> int:
+    def _get_dataset_record_count(self, dataset_name: str) -> int:
         """Get the number of records for a dataset from the database."""
         if dataset_name not in self.dataset_key_types:
             raise ValueError(
@@ -77,6 +80,15 @@ class DatasetDbQuery:
             dataset_name=dataset_name,
             key_type=self.dataset_key_types[dataset_name],
         )
+
+    def dataset_record_count(self, dataset_name: str) -> int:
+        """Get the number of records for a dataset from the database."""
+        if dataset_name not in self.dataset_record_counts:
+            raise ValueError(
+                f"Dataset '{dataset_name}' not found in the database. "
+                "Ensure that the dataset has been loaded into the database."
+            )
+        return self.dataset_record_counts[dataset_name]
 
     def get_int_records(
         self, dataset_name: str, record_keys: set[int] | None = None

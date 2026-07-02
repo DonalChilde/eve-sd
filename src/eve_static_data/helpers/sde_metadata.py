@@ -12,15 +12,6 @@ from pydantic import RootModel
 
 from eve_static_data.helpers.yaml_io import safe_load_IO, safe_load_path
 
-# TODO use variant for source format. change field names to variant
-
-
-# class SdeVariant(StrEnum):
-#     """Enum for SDE data variants."""
-
-#     YAML = "yaml"
-#     JSONL = "jsonl"
-
 
 class SdeVariant(StrEnum):
     """Enum for the source format of the SDE data."""
