@@ -147,7 +147,6 @@ def write_str_records(
         )
 
 
-# TODO Standardize function sigs like this one.
 def write_key_type(
     connection: sqlite3.Connection,
     *,
@@ -252,6 +251,32 @@ def query_str_keys(connection: sqlite3.Connection, *, dataset_name: str) -> set[
         return {row["record_key"] for row in cursor}
 
 
+def query_dataset_record_count(
+    connection: sqlite3.Connection, *, dataset_name: str, key_type: str
+) -> int:
+    """Read the number of records for a dataset from the database."""
+    match key_type:
+        case "int":
+            table_name = "DatasetRecordsInt"
+        case "str":
+            table_name = "DatasetRecordsStr"
+        case _:
+            raise ValueError(f"Unsupported key type: {key_type}")
+    with transaction(connection):
+        cursor = connection.execute(
+            f"""
+                SELECT COUNT(*) AS record_count
+                FROM {table_name}
+                WHERE dataset_name = ?
+                """,
+            (dataset_name,),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return 0
+        return int(row["record_count"])
+
+
 def query_int_records(
     connection: sqlite3.Connection,
     *,
@@ -344,6 +369,46 @@ def query_int_records(
             connection.execute(f"DROP TABLE {table_name}")
 
 
+def query_int_records_page(
+    connection: sqlite3.Connection,
+    *,
+    dataset_name: str,
+    serialization_format: db_models.SerializationFormat,
+    limit: int,
+    offset: int,
+) -> Iterable[db_models.DatasetRecordIntBase]:
+    """Read a page of records for a dataset with integer keys from the database."""
+    match serialization_format:
+        case db_models.SerializationFormat.YAML:
+            record_class = db_models.DatasetRecordIntYaml
+        case db_models.SerializationFormat.JSON:
+            record_class = db_models.DatasetRecordIntJson
+        case db_models.SerializationFormat.PICKLE:
+            record_class = db_models.DatasetRecordIntPickle
+        case _:
+            raise ValueError(
+                f"Unsupported serialization format: {serialization_format}. Must be one of 'yaml', 'json', or 'pickle'."
+            )
+    with transaction(connection):
+        cursor = connection.execute(
+            """
+                SELECT record_key, dataset_name, record_bytes
+                FROM DatasetRecordsInt
+                WHERE dataset_name = ?
+                ORDER BY record_key
+                LIMIT ?
+                OFFSET ?
+                """,
+            (dataset_name, limit, offset),
+        )
+        for row in cursor:
+            yield record_class(
+                record_key=row["record_key"],
+                dataset_name=row["dataset_name"],
+                record=row["record_bytes"],
+            )
+
+
 def query_str_records(
     connection: sqlite3.Connection,
     *,
@@ -434,6 +499,46 @@ def query_str_records(
                     record=row["record_bytes"],
                 )
             connection.execute(f"DROP TABLE {table_name}")
+
+
+def query_str_records_page(
+    connection: sqlite3.Connection,
+    *,
+    dataset_name: str,
+    serialization_format: db_models.SerializationFormat,
+    limit: int,
+    offset: int,
+) -> Iterable[db_models.DatasetRecordStrBase]:
+    """Read a page of records for a dataset with string keys from the database."""
+    match serialization_format:
+        case db_models.SerializationFormat.YAML:
+            record_class = db_models.DatasetRecordStrYaml
+        case db_models.SerializationFormat.JSON:
+            record_class = db_models.DatasetRecordStrJson
+        case db_models.SerializationFormat.PICKLE:
+            record_class = db_models.DatasetRecordStrPickle
+        case _:
+            raise ValueError(
+                f"Unsupported serialization format: {serialization_format}. Must be one of 'yaml', 'json', or 'pickle'."
+            )
+    with transaction(connection):
+        cursor = connection.execute(
+            """
+                SELECT record_key, dataset_name, record_bytes
+                FROM DatasetRecordsStr
+                WHERE dataset_name = ?
+                ORDER BY record_key
+                LIMIT ?
+                OFFSET ?
+                """,
+            (dataset_name, limit, offset),
+        )
+        for row in cursor:
+            yield record_class(
+                record_key=row["record_key"],
+                dataset_name=row["dataset_name"],
+                record=row["record_bytes"],
+            )
 
 
 def write_sde_metadata(
