@@ -4,20 +4,20 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from eve_static_data.cli.db import app
-from eve_static_data.db.helpers import (
+from eve_sd.cli.db import app
+from eve_sd.db.helpers import (
     create_read_write_connection,
     write_int_records,
     write_key_types,
     write_str_records,
 )
-from eve_static_data.db.load_datasets import write_db_metadata
-from eve_static_data.db.models_2 import (
+from eve_sd.db.load_datasets import write_db_metadata
+from eve_sd.db.models import (
     DatasetRecordIntYaml,
     DatasetRecordStrYaml,
     SerializationFormat,
 )
-from eve_static_data.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
+from eve_sd.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
 
 runner = CliRunner()
 

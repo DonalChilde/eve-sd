@@ -6,12 +6,12 @@ from typing import Annotated
 
 import typer
 
-from eve_static_data.helpers.json_io import json_dump_path
-from eve_static_data.helpers.save_text_file import save_text_file
-from eve_static_data.helpers.schema_report.markdown_report import (
+from eve_sd.helpers.json_io import json_dump_path
+from eve_sd.helpers.save_text_file import save_text_file
+from eve_sd.helpers.schema_report.markdown_report import (
     generate_markdown_report,
 )
-from eve_static_data.helpers.schema_report.report_from_files import (
+from eve_sd.helpers.schema_report.report_from_files import (
     get_json_schema_report,
     get_jsonl_schema_report,
     get_yaml_schema_report,

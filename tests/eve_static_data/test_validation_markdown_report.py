@@ -1,13 +1,14 @@
 """Tests for validation markdown report rendering."""
 
-from eve_static_data.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
-from eve_static_data.models.dataset_filenames import SdeDatasets
-from eve_static_data.validation.markdown_report import generate_markdown_report
-from eve_static_data.validation.models import (
+from eve_sd.models.dataset_filenames import SdeDatasets
+from eve_sd.validation.markdown_report import generate_markdown_report
+from eve_sd.validation.models import (
     DatasetValidationResult,
     FailedRecordValidation,
     SdeValidationSummary,
 )
+
+from eve_sd.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
 
 
 def _metadata() -> SdeMetadata:

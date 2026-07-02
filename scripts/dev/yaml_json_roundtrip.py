@@ -12,10 +12,9 @@ from time import perf_counter
 from typing import Annotated, Any
 
 import typer
+from eve_sd.models.yaml_format import yaml_datasets_root
 from pydantic import RootModel
 from yaml import safe_load
-
-from eve_static_data.models.yaml_format import yaml_datasets_root
 
 app = typer.Typer()
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from eve_static_data.helpers.sde_metadata import (
+from eve_sd.helpers.sde_metadata import (
     SdeVariant,
     SourceMedia,
     load_sde_metadata,

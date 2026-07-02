@@ -1,7 +1,7 @@
 ---
 description: "Python coding conventions and guidelines"
 applyTo: "**/*.py"
-project-name: "eve-static-data"
+project-name: "eve-sd"
 ---
 
 # Python Coding Conventions
@@ -58,7 +58,7 @@ NOTE: NEEDS TO BE UPDATED.
 
 ## Project Overview
 
-eve-static-data provides a cli interface for downloading and processing the EVE Online static data set. Information about this
+eve-sd provides a cli interface for downloading and processing the EVE Online static data set. Information about this
 data set can be found at https://developers.eveonline.com/docs/services/static-data/
 
 ### CLI Commands:

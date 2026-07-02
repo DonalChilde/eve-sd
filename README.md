@@ -1,6 +1,6 @@
 # EVE Static Data
 
-`eve-static-data` provides a command-line workflow and Python API for working
+`eve-sd` provides a command-line workflow and Python API for working
 with the EVE Online Static Data Export (SDE).
 
 The CLI entrypoint is `eve-sd`.
@@ -216,21 +216,21 @@ local source checkout.
 Run the CLI directly from the repository without installing it globally:
 
 ```bash
-uvx --from git+https://github.com/DonalChilde/eve-static-data@main eve-sd --help
+uvx --from git+https://github.com/DonalChilde/eve-sd@main eve-sd --help
 ```
 
 Install the command into your `uv` tool path:
 
 ```bash
-uv tool install --from git+https://github.com/DonalChilde/eve-static-data@main eve-static-data
+uv tool install --from git+https://github.com/DonalChilde/eve-sd@main eve-sd
 eve-sd --help
 ```
 
 ### Install from Source
 
 ```bash
-git clone https://github.com/DonalChilde/eve-static-data.git
-cd eve-static-data
+git clone https://github.com/DonalChilde/eve-sd.git
+cd eve-sd
 uv sync
 source .venv/bin/activate
 eve-sd --help

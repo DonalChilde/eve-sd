@@ -16,13 +16,13 @@ from typing import Any, Union, get_args, get_origin, get_type_hints
 
 sys.path.insert(0, "src")
 
-from eve_static_data.models import records
-from eve_static_data.models.records import LocalizedString
-
+from eve_sd.models import records
+from eve_sd.models.records import LocalizedString
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def snake_case(name: str) -> str:
     s = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
@@ -80,6 +80,7 @@ def is_top_level(cls: Any) -> bool:
 # Per-dataset DDL builder
 # ---------------------------------------------------------------------------
 
+
 def build_dataset(cls: type) -> tuple[list[str], list[str]]:
     """Return (create_stmts, index_stmts) for a top-level dataset class."""
     table = snake_case(cls.__name__)
@@ -116,13 +117,12 @@ def build_dataset(cls: type) -> tuple[list[str], list[str]]:
     # ── consolidated localized table ─────────────────────────────────────────
     if loc_fields:
         loc_table = f"{table}_localized"
-        loc_cols = (
-            ["    id INTEGER PRIMARY KEY AUTOINCREMENT",
-             "    parent_id INTEGER NOT NULL",
-             "    source_key INTEGER",
-             "    language TEXT"]
-            + [f"    {lf} TEXT" for lf in loc_fields]
-        )
+        loc_cols = [
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT",
+            "    parent_id INTEGER NOT NULL",
+            "    source_key INTEGER",
+            "    language TEXT",
+        ] + [f"    {lf} TEXT" for lf in loc_fields]
         loc_cols_str = ",\n".join(loc_cols)
         create_stmts.append(
             f"CREATE TABLE IF NOT EXISTS {loc_table} (\n{loc_cols_str});"
@@ -160,12 +160,15 @@ def build_dataset(cls: type) -> tuple[list[str], list[str]]:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     # Collect & sort top-level dataset classes alphabetically by table name
     top_level = sorted(
-        [(snake_case(name), name, cls)
-         for name, cls in vars(records).items()
-         if is_top_level(cls)],
+        [
+            (snake_case(name), name, cls)
+            for name, cls in vars(records).items()
+            if is_top_level(cls)
+        ],
         key=lambda t: t[0],
     )
 

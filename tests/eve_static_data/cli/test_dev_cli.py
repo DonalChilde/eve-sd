@@ -4,7 +4,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from eve_static_data.cli.main_typer import app
+from eve_sd.cli.main_typer import app
 
 runner = CliRunner()
 

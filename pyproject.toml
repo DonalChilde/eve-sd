@@ -1,5 +1,5 @@
 [project]
-name = "eve-static-data"
+name = "eve-sd"
 version = "0.2.4"
 description = "Add your description here"
 readme = "README.md"
@@ -20,17 +20,17 @@ dependencies = [
 ]
 
 [project.scripts]
-eve-sd = "eve_static_data.cli.main_typer:app"
+eve-sd = "eve_sd.cli.main_typer:app"
 
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
 
 [project.urls]
-Documentation = "https://github.com/DonalChilde/eve-static-data#readme"
-# Documentation_rtd = "https://eve-static-data.readthedocs.io"
-Issues = "https://github.com/DonalChilde/eve-static-data/issues"
-Source = "https://github.com/DonalChilde/eve-static-data"
+Documentation = "https://github.com/DonalChilde/eve-sd#readme"
+# Documentation_rtd = "https://eve-sd.readthedocs.io"
+Issues = "https://github.com/DonalChilde/eve-sd/issues"
+Source = "https://github.com/DonalChilde/eve-sd"
 
 [dependency-groups]
 # Dev dependencies
@@ -42,7 +42,7 @@ dev = [
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.13.1",
-    "scriv>=1.7.0",
+    
 ]
 lint = ["ruff>=0.13.1"]
 test = [
