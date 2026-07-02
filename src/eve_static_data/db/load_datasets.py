@@ -55,7 +55,7 @@ def write_sde_records_to_db(
 ) -> int:
     """Write SDE records to the database with the specified serialization format."""
     write_key_type(connection, dataset_name=dataset_name, key_type=key_type)
-
+    count: int = 0
     match key_type:
         case "int":
             records = cast(Iterable[tuple[int, dict[str | int, Any]]], records)
@@ -74,14 +74,14 @@ def write_sde_records_to_db(
             def _marshal_int_records(
                 record_class: type[db_models.DatasetRecordIntBase],
             ) -> Iterable[db_models.DatasetRecordIntBase]:
+                nonlocal count
                 for record_key, record in records:
+                    count += 1
                     yield record_class.from_record(
                         dataset_name, record_key=record_key, record=record
                     )
 
-            count = write_int_records(
-                connection, records=_marshal_int_records(record_class)
-            )
+            write_int_records(connection, records=_marshal_int_records(record_class))
         case "str":
             records = cast(Iterable[tuple[str, dict[str | int, Any]]], records)
             match serialization_format:
@@ -99,14 +99,14 @@ def write_sde_records_to_db(
             def _marshal_str_records(
                 record_class: type[db_models.DatasetRecordStrBase],
             ) -> Iterable[db_models.DatasetRecordStrBase]:
+                nonlocal count
                 for record_key, record in records:
+                    count += 1
                     yield record_class.from_record(
                         dataset_name, record_key=record_key, record=record
                     )
 
-            count = write_str_records(
-                connection, records=_marshal_str_records(record_class)
-            )
+            write_str_records(connection, records=_marshal_str_records(record_class))
         case _:
             raise ValueError(
                 f"Unexpected key type {key_type} for dataset {dataset_name}."
