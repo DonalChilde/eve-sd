@@ -151,7 +151,7 @@ class DatasetRecordStrYaml(DatasetRecordStrBase):
     @staticmethod
     def serialize_record(record: Record) -> bytes:
         """Serialize a record mapping to UTF-8 YAML bytes."""
-        return yaml_io.safe_dump_str(record).encode("utf-8")
+        return yaml_io.safe_dump_bytes(record)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -166,7 +166,7 @@ class DatasetRecordIntYaml(DatasetRecordIntBase):
     @staticmethod
     def serialize_record(record: Record) -> bytes:
         """Serialize a record mapping to UTF-8 YAML bytes."""
-        return yaml_io.safe_dump_str(record).encode("utf-8")
+        return yaml_io.safe_dump_bytes(record)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -181,7 +181,7 @@ class DatasetRecordStrJson(DatasetRecordStrBase):
     @staticmethod
     def serialize_record(record: Record) -> bytes:
         """Serialize a record mapping to UTF-8 JSON bytes."""
-        return json_io.json_dumps(record).encode("utf-8")
+        return json_io.json_dump_bytes(record)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -196,7 +196,7 @@ class DatasetRecordIntJson(DatasetRecordIntBase):
     @staticmethod
     def serialize_record(record: Record) -> bytes:
         """Serialize a record mapping to UTF-8 JSON bytes."""
-        return json_io.json_dumps(record).encode("utf-8")
+        return json_io.json_dump_bytes(record)
 
 
 @dataclass(slots=True, kw_only=True)
