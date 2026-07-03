@@ -8,7 +8,7 @@ from typer import get_app_dir
 __author__ = "Chad Lowe"
 __author_email__ = "pfmsoft.dev@gmail.com"
 __app_name__ = "Eve SD"
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __license__ = "MIT"
 __url__ = "https://github.com/DonalChilde/eve-sd"
 __description__ = "A terminal interface for Eve Online Static Data downloading and use."
