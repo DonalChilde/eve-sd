@@ -1,122 +1,276 @@
-# EVE Static Data - A cli and API for downloading and accessing the EVE Online Static Data files.
+# EVE Static Data
 
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+`eve-sd` provides a command-line workflow and Python API for working
+with the EVE Online Static Data Export (SDE).
 
-## Project Description
-
-eve-static-data provides a cli for working with the EVE Online SDE.
-
-NOTE the eve-static-data cli command is `esd`
+The CLI entrypoint is `eve-sd`.
 
 ```bash
-esd status
+eve-sd --help
 ```
 
-Schema supported:
-- After Build Number: 3279491
-- Date: 2026-03-30
+## What This App Does
 
-Current Features:
-- Download the current SDE, schema changelog, data changelog, etc.
-- Unpack the downloaded SDE dataset.
-- export the YAML datasets to json, with optional narrowing of the avalable localiazations, saving space
-- A set of dataclasses defining the SDE schemas.
-- Report on the downloaded SDE data schemas.
-- Validate the downloaded data against the internal data models, with report.
-- An API for easy loading of data from disk.
+Core capabilities:
 
-Future Features:
-- A loadable, validateable, datamodel for the JSONL version of the SDE
-- A sqlite db of the YAML version of the SDE.
+- Fetch SDE metadata and changelogs from the official endpoint.
+- Download SDE archives by build number and variant (`yaml` or `jsonl`).
+- Unpack SDE archives into local directories.
+- Build a local SQLite database from unpacked SDE files.
+- Browse records in the SQLite database from the CLI.
+- Generate schema reports from dataset files or an existing database.
+- Convert SDE files between formats for downstream tooling.
+- Access data programmatically through a typed Python query API.
 
-### Notes about the YAML SDE data.
-The YAML version of the sde data is the easiest to reason with, and YAML supports integers as dictionary keys. But loading performance for YAML is... poor. 
-JSON loading is fast (60x faster on my machine), but json only accepts strings as dictionary keys.
+## Typical Workflow
 
-Eve-static-data supports exporting the yaml data to json, and when loading (through pydantic RootModels) the string keys will be automatically cast to int. Giving speed and data conformance.
+Most users follow this sequence:
 
-Its possible to use the data without exporting to json, but.... SLOW.
+1. Fetch the latest build information.
+2. Download an archive.
+3. Unpack the archive.
+4. Build a SQLite database.
+5. Query data from the CLI or Python.
 
-### CLI commands for downloading and processing SDE.
+### 1) Fetch Latest Build Info
 
-### Provides models for SDE data validated with pydantic.
+```bash
+eve-sd fetch latest
+```
 
-### Provides localized datasets.
+Optional: write output to disk.
 
-### Validation report, structure information.
+```bash
+eve-sd fetch latest --to ./metadata --file-name latest_sde_info.json
+```
 
+### 2) Download an SDE Archive
 
+Download the latest YAML variant:
 
-### Easy access functions for programatic usage.
+```bash
+eve-sd fetch sde --to ./downloads --variant yaml
+```
 
-TODO - More complete instructions and examples as the program evolves.
+Download a specific build:
 
-## Quick Start
+```bash
+eve-sd fetch sde --to ./downloads --variant jsonl --build-number 3419624
+```
 
-## Usage
+### 3) Unpack the Archive
 
-## API Usage
+```bash
+eve-sd unpack --from ./downloads/eve-online-static-data-3419624-yaml.zip --to ./sde
+```
+
+By default, unpack uses a build-number subdirectory, for example
+`./sde/3419624`.
+
+### 4) Create a Database from Unpacked Data
+
+```bash
+eve-sd db create --from ./sde/3419624 --to ./db --file-name sde_3419624.db
+```
+
+Defaults:
+
+- If `--file-name` is omitted, a name based on build and variant is generated.
+- If `--serialization-format` is omitted, the app chooses:
+    - `json` for JSONL source data
+    - `pickle` for YAML source data
+
+### 5) Browse the Database in the CLI
+
+List datasets with record counts and key types:
+
+```bash
+eve-sd db browse --from ./db/sde_3419624.db
+```
+
+Browse a dataset page:
+
+```bash
+eve-sd db browse --from ./db/sde_3419624.db --dataset types --page-size 5 --page 1
+```
+
+Fetch specific records:
+
+```bash
+eve-sd db browse --from ./db/sde_3419624.db --dataset types --record-key 34 --record-key 35
+```
+
+## Changelog Commands
+
+Fetch data changelog:
+
+```bash
+eve-sd fetch data-changes --build-number 3419624
+```
+
+Fetch schema changelog:
+
+```bash
+eve-sd fetch schema-changes --build-number 3419624
+```
+
+Both commands can print to stdout or write to disk using `--to` and optional
+`--file-name`.
+
+## Schema Reports
+
+Generate a schema report directly from unpacked files:
+
+```bash
+eve-sd schema report files --from ./sde/3419624 --stdout-format markdown
+```
+
+Generate a schema report from an existing database:
+
+```bash
+eve-sd schema report db --from ./db/sde_3419624.db --stdout-format json
+```
+
+Write report files to a directory:
+
+```bash
+eve-sd schema report files --from ./sde/3419624 --to ./reports --overwrite
+```
+
+## Format Conversion Commands
+
+Convert YAML datasets to JSON:
+
+```bash
+eve-sd export yaml-to-json --from ./sde/3419624 --to ./json
+```
+
+Convert JSONL datasets to JSON with dictionary output keyed by `_key`:
+
+```bash
+eve-sd export jsonl-to-json --from ./sde/3419624 --to ./json
+```
+
+Use list output when needed:
+
+```bash
+eve-sd export jsonl-to-json --from ./sde/3419624 --to ./json --container list
+```
+
+## Programmatic API Usage
+
+Expected pattern: create the SQLite database with the CLI first, then use the
+Python API to query it.
+
+### API Example: create_read_write_connection + DatasetDbQuery
+
+```python
+from pathlib import Path
+
+from eve_static_data.db.helpers import create_read_write_connection
+from eve_static_data.db.query import DatasetDbQuery
+
+db_path = Path("./db/sde_3419624.db").resolve()
+
+with create_read_write_connection(str(db_path)) as connection:
+    query = DatasetDbQuery(connection)
+
+    # Inspect metadata and dataset catalog
+    print("SDE metadata:", query.sde_metadata)
+    print("Dataset count:", len(query.dataset_key_types))
+
+    # Query one dataset (adjust name as needed for your DB)
+    dataset_name = "types"
+    record_count = query.dataset_record_count(dataset_name)
+    print(f"{dataset_name} record count:", record_count)
+
+    # Read first 10 records from an integer-keyed dataset
+    for record_key, record in query.get_int_records_page(
+        dataset_name,
+        limit=10,
+        offset=0,
+    ):
+        print(record_key, record)
+```
+
+If you need a mapping instead of an iterator of `(key, record)` tuples:
+
+```python
+records = query.as_dict(query.get_int_records_page("types", limit=100, offset=0))
+print(len(records))
+```
+
+## Common Notes
+
+- `DatasetDbQuery` validates dataset existence and key type before querying.
+- Record-key type (`int` or `str`) is tracked per dataset in the DB metadata.
+- Some commands emit rich progress/status messages unless `--quiet` is used.
 
 ## Installation
 
-This project uses uv for development, and uv is also the easiest way to run the project.
+PyPI deployment is not enabled yet. Install from github with `uv`, or work from a
+local source checkout.
 
-> uv docs:  
-> [Astral - uv](https://docs.astral.sh/uv/)  
-> [https://docs.astral.sh/uv/concepts/tools/](https://docs.astral.sh/uv/concepts/tools/)  
-> [https://docs.astral.sh/uv/reference/cli/#uv-tool](https://docs.astral.sh/uv/reference/cli/#uv-tool)  
-> [https://docs.astral.sh/uv/pip/packages/#installing-a-package](https://docs.astral.sh/uv/pip/packages/#installing-a-package)  
-> [https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-sources](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-sources)
+### Install with `uv`
 
-To run with uv:
-
-> Note the url format for tool install is the same as that for uv pip install:
+Run the CLI directly from the repository without installing it globally:
 
 ```bash
-# run eve-static-data without installing
-uvx --from git+https://github.com/DonalChilde/eve-static-data@main esd
-
-# OR
-
-# Install to Path
-uv tool install --from git+https://github.com/DonalChilde/eve-static-data@main eve-static-data
-# and run
-esd ARGS
+uvx --from git+https://github.com/DonalChilde/eve-sd@main eve-sd --help
 ```
 
-## Development
-
-### Download the source code:
+Install the command into your `uv` tool path:
 
 ```bash
-git clone https://github.com/DonalChilde/eve-static-data.git
-cd eve-static-data
+uv tool install --from git+https://github.com/DonalChilde/eve-sd@main eve-sd
+eve-sd --help
+```
+
+### Install from Source
+
+```bash
+git clone https://github.com/DonalChilde/eve-sd.git
+cd eve-sd
 uv sync
-# activate the venv if desired
-source ./.venv/bin/activate
+source .venv/bin/activate
+eve-sd --help
 ```
 
-### Use as a dependency in another project:
+You can also run the project directly through `uv` without activating the
+virtual environment:
 
-```toml
-# in your pyproject.toml file, for a uv managed project
-dependencies = ["eve-static-data"]
-[tool.uv.sources]
-eve-static-data = { git = "https://github.com/DonalChilde/eve-static-data", branch = "main" }
+```bash
+uv run eve-sd --help
 ```
 
-### ruff settings for formatting and linting
+## Useful Utility Commands
 
-See pyproject.toml file
+Show version:
 
-## Contributing
+```bash
+eve-sd version
+```
+
+Show effective runtime settings:
+
+```bash
+eve-sd settings
+```
+
+Show the in-app documentation:
+
+```bash
+eve-sd docs
+```
+
+## Development Notes
+
+Development dependencies are managed with `uv`. See `pyproject.toml` for the
+current lint and test configuration.
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Support
+MIT License. See [LICENSE](LICENSE) for details.
 
 ## Changelog
 

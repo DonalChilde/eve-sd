@@ -36,5 +36,10 @@
   "editor.quickSuggestions": {
     "comments": "on"
   },
-  "python.analysis.typeCheckingMode": "strict"
+  "python.analysis.typeCheckingMode": "strict",
+  "ruff.format.preview": true,
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }

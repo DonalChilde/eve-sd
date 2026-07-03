@@ -1,7 +1,7 @@
 ---
 description: "Python coding conventions and guidelines"
 applyTo: "**/*.py"
-project-name: "esi-auth"
+project-name: "eve-sd"
 ---
 
 # Python Coding Conventions
@@ -13,6 +13,9 @@ project-name: "esi-auth"
 - Provide docstrings following PEP 257 conventions.
 - Break down complex functions into smaller, more manageable functions.
 - During development, use the virtual environment found at the project root - `./.venv`
+- all code should be typed. eg. `foo:list[int] = [1,2,3]`
+- use red/green TDD
+- Use python 3.14 syntax and features.
 
 ## General Instructions
 
@@ -51,9 +54,11 @@ project-name: "esi-auth"
 
 # Project Specific Information
 
+NOTE: NEEDS TO BE UPDATED.
+
 ## Project Overview
 
-eve-static-data provides a cli interface for downloading and processing the EVE Online static data set. Information about this
+eve-sd provides a cli interface for downloading and processing the EVE Online static data set. Information about this
 data set can be found at https://developers.eveonline.com/docs/services/static-data/
 
 ### CLI Commands:

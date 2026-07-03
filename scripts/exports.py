@@ -8,10 +8,10 @@ from typing import Annotated
 
 from typer import Typer
 
-from eve_static_data import SDELoader
-from eve_static_data.exports.eve_types_table import export_eve_types_table
-from eve_static_data.exports.market_paths import export_market_paths
-from eve_static_data.logging_config import setup_logging
+from eve_sd import SDELoader
+from eve_sd.exports.eve_types_table import export_eve_types_table
+from eve_sd.exports.market_paths import export_market_paths
+from eve_sd.logging_config import setup_logging
 
 logger = logging.getLogger(__name__)
 log_dir = Path("~/tmp/logs/esd-export-script").expanduser()
