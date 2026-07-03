@@ -48,14 +48,14 @@ class TestJsonFilePath:
     def test_dump_and_load_path_round_trip(self, tmp_path: Path) -> None:
         """Object survives dump → load round-trip via file."""
         fp = tmp_path / "data.json"
-        json_io.json_dump_path(SAMPLE_OBJ, filepath=fp)
+        json_io.json_dumps_path(SAMPLE_OBJ, filepath=fp)
         restored = json_io.json_load_path(fp)
         assert restored == SAMPLE_OBJ
 
     def test_dump_path_creates_parent_dirs(self, tmp_path: Path) -> None:
         """json_dump_path creates missing parent directories."""
         fp = tmp_path / "sub" / "dir" / "data.json"
-        json_io.json_dump_path({"x": 1}, filepath=fp)
+        json_io.json_dumps_path({"x": 1}, filepath=fp)
         assert fp.exists()
 
     def test_dump_path_raises_file_exists_error_no_overwrite(
@@ -63,21 +63,21 @@ class TestJsonFilePath:
     ) -> None:
         """FileExistsError is raised when target exists and overwrite=False."""
         fp = tmp_path / "dup.json"
-        json_io.json_dump_path({}, filepath=fp)
+        json_io.json_dumps_path({}, filepath=fp)
         with pytest.raises(FileExistsError):
-            json_io.json_dump_path({}, filepath=fp, overwrite=False)
+            json_io.json_dumps_path({}, filepath=fp, overwrite=False)
 
     def test_dump_path_overwrites_when_overwrite_true(self, tmp_path: Path) -> None:
         """Existing file is replaced when overwrite=True."""
         fp = tmp_path / "ow.json"
-        json_io.json_dump_path({"v": 1}, filepath=fp)
-        json_io.json_dump_path({"v": 99}, filepath=fp, overwrite=True)
+        json_io.json_dumps_path({"v": 1}, filepath=fp)
+        json_io.json_dumps_path({"v": 99}, filepath=fp, overwrite=True)
         assert json_io.json_load_path(fp) == {"v": 99}
 
     def test_dump_path_returns_bytes_written(self, tmp_path: Path) -> None:
         """Return value is a positive integer (bytes written)."""
         fp = tmp_path / "count.json"
-        written = json_io.json_dump_path(SAMPLE_OBJ, filepath=fp)
+        written = json_io.json_dumps_path(SAMPLE_OBJ, filepath=fp)
         assert written > 0
 
 

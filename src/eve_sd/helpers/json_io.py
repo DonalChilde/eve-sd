@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from pathlib import Path
-from typing import IO, Any
+from typing import Any, TextIO
 
 from pydantic_core import from_json, to_json
 
@@ -17,9 +17,11 @@ def json_loads(json_string: str | bytes) -> Any:
     return from_json(json_string)
 
 
-def json_dumps(obj: Any, indent: int | None = None, **kwargs: Any) -> str:
+def json_dumps(
+    obj: Any, indent: int | None = None, encoding: str = "utf-8", **kwargs: Any
+) -> str:
     """Serialize a Python object to a JSON string."""
-    return to_json(obj, indent=indent, **kwargs).decode("utf-8")
+    return to_json(obj, indent=indent, **kwargs).decode(encoding)
 
 
 def json_dump_bytes(obj: Any, indent: int | None = None, **kwargs: Any) -> bytes:
@@ -27,11 +29,12 @@ def json_dump_bytes(obj: Any, indent: int | None = None, **kwargs: Any) -> bytes
     return to_json(obj, indent=indent, **kwargs)
 
 
-def json_dump_path(
+def json_dumps_path(
     obj: Any,
     *,
     filepath: Path,
     overwrite: bool = False,
+    encoding: str = "utf-8",
     indent: int | None = None,
     **kwargs: Any,
 ) -> int:
@@ -43,6 +46,7 @@ def json_dump_path(
         obj: The Python object to dump.
         filepath: The path to the JSON file.
         overwrite: Whether to overwrite the file if it exists.
+        encoding: The encoding to use when writing the file.
         indent: The indentation level for the JSON file.
         **kwargs: Additional keyword arguments passed to `json_dumps`.
 
@@ -54,17 +58,14 @@ def json_dump_path(
     """
     filepath.parent.mkdir(parents=True, exist_ok=True)
     if overwrite:
-        with filepath.open("w", encoding="utf-8") as f:
-            counter = 0
-            counter += f.write(json_dumps(obj, indent=indent, **kwargs))
-            counter += f.write("\n")
-            return counter
+        mode = "w"
     else:
-        with filepath.open("x", encoding="utf-8") as f:
-            counter = 0
-            counter += f.write(json_dumps(obj, indent=indent, **kwargs))
-            counter += f.write("\n")
-            return counter
+        mode = "x"
+    with filepath.open(mode, encoding=encoding) as f:
+        counter = 0
+        counter += f.write(json_dumps(obj, indent=indent, **kwargs))
+        counter += f.write("\n")
+        return counter
 
 
 def jsonl_loads(jsonl_string: str) -> Iterator[Any]:
@@ -115,6 +116,7 @@ def jsonl_dump_path(
     objs: Iterator[Any],
     *,
     filepath: Path,
+    encoding: str = "utf-8",
     overwrite: bool = False,
     append: bool = False,
     **kwargs: Any,
@@ -129,6 +131,7 @@ def jsonl_dump_path(
     Args:
         objs: Iterator of Python objects to serialize as JSONL.
         filepath: The path to the JSONL file.
+        encoding: The encoding to use when writing the file.
         overwrite: Whether to overwrite the file if it exists.
         append: Whether to append to the file if it exists.
         **kwargs: Additional keyword arguments passed to `json_dumps`.
@@ -144,31 +147,29 @@ def jsonl_dump_path(
     filepath.parent.mkdir(parents=True, exist_ok=True)
     if overwrite and append:
         raise ValueError("overwrite and append are mutually exclusive.")
+    if append:
+        mode = "a"
+    elif overwrite:
+        mode = "w"
+    else:
+        mode = "x"
 
-    def write_objs(f: IO[Any]):
+    def write_objs(f: TextIO) -> int:
         counter = 0
         for obj in objs:
-            counter += f.write(json_dump_bytes(obj, **kwargs))
-            counter += f.write(b"\n")
+            counter += f.write(json_dumps(obj, **kwargs))
+            counter += f.write("\n")
         return counter
 
-    if append:
-        with filepath.open("ab") as f:
-            return write_objs(f)
-
-    if overwrite:
-        with filepath.open("wb") as f:
-            return write_objs(f)
-    else:
-        with filepath.open("xb") as f:
-            return write_objs(f)
+    with filepath.open(mode, encoding=encoding) as f:
+        return write_objs(f)
 
 
-def jsonl_dumps(objs: Iterator[Any], **kwargs: Any) -> str:
+def jsonl_dumps(objs: Iterator[Any], encoding: str = "utf-8", **kwargs: Any) -> str:
     """Serialize an iterator of objects to a JSONL string."""
     if "indent" in kwargs:
         raise ValueError("indent is not supported for JSONL files.")
-    return "\n".join(json_dumps(obj, **kwargs) for obj in objs)
+    return "\n".join(json_dumps(obj, encoding=encoding, **kwargs) for obj in objs)
 
 
 def jsonl_dump_bytes(objs: Iterator[Any], **kwargs: Any) -> bytes:

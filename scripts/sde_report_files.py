@@ -6,7 +6,7 @@ from typing import Annotated
 
 import typer
 
-from eve_sd.helpers.json_io import json_dump_path
+from eve_sd.helpers.json_io import json_dumps_path
 from eve_sd.helpers.save_text_file import save_text_file
 from eve_sd.helpers.schema_report.markdown_report import (
     generate_markdown_report,
@@ -68,7 +68,7 @@ def generate_report(
     markdown_report = generate_markdown_report(report)
     if output_path:
         report_file = output_path / "schema_report.json"
-        json_dump_path(report, filepath=report_file, indent=2, overwrite=overwrite)
+        json_dumps_path(report, filepath=report_file, indent=2, overwrite=overwrite)
         markdown_report_file = output_path / "schema_report.md"
         save_text_file(
             markdown_report,
