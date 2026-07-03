@@ -1,4 +1,4 @@
-"""Eve Static Data Package."""
+"""Eve SD Package."""
 
 from pathlib import Path
 from typing import Any
@@ -7,14 +7,14 @@ from typer import get_app_dir
 
 __author__ = "Chad Lowe"
 __author_email__ = "pfmsoft.dev@gmail.com"
-__app_name__ = "Eve Static Data"
-__version__ = "0.2.4"
+__app_name__ = "Eve SD"
+__version__ = "0.4.0"
 __license__ = "MIT"
 __url__ = "https://github.com/DonalChilde/eve-sd"
 __description__ = "A terminal interface for Eve Online Static Data downloading and use."
 
 NAMESPACE = "pfmsoft"
-APPLICATION_NAME = "esi-static-data"
+APPLICATION_NAME = "eve-sd"
 DEFAULT_APP_DIR = Path(get_app_dir(f"{NAMESPACE}-{APPLICATION_NAME}"))
 USER_AGENT = f"{__app_name__}/{__version__} (+{__url__})"
 
