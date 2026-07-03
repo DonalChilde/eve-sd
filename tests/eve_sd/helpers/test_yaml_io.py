@@ -3,13 +3,15 @@
 import io
 from pathlib import Path
 
+import pytest
+
 from eve_sd.helpers import yaml_io
 
 SAMPLE: dict[str, object] = {"name": "Eve", "version": 1, "active": True}
 
 
 class TestSafeDumpAndLoad:
-    """Tests for safe_dump / safe_load round-trips."""
+    """Tests for YAML in-memory dump/load helpers."""
 
     def test_safe_dump_returns_string(self) -> None:
         """safe_dump returns a YAML-formatted string."""
@@ -25,16 +27,30 @@ class TestSafeDumpAndLoad:
 
     def test_safe_load_bytes_round_trip(self) -> None:
         """safe_load accepts bytes as well as a string."""
-        serialized = yaml_io.safe_dump_str(SAMPLE).encode("utf-8")
+        serialized = yaml_io.safe_dump_bytes(SAMPLE)
         restored = yaml_io.safe_load(serialized)
         assert restored == SAMPLE
 
+    def test_safe_dump_bytes_returns_bytes(self) -> None:
+        """safe_dump_bytes returns a bytes payload."""
+        result = yaml_io.safe_dump_bytes(SAMPLE)
+        assert isinstance(result, bytes)
+        assert b"Eve" in result
+
     def test_safe_dump_io_writes_to_stream(self) -> None:
-        """safe_dump_IO writes YAML to a file-like object."""
+        """safe_dump_text_io writes YAML to a text file-like object."""
         buf = io.StringIO()
         yaml_io.safe_dump_text_io(SAMPLE, buf)
         content = buf.getvalue()
         assert "Eve" in content
+
+    def test_safe_dump_binary_io_writes_bytes(self) -> None:
+        """safe_dump_binary_io writes YAML bytes to a binary stream."""
+        buf = io.BytesIO()
+        yaml_io.safe_dump_binary_io(SAMPLE, buf)
+        content = buf.getvalue()
+        assert b"Eve" in content
+        assert yaml_io.safe_load(content) == SAMPLE
 
     def test_safe_load_io_reads_from_stream(self) -> None:
         """safe_load_IO reads YAML from a file-like object."""
@@ -45,14 +61,57 @@ class TestSafeDumpAndLoad:
 
 
 class TestFilePath:
-    """Tests for safe_dump_path / safe_load_path."""
+    """Tests for path-based YAML dump/load helpers."""
 
     def test_dump_path_creates_file(self, tmp_path: Path) -> None:
-        """safe_dump_path writes a YAML file at the given path."""
+        """safe_dump_str_path writes a YAML file at the given path."""
         fp = tmp_path / "data.yaml"
         yaml_io.safe_dump_str_path(SAMPLE, fp)
         assert fp.exists()
         assert fp.stat().st_size > 0
+
+    def test_dump_path_raises_without_overwrite(self, tmp_path: Path) -> None:
+        """safe_dump_str_path raises when target exists and overwrite=False."""
+        fp = tmp_path / "data.yaml"
+        yaml_io.safe_dump_str_path(SAMPLE, fp)
+
+        with pytest.raises(FileExistsError):
+            yaml_io.safe_dump_str_path(SAMPLE, fp)
+
+    def test_dump_path_allows_overwrite_when_requested(self, tmp_path: Path) -> None:
+        """safe_dump_str_path overwrites existing file when overwrite=True."""
+        fp = tmp_path / "data.yaml"
+        yaml_io.safe_dump_str_path({"name": "old"}, fp)
+        yaml_io.safe_dump_str_path(SAMPLE, fp, overwrite=True)
+
+        restored = yaml_io.safe_load_path(fp)
+        assert restored == SAMPLE
+
+    def test_dump_bytes_path_and_load_round_trip(self, tmp_path: Path) -> None:
+        """safe_dump_bytes_path writes bytes that safe_load_path can parse."""
+        fp = tmp_path / "data-bytes.yaml"
+        yaml_io.safe_dump_bytes_path(SAMPLE, fp)
+
+        assert fp.exists()
+        restored = yaml_io.safe_load_path(fp)
+        assert restored == SAMPLE
+
+    def test_dump_bytes_path_raises_without_overwrite(self, tmp_path: Path) -> None:
+        """safe_dump_bytes_path raises when target exists and overwrite=False."""
+        fp = tmp_path / "data-bytes.yaml"
+        yaml_io.safe_dump_bytes_path(SAMPLE, fp)
+
+        with pytest.raises(FileExistsError):
+            yaml_io.safe_dump_bytes_path(SAMPLE, fp)
+
+    def test_dump_bytes_path_allows_overwrite(self, tmp_path: Path) -> None:
+        """safe_dump_bytes_path overwrites existing file when overwrite=True."""
+        fp = tmp_path / "data-bytes.yaml"
+        yaml_io.safe_dump_bytes_path({"name": "old"}, fp)
+        yaml_io.safe_dump_bytes_path(SAMPLE, fp, overwrite=True)
+
+        restored = yaml_io.safe_load_path(fp)
+        assert restored == SAMPLE
 
     def test_load_path_reads_file(self, tmp_path: Path) -> None:
         """safe_load_path returns the object written by safe_dump_path."""

@@ -45,6 +45,7 @@ def safe_dump_str_path(
 
     Raises:
         yaml.YAMLError: If YAML serialization fails.
+        FileExistsError: If the target file exists and ``overwrite`` is false.
     """
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -80,6 +81,7 @@ def safe_dump_bytes_path(
 
     Raises:
         yaml.YAMLError: If YAML serialization fails.
+        FileExistsError: If the target file exists and ``overwrite`` is false.
     """
     file_path.parent.mkdir(parents=True, exist_ok=True)
     if overwrite:
