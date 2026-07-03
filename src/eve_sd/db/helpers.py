@@ -18,7 +18,7 @@ from eve_sd.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
 
 logger = logging.getLogger(__name__)
 
-_table_def_parent = "eve_static_data.db"
+_table_def_parent = "eve_sd.db"
 _table_def_sql = "table_defs.sql"
 
 INLINE_FILTER_LIMIT = 500
