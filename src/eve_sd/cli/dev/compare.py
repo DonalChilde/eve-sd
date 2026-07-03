@@ -6,7 +6,7 @@ from typing import Annotated, Any, cast
 import typer
 from rich.console import Console
 
-from eve_sd.db.helpers import create_read_write_connection
+from eve_sd import db_connection_manager
 from eve_sd.db.query import DatasetDbQuery
 from eve_sd.helpers import json_io, yaml_io
 from eve_sd.helpers.sde_metadata import SdeVariant, load_sde_metadata
@@ -48,7 +48,7 @@ def compare(
 ) -> None:
     """Compare source dataset records to database records for each dataset."""
     file_sde_metadata = load_sde_metadata(from_directory)
-    with create_read_write_connection(str(with_file)) as connection:
+    with db_connection_manager(with_file) as connection:
         db_query = DatasetDbQuery(connection)
         db_sde_metadata = db_query.sde_metadata
         if (

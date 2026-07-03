@@ -6,8 +6,8 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from eve_sd import db_connection_manager
 from eve_sd.cli.helpers import ReportChoice
-from eve_sd.db.helpers import create_read_write_connection
 from eve_sd.helpers import json_io
 from eve_sd.helpers.save_text_file import save_text_file
 from eve_sd.helpers.schema_report.markdown_report import (
@@ -80,12 +80,9 @@ def report_db(
     else:
         messenger = Console(stderr=True)
     stdout = Console()
-    connection = create_read_write_connection(str(from_file))
-    try:
+    with db_connection_manager(from_file) as connection:
         # TODO Refactor to allow progress bar.
         schema_report = get_schema_report_from_db(connection)
-    finally:
-        connection.close()
 
     markdown_report = generate_markdown_report(schema_report)
     if update_db:

@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter_ns
-from typing import Annotated, Any
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -18,7 +18,8 @@ from rich.progress import (
     TotalFileSizeColumn,
 )
 
-from eve_sd.db.helpers import create_read_write_connection, write_key_types
+from eve_sd import KeyedRecord, db_connection_manager
+from eve_sd.db.helpers import write_key_types
 from eve_sd.db.load_datasets import (
     get_key_type_from_records,
     write_db_metadata,
@@ -109,43 +110,41 @@ def create(
         )
         raise typer.Exit(code=1)
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    connection = create_read_write_connection(str(db_path.resolve()))
-
-    start_time_ns = perf_counter_ns()
-
-    match sde_metadata.variant:
-        case "jsonl":
-            if serialization_format is None:
-                serialization_format = SerializationFormat.JSON
-            files = list(from_directory.glob("*.jsonl"))
-            results = _load_jsonl_files_to_db(
-                jsonl_files=files,
-                connection=connection,
-                serialization_format=serialization_format,
-                messenger=messenger,
-            )
-
-        case "yaml":
-            if serialization_format is None:
-                serialization_format = SerializationFormat.PICKLE
-            results = _load_yaml_files_to_db(
-                yaml_files=list(from_directory.glob("*.yaml")),
-                connection=connection,
-                serialization_format=serialization_format,
-                messenger=messenger,
-            )
-
-        case _:
-            messenger.print(
-                f"[bold red]Error:[/bold red] Unsupported SDE variant: {sde_metadata.variant}. Supported variants are 'jsonl' and 'yaml'."
-            )
-            raise typer.Exit(code=1)
-    # use results to write dataset keytype table
-    key_types = {result.dataset_name: result.key_type for result in results}
-    write_key_types(connection, dataset_key_types=key_types)
-    write_db_metadata(
-        connection, sde_metadata=sde_metadata, serialization_format=serialization_format
-    )
+    with db_connection_manager(db_path, read_only=False) as connection:
+        start_time_ns = perf_counter_ns()
+        match sde_metadata.variant:
+            case "jsonl":
+                if serialization_format is None:
+                    serialization_format = SerializationFormat.JSON
+                files = list(from_directory.glob("*.jsonl"))
+                results = _load_jsonl_files_to_db(
+                    jsonl_files=files,
+                    connection=connection,
+                    serialization_format=serialization_format,
+                    messenger=messenger,
+                )
+            case "yaml":
+                if serialization_format is None:
+                    serialization_format = SerializationFormat.PICKLE
+                results = _load_yaml_files_to_db(
+                    yaml_files=list(from_directory.glob("*.yaml")),
+                    connection=connection,
+                    serialization_format=serialization_format,
+                    messenger=messenger,
+                )
+            case _:
+                messenger.print(
+                    f"[bold red]Error:[/bold red] Unsupported SDE variant: {sde_metadata.variant}. Supported variants are 'jsonl' and 'yaml'."
+                )
+                raise typer.Exit(code=1)
+        # use results to write dataset keytype table
+        key_types = {result.dataset_name: result.key_type for result in results}
+        write_key_types(connection, dataset_key_types=key_types)
+        write_db_metadata(
+            connection,
+            sde_metadata=sde_metadata,
+            serialization_format=serialization_format,
+        )
     end_time_ns = perf_counter_ns()
     elapsed_time_s = (end_time_ns - start_time_ns) / 1_000_000_000
     total_records = sum(result.record_count for result in results)
@@ -168,7 +167,7 @@ class DatasetImportResult:
 
 def _jsonl_file_as_records(
     jsonl_file: Path,
-) -> tuple[str, Iterable[tuple[str | int, dict[str | int, Any]]]]:
+) -> tuple[str, Iterable[KeyedRecord]]:
     dataset_name = jsonl_file.stem
     records = load_jsonl_as_records(jsonl_file)
     return dataset_name, records
@@ -176,7 +175,7 @@ def _jsonl_file_as_records(
 
 def _yaml_file_as_records(
     yaml_file: Path,
-) -> tuple[str, Iterable[tuple[str | int, dict[str | int, Any]]]]:
+) -> tuple[str, Iterable[KeyedRecord]]:
     dataset_name = yaml_file.stem
     records_dict = yaml_io.safe_load_path(yaml_file)
     records = (
@@ -187,7 +186,7 @@ def _yaml_file_as_records(
 
 def _load_records_to_db(
     dataset_name: str,
-    records: Iterable[tuple[str | int, dict[str | int, Any]]],
+    records: Iterable[KeyedRecord],
     connection: sqlite3.Connection,
     serialization_format: SerializationFormat,
 ) -> DatasetImportResult:

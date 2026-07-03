@@ -38,12 +38,12 @@ type KeyedRecord = IntKeyedRecord | StrKeyedRecord
 """Type alias for a record from an EVE SDE dataset with either an integer or string key."""
 type Dataset = dict[str | int, Record]
 """Type alias for an EVE SDE dataset, which is a mapping of keys to records."""
-from eve_sd.db.helpers import create_read_write_connection
+from eve_sd.db.helpers import db_connection_manager
 from eve_sd.db.query import DatasetDbQuery
 from eve_sd.sde_tools import SDETools
 
 __all__ = [
     "SDETools",
-    "create_read_write_connection",
+    "db_connection_manager",
     "DatasetDbQuery",
 ]

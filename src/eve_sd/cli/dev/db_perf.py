@@ -7,7 +7,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from eve_sd.db.helpers import create_read_write_connection
+from eve_sd import db_connection_manager
 from eve_sd.db.query import DatasetDbQuery
 
 app = typer.Typer(no_args_is_help=True, help="Database performance testing commands.")
@@ -32,7 +32,7 @@ def db_perf(
 ) -> None:
     """Measure query performance by loading all records from each dataset."""
     job_start = perf_counter()
-    with create_read_write_connection(str(from_file)) as connection:
+    with db_connection_manager(from_file) as connection:
         console = Console()
         console.print(
             f"[bold green]Testing database performance for {from_file}[/bold green]"

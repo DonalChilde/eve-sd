@@ -8,7 +8,7 @@ from typing import Annotated, Any
 import typer
 from rich.console import Console
 
-from eve_sd.db.helpers import create_read_write_connection
+from eve_sd.db.helpers import db_connection_manager
 from eve_sd.db.query import DatasetDbQuery
 from eve_sd.helpers import yaml_io
 
@@ -158,7 +158,7 @@ def browse(
     record_keys = [] if record_key is None else record_key
     interactive_mode = interactive or sys.stdin.isatty()
 
-    with create_read_write_connection(str(from_file)) as connection:
+    with db_connection_manager(str(from_file), read_only=False) as connection:
         db_query = DatasetDbQuery(connection)
 
         if dataset_name is None:
