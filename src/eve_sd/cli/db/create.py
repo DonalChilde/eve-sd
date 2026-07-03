@@ -220,10 +220,10 @@ def _load_jsonl_files_to_db(
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        TextColumn("[progress.data]{task.fields[filename]}"),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TextColumn("Completed: [progress.percentage]{task.percentage:>3.0f}%"),
         FileSizeColumn(),
         TotalFileSizeColumn(),
+        TextColumn("Loading: [progress.data]{task.fields[filename]}"),
         transient=True,
         console=messenger,
     ) as progress:
@@ -233,7 +233,7 @@ def _load_jsonl_files_to_db(
             filename="",
         )
         for jsonl_file, size in files_with_sizes:
-            progress.update(task, advance=size, filename=jsonl_file.name)
+            progress.update(task, filename=jsonl_file.name)
             dataset_name, records = _jsonl_file_as_records(jsonl_file)
             result = _load_records_to_db(
                 dataset_name=dataset_name,
@@ -241,6 +241,7 @@ def _load_jsonl_files_to_db(
                 connection=connection,
                 serialization_format=serialization_format,
             )
+            progress.update(task, advance=size)
             results.append(result)
     return results
 
@@ -260,10 +261,10 @@ def _load_yaml_files_to_db(
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        TextColumn("[progress.data]{task.fields[filename]}"),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TextColumn("Completed: [progress.percentage]{task.percentage:>3.0f}%"),
         FileSizeColumn(),
         TotalFileSizeColumn(),
+        TextColumn("Loading: [progress.data]{task.fields[filename]}"),
         transient=True,
         console=messenger,
     ) as progress:
@@ -273,7 +274,7 @@ def _load_yaml_files_to_db(
             filename="",
         )
         for yaml_file, size in files_with_sizes:
-            progress.update(task, advance=size, filename=yaml_file.name)
+            progress.update(task, filename=yaml_file.name)
             dataset_name, records = _yaml_file_as_records(yaml_file)
             result = _load_records_to_db(
                 dataset_name=dataset_name,
@@ -281,5 +282,6 @@ def _load_yaml_files_to_db(
                 connection=connection,
                 serialization_format=serialization_format,
             )
+            progress.update(task, advance=size)
             results.append(result)
     return results

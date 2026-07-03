@@ -12,7 +12,7 @@ from eve_sd.helpers.sde_metadata import (
     SourceMedia,
     load_sde_metadata,
 )
-from eve_sd.helpers.yaml_io import safe_dump_path, safe_load_path
+from eve_sd.helpers.yaml_io import safe_dump_str_path, safe_load_path
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -98,7 +98,7 @@ def _generate_yaml_test_data(
 
         yaml_target.parent.mkdir(parents=True, exist_ok=True)
         json_target.parent.mkdir(parents=True, exist_ok=True)
-        safe_dump_path(fixture_data, yaml_target)
+        safe_dump_str_path(fixture_data, yaml_target)
         _write_text(
             json_target,
             f"{json_io.json_dumps(fixture_data, indent=2)}\n",

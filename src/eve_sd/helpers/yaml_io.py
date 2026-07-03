@@ -6,7 +6,7 @@ falls back to pure-Python safe implementations otherwise.
 
 import logging
 from pathlib import Path
-from typing import IO, Any, TextIO
+from typing import IO, Any, BinaryIO, TextIO
 
 import yaml
 
@@ -24,27 +24,88 @@ except ImportError:
     )
 
 
-def safe_dump_path(data: Any, file_path: Path, **kwargs: Any) -> None:
+def safe_dump_str_path(
+    data: Any,
+    file_path: Path,
+    *,
+    overwrite: bool = False,
+    encoding: str = "utf-8",
+    allow_unicode: bool = True,
+    **kwargs: Any,
+) -> None:
     """Serialize a Python object to a YAML file.
 
     Args:
         data: The Python object to dump to YAML.
         file_path: Destination YAML file path.
+        overwrite: Whether to overwrite the file if it already exists.
+        encoding: File encoding to use.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
         **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Raises:
         yaml.YAMLError: If YAML serialization fails.
     """
-    with file_path.open("w") as f:
-        yaml.dump(data, f, Dumper=SafeDumper, **kwargs)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if overwrite:
+        mode = "w"
+    else:
+        mode = "x"
+
+    with file_path.open(mode, encoding=encoding) as f:
+        yaml.dump(
+            data, stream=f, Dumper=SafeDumper, allow_unicode=allow_unicode, **kwargs
+        )
 
 
-def safe_dump_IO(data: Any, file_io: TextIO, **kwargs: Any) -> None:
+def safe_dump_bytes_path(
+    data: Any,
+    file_path: Path,
+    *,
+    overwrite: bool = False,
+    encoding: str = "utf-8",
+    allow_unicode: bool = True,
+    **kwargs: Any,
+) -> None:
+    """Serialize a Python object to a YAML file in binary mode.
+
+    Args:
+        data: The Python object to dump to YAML.
+        file_path: Destination YAML file path.
+        overwrite: Whether to overwrite the file if it already exists.
+        encoding: File encoding to use.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
+
+    Raises:
+        yaml.YAMLError: If YAML serialization fails.
+    """
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    if overwrite:
+        mode = "wb"
+    else:
+        mode = "xb"
+    with file_path.open(mode) as f:
+        yaml.dump(
+            data,
+            stream=f,
+            Dumper=SafeDumper,
+            allow_unicode=allow_unicode,
+            encoding=encoding,
+            **kwargs,
+        )
+
+
+def safe_dump_text_io(
+    data: Any, file_io: TextIO, *, allow_unicode: bool = True, **kwargs: Any
+) -> None:
     """Serialize a Python object to an existing file-like object.
 
     Args:
         data: The Python object to dump to YAML.
         file_io: Writable file-like object.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
         **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Raises:
@@ -54,14 +115,56 @@ def safe_dump_IO(data: Any, file_io: TextIO, **kwargs: Any) -> None:
         Stream lifecycle is managed by the caller; this function does not close
         the file object.
     """
-    yaml.dump(data, file_io, Dumper=SafeDumper, **kwargs)
+    yaml.dump(
+        data,
+        stream=file_io,
+        encoding=None,
+        Dumper=SafeDumper,
+        allow_unicode=allow_unicode,
+        **kwargs,
+    )
 
 
-def safe_dump(data: Any, **kwargs: Any) -> str:
+def safe_dump_binary_io(
+    data: Any,
+    file_io: BinaryIO,
+    *,
+    allow_unicode: bool = True,
+    encoding: str = "utf-8",
+    **kwargs: Any,
+) -> None:
+    """Serialize a Python object to an existing binary file-like object.
+
+    Args:
+        data: The Python object to dump to YAML.
+        file_io: Writable binary file-like object.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
+        encoding: The encoding to use for the byte string.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
+
+    Raises:
+        yaml.YAMLError: If YAML serialization fails.
+
+    Notes:
+        Stream lifecycle is managed by the caller; this function does not close
+        the file object.
+    """
+    yaml.dump(
+        data,
+        stream=file_io,
+        Dumper=SafeDumper,
+        allow_unicode=allow_unicode,
+        encoding=encoding,
+        **kwargs,
+    )
+
+
+def safe_dump_str(data: Any, *, allow_unicode: bool = True, **kwargs: Any) -> str:
     """Serialize a Python object to a YAML string.
 
     Args:
         data: The Python object to dump to YAML.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
         **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
 
     Returns:
@@ -70,7 +173,47 @@ def safe_dump(data: Any, **kwargs: Any) -> str:
     Raises:
         yaml.YAMLError: If YAML serialization fails.
     """
-    return yaml.dump(data=data, stream=None, Dumper=SafeDumper, **kwargs)  # type: ignore
+    result = yaml.dump(
+        data=data,
+        stream=None,
+        encoding=None,
+        Dumper=SafeDumper,
+        allow_unicode=allow_unicode,
+        **kwargs,
+    )
+    return result
+
+
+def safe_dump_bytes(
+    data: Any, *, allow_unicode: bool = True, encoding: str = "utf-8", **kwargs: Any
+) -> bytes:
+    """Serialize a Python object to a YAML byte string.
+
+    Args:
+        data: The Python object to dump to YAML.
+        allow_unicode: Whether to allow non-ASCII characters in the output.
+        encoding: The encoding to use for the byte string.
+        **kwargs: Additional keyword arguments forwarded to ``yaml.dump``.
+
+    Returns:
+        YAML byte string representation of ``data``.
+
+    Raises:
+        yaml.YAMLError: If YAML serialization fails.
+    """
+    yaml_bytes = yaml.dump(
+        data=data,
+        stream=None,
+        Dumper=SafeDumper,
+        allow_unicode=allow_unicode,
+        encoding=encoding,
+        **kwargs,
+    )
+    if not isinstance(yaml_bytes, bytes):
+        raise TypeError(
+            f"Expected bytes from safe_dump, got {type(yaml_bytes).__name__}"
+        )
+    return yaml_bytes
 
 
 def safe_load_path(file_path: Path) -> Any:

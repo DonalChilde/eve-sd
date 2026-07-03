@@ -168,7 +168,9 @@ def browse(
                     "record_count": db_query.dataset_record_count(current_dataset_name),
                     "key_type": db_query.dataset_key_types[current_dataset_name],
                 }
-            stdout.print(yaml_io.safe_dump(dataset_summary, sort_keys=False).rstrip())
+            stdout.print(
+                yaml_io.safe_dump_str(dataset_summary, sort_keys=False).rstrip()
+            )
             return
 
         if dataset_name not in db_query.dataset_key_types:
@@ -195,7 +197,7 @@ def browse(
             messenger.print(
                 f"[bold blue]{dataset_name}[/bold blue] page {current_page} with {len(page_mapping)} of {total_records} records"
             )
-            stdout.print(yaml_io.safe_dump(page_mapping, sort_keys=False).rstrip())
+            stdout.print(yaml_io.safe_dump_str(page_mapping, sort_keys=False).rstrip())
             return
 
         while True:
@@ -210,7 +212,7 @@ def browse(
             messenger.print(
                 f"[bold blue]{dataset_name}[/bold blue] page {current_page}/{page_count} with {len(page_mapping)} of {total_records} records"
             )
-            stdout.print(yaml_io.safe_dump(page_mapping, sort_keys=False).rstrip())
+            stdout.print(yaml_io.safe_dump_str(page_mapping, sort_keys=False).rstrip())
             if current_page >= page_count or not interactive_mode:
                 return
             response = typer.prompt(
