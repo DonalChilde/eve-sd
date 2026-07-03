@@ -51,9 +51,7 @@ class TestDatasetRecordIntYaml:
 
     def test_from_record_sets_int_key(self) -> None:
         """from_record sets record_key as an integer."""
-        instance = DatasetRecordIntYaml.from_record(
-            "ds", (42, SAMPLE_INT_RECORD)
-        )
+        instance = DatasetRecordIntYaml.from_record("ds", (42, SAMPLE_INT_RECORD))
         assert instance.record_key == 42
         assert isinstance(instance.record_key, int)
 

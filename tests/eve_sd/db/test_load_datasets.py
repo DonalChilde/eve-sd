@@ -4,13 +4,13 @@ import sqlite3
 
 import pytest
 
+from eve_sd.db.helpers import query_key_types, query_sde_metadata
 from eve_sd.db.load_datasets import (
     get_key_type_from_records,
     write_db_metadata,
     write_sde_records_to_db,
 )
 from eve_sd.db.models import SerializationFormat
-from eve_sd.db.helpers import query_key_types, query_sde_metadata
 from eve_sd.helpers.sde_metadata import SdeMetadata, SdeVariant, SourceMedia
 
 
