@@ -1,6 +1,6 @@
 [project]
 name = "pfmsoft-eve-sd"
-version = "0.4.2"
+version = "0.4.3"
 description = "A CLI and API for Eve Online Static Data downloading and use."
 readme = "README.md"
 authors = [{ name = "Chad Lowe", email = "pfmsoft.dev@gmail.com" }]
