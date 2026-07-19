@@ -1,5 +1,6 @@
 """Eve SD Package."""
 
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
@@ -7,11 +8,11 @@ from typer import get_app_dir
 
 __author__ = "Chad Lowe"
 __author_email__ = "pfmsoft.dev@gmail.com"
-__app_name__ = "Eve SD"
-__version__ = "0.4.1"
+__app_name__ = "pfmsoft-eve-sd"
+__version__ = version(__app_name__)
 __license__ = "MIT"
-__url__ = "https://github.com/DonalChilde/eve-sd"
-__description__ = "A terminal interface for Eve Online Static Data downloading and use."
+__url__ = "https://github.com/DonalChilde/pfmsoft-eve-sd"
+__description__ = "A CLI and API for Eve Online Static Data downloading and use."
 
 NAMESPACE = "pfmsoft"
 APPLICATION_NAME = "eve-sd"
