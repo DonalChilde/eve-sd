@@ -11,7 +11,7 @@ def get_docs_text() -> str:
     Returns:
         str: The documentation text.
     """
-    _doc_parent = "eve_sd.docs"
+    _doc_parent = "pfmsoft.eve_sd.docs"
     _doc_file = "eve_sd_docs.md"
     doc_text = resource_files(_doc_parent).joinpath(_doc_file).read_text()
     return doc_text

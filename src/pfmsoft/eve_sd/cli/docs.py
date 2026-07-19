@@ -13,8 +13,8 @@ app = typer.Typer(
     no_args_is_help=True,
     help="Display bundled documentation for eve-sd.",
 )
-_doc_parent = "eve_static_data.docs"
-_doc_file = "eve_static_data_docs.md"
+_doc_parent = "pfmsoft.eve_sd.docs"
+_doc_file = "eve_sd_docs.md"
 
 
 @app.command(name="docs")

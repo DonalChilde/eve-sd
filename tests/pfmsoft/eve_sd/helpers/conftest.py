@@ -8,7 +8,7 @@ import pytest
 @pytest.fixture(scope="session")
 def sde_data_dir() -> Path:
     """Return the path to the SDE test data directory."""
-    return Path(__file__).parent.parent.parent / "resources" / "sde_data"
+    return Path(__file__).parent.parent.parent.parent / "resources" / "sde_data"
 
 
 @pytest.fixture(scope="session")

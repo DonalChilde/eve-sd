@@ -51,7 +51,7 @@ class TestMainTyperApp:
 
         assert ctx.obj == {"esd-settings": settings}
         assert configured_log_dirs == [Path(settings.logging_directory)]
-        logger_info.assert_called_once_with(f"Starting {__app_name__} {__version__}")
+        logger_info.assert_called_once_with(f"Starting {__app_name__} v{__version__}")
 
     def test_help_lists_primary_commands(self) -> None:
         """Top-level help shows the primary command groups and commands."""
