@@ -3,7 +3,8 @@
 from collections.abc import Iterable
 from pathlib import Path
 
-from pfmsoft.eve_sd.helpers.json_io import json_load_path, jsonl_load_path
+from pfmsoft.eve_snippets import json_io, yaml_io
+
 from pfmsoft.eve_sd.helpers.schema_report.markdown_report import (
     generate_markdown_report,
 )
@@ -13,7 +14,6 @@ from pfmsoft.eve_sd.helpers.schema_report.schema_report import (
     build_schema_report,
 )
 from pfmsoft.eve_sd.helpers.sde_metadata import load_sde_metadata
-from pfmsoft.eve_sd.helpers.yaml_io import safe_load_path
 
 # TODO use raw loader helpers, record types
 
@@ -26,7 +26,7 @@ def get_jsonl_schema_report(sde_directory: Path) -> SchemaReport:
         for dataset_file in sde_directory.glob("*.jsonl"):
             dataset_name = dataset_file.stem
 
-            data = {x["_key"]: x for x in jsonl_load_path(dataset_file)}
+            data = {x["_key"]: x for x in json_io.jsonl_load_path(dataset_file)}
             yield DatasetInput(
                 dataset_name=dataset_name,
                 dataset_data=data,
@@ -48,7 +48,7 @@ def get_yaml_schema_report(sde_directory: Path) -> SchemaReport:
         for dataset_file in sde_directory.glob("*.yaml"):
             dataset_name = dataset_file.stem
 
-            data = safe_load_path(dataset_file)
+            data = yaml_io.safe_load_path(dataset_file)
             yield DatasetInput(
                 dataset_name=dataset_name,
                 dataset_data=data,
@@ -74,7 +74,7 @@ def get_json_schema_report(sde_directory: Path) -> SchemaReport:
         for dataset_file in sde_directory.glob("*.json"):
             dataset_name = dataset_file.stem
 
-            data = json_load_path(dataset_file)
+            data = json_io.json_load_path(dataset_file)
             yield DatasetInput(
                 dataset_name=dataset_name,
                 dataset_data=data,

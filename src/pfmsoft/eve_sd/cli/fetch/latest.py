@@ -4,11 +4,12 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import save_text_file
+from pfmsoft.eve_snippets.httpx2.http_session_factory import client_manager
 from rich.console import Console
 
+from pfmsoft.eve_sd import USER_AGENT
 from pfmsoft.eve_sd.cli.helpers import get_esd_settings_from_context
-from pfmsoft.eve_sd.helpers.http_client import config_http_client
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 from pfmsoft.eve_sd.helpers.settings_factory import sde_tools_factory
 
 app = typer.Typer(no_args_is_help=True)
@@ -60,8 +61,8 @@ def latest(
     messenger.print("[bold green]Latest SDE Information[/bold green]")
     settings = get_esd_settings_from_context(ctx)
     sde_tools = sde_tools_factory(settings)
-    session = config_http_client()
-    info = sde_tools.fetch_latest_sde_info(session=session)
+    with client_manager(USER_AGENT) as session:
+        info = sde_tools.fetch_latest_sde_info(session=session)
     if str(to_file) == "-":
         stdout.print(info)
         return
@@ -69,8 +70,8 @@ def latest(
         file_name = Path("latest_sde_info.json")
     path_out = save_text_file(
         text=str(info),
-        output_directory=to_file,
-        file_name=str(file_name),
+        directory=to_file,
+        filename=str(file_name),
         overwrite=overwrite,
     )
     messenger.print(

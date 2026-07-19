@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import save_text_file
 from rich.console import Console
 
 from pfmsoft.eve_sd.docs import get_docs_text
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -58,8 +58,8 @@ def docs(
     else:
         path_out = save_text_file(
             text=doc_text,
-            output_directory=to_directory,
-            file_name=_doc_file,
+            directory=to_directory,
+            filename=_doc_file,
             overwrite=overwrite,
         )
         messenger.print(f"Documentation saved to: {path_out}")

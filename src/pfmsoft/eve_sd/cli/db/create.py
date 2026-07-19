@@ -9,6 +9,7 @@ from time import perf_counter_ns
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import yaml_io
 from rich.console import Console
 from rich.progress import (
     FileSizeColumn,
@@ -26,7 +27,6 @@ from pfmsoft.eve_sd.db.load_datasets import (
     write_sde_records_to_db,
 )
 from pfmsoft.eve_sd.db.models import SerializationFormat
-from pfmsoft.eve_sd.helpers import yaml_io
 from pfmsoft.eve_sd.helpers.load_raw_datasets import load_jsonl_as_records
 from pfmsoft.eve_sd.helpers.sde_metadata import load_sde_metadata
 

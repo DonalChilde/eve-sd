@@ -5,14 +5,13 @@ from pathlib import Path
 from typing import Annotated, Any, cast
 
 import typer
+from pfmsoft.eve_snippets import json_io, yaml_io
 
-from pfmsoft.eve_sd.helpers import json_io, yaml_io
 from pfmsoft.eve_sd.helpers.sde_metadata import (
     SdeVariant,
     SourceMedia,
     load_sde_metadata,
 )
-from pfmsoft.eve_sd.helpers.yaml_io import safe_dump_str_path, safe_load_path
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -53,7 +52,7 @@ def _write_text(path: Path, text: str, overwrite: bool) -> None:
 def _load_mapping_file(path: Path, source_media: SourceMedia) -> dict[Any, Any] | None:
     """Load a mapping dataset file based on source media."""
     if source_media is SourceMedia.YAML:
-        loaded_data = safe_load_path(path)
+        loaded_data = yaml_io.safe_load_path(path)
     else:
         raise ValueError(
             f"Unsupported source media {source_media!r} for mapping dataset loading."
@@ -98,7 +97,7 @@ def _generate_yaml_test_data(
 
         yaml_target.parent.mkdir(parents=True, exist_ok=True)
         json_target.parent.mkdir(parents=True, exist_ok=True)
-        safe_dump_str_path(fixture_data, yaml_target)
+        yaml_io.safe_dump_str_path(fixture_data, yaml_target)
         _write_text(
             json_target,
             f"{json_io.json_dumps(fixture_data, indent=2)}\n",

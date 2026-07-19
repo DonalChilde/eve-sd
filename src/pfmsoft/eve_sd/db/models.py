@@ -21,8 +21,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Protocol, Self
 
+from pfmsoft.eve_snippets import json_io, yaml_io
+
 from pfmsoft.eve_sd import IntKeyedRecord, Record, StrKeyedRecord
-from pfmsoft.eve_sd.helpers import json_io, yaml_io
 
 
 class SerializationFormat(StrEnum):

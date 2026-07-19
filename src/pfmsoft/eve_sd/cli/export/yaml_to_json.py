@@ -5,10 +5,8 @@ from time import perf_counter
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import json_io, save_text_file, yaml_io
 from rich.console import Console
-
-from pfmsoft.eve_sd.helpers import json_io, yaml_io
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -87,8 +85,8 @@ def yaml_to_json(
         try:
             save_text_file(
                 text=json_io.json_dumps(yaml_data, indent=2) + "\n",
-                output_directory=to_directory,
-                file_name=json_file_name,
+                directory=to_directory,
+                filename=json_file_name,
                 overwrite=overwrite,
             )
             end_json = perf_counter()

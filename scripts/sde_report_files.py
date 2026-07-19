@@ -5,9 +5,8 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import json_io, save_text_file
 
-from pfmsoft.eve_sd.helpers.json_io import json_dumps_path
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 from pfmsoft.eve_sd.helpers.schema_report.markdown_report import (
     generate_markdown_report,
 )
@@ -68,12 +67,14 @@ def generate_report(
     markdown_report = generate_markdown_report(report)
     if output_path:
         report_file = output_path / "schema_report.json"
-        json_dumps_path(report, filepath=report_file, indent=2, overwrite=overwrite)
+        json_io.json_dumps_path(
+            report, filepath=report_file, indent=2, overwrite=overwrite
+        )
         markdown_report_file = output_path / "schema_report.md"
         save_text_file(
-            markdown_report,
-            output_path=output_path,
-            file_name=markdown_report_file.name,
+            text=markdown_report,
+            directory=output_path,
+            filename=markdown_report_file.name,
             overwrite=overwrite,
         )
     else:

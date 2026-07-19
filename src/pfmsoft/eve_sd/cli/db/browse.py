@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
+from pfmsoft.eve_snippets import yaml_io
 from rich.console import Console
 
 from pfmsoft.eve_sd.db.helpers import db_connection_manager
 from pfmsoft.eve_sd.db.query import DatasetDbQuery
-from pfmsoft.eve_sd.helpers import yaml_io
 
 app = typer.Typer(no_args_is_help=True, help="Browse records in an SDE database.")
 

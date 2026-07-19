@@ -6,10 +6,8 @@ from time import perf_counter
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import json_io, save_text_file
 from rich.console import Console
-
-from pfmsoft.eve_sd.helpers import json_io
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -109,8 +107,8 @@ def jsonl_to_json(
             start_json = perf_counter()
             save_text_file(
                 text=json_io.json_dumps(marshalled_data, indent=2),
-                output_directory=target_file.parent,
-                file_name=target_file.name,
+                directory=target_file.parent,
+                filename=target_file.name,
                 overwrite=overwrite,
             )
             end_json = perf_counter()

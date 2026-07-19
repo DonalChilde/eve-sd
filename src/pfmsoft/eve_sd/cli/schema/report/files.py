@@ -4,11 +4,10 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pfmsoft.eve_snippets import json_io, save_text_file
 from rich.console import Console
 
 from pfmsoft.eve_sd.cli.helpers import ReportChoice
-from pfmsoft.eve_sd.helpers import json_io
-from pfmsoft.eve_sd.helpers.save_text_file import save_text_file
 from pfmsoft.eve_sd.helpers.schema_report.markdown_report import (
     generate_markdown_report,
 )
@@ -114,14 +113,14 @@ def report_files(
     markdown_file_name = f"schema_report_{format_name}_{build_number}.md"
     save_text_file(
         text=json_io.json_dumps(schema_report, indent=2),
-        output_directory=to_directory,
-        file_name=json_file_name,
+        directory=to_directory,
+        filename=json_file_name,
         overwrite=overwrite,
     )
     save_text_file(
         text=markdown_report,
-        output_directory=to_directory,
-        file_name=markdown_file_name,
+        directory=to_directory,
+        filename=markdown_file_name,
         overwrite=overwrite,
     )
     messenger.print(

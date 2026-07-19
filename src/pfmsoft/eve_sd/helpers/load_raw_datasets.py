@@ -4,9 +4,9 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
 
+from pfmsoft.eve_snippets import json_io, yaml_io
+
 from pfmsoft.eve_sd import Dataset, KeyedRecord, Record
-from pfmsoft.eve_sd.helpers import json_io
-from pfmsoft.eve_sd.helpers.yaml_io import safe_load_path
 
 
 def load_jsonl_as_dataset(jsonl_path: Path) -> Dataset:
@@ -77,7 +77,7 @@ def load_yaml_as_dataset(yaml_path: Path) -> Dataset:
     Raises:
         ValueError: If the YAML top-level value is not a mapping.
     """
-    dataset_dict = safe_load_path(yaml_path)
+    dataset_dict = yaml_io.safe_load_path(yaml_path)
     if not isinstance(dataset_dict, dict):
         raise ValueError(
             f"Expected a YAML mapping (dict) in file '{yaml_path}', but got {type(dataset_dict).__name__}."
