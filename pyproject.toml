@@ -28,8 +28,8 @@ requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
 
 # For a namespaced project
-# [tool.uv.build-backend]
-# module-name = "pfmsoft.eve_snippets"
+[tool.uv.build-backend]
+module-name = "pfmsoft.eve_sd"
 
 [project.urls]
 Documentation = "https://github.com/DonalChilde/pfmsoft-eve-sd#readme"
@@ -60,7 +60,7 @@ log_file = "logs/tests.log"
 log_file_date_format = "%Y-%m-%dT%H:%M:%S.%f%z"
 log_file_format = "%(asctime)s %(levelname)s:%(funcName)s: %(message)s [in %(pathname)s:%(lineno)d]"
 log_file_level = "INFO"
-norecursedirs = "tests/old"
+
 
 [tool.coverage.run]
 branch = true

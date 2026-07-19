@@ -2,10 +2,10 @@ from logging import basicConfig, getLogger
 from pathlib import Path
 from time import perf_counter_ns
 
-from eve_sd.db.helpers import (
+from pfmsoft.eve_sd.db.helpers import (
     create_read_write_connection,
 )
-from eve_sd.db.load_datasets import import_yaml_sde_to_db
+from pfmsoft.eve_sd.db.load_datasets import import_yaml_sde_to_db
 
 basicConfig(level="INFO")
 logger = getLogger(__name__)

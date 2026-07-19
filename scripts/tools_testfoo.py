@@ -5,7 +5,7 @@
 import asyncio
 from pathlib import Path
 
-from eve_sd.sde_tools import SDETools
+from pfmsoft.eve_sd.sde_tools import SDETools
 
 DOWNLOAD_DIR = Path("~/tmp/tools_test").expanduser()
 
