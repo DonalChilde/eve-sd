@@ -14,9 +14,7 @@ __license__ = "MIT"
 __url__ = "https://github.com/DonalChilde/pfmsoft-eve-sd"
 __description__ = "A CLI and API for Eve Online Static Data downloading and use."
 
-NAMESPACE = "pfmsoft"
-APPLICATION_NAME = "eve-sd"
-DEFAULT_APP_DIR = Path(get_app_dir(f"{APPLICATION_NAME}"))
+DEFAULT_APP_DIR = Path(get_app_dir(f"{__app_name__}"))
 USER_AGENT = f"{__app_name__}/{__version__} (+{__url__})"
 
 SDE_URL_TEMPLATE: str = "https://developers.eveonline.com/static-data/tranquility/eve-online-static-data-${build_number}-${variant}.zip"
